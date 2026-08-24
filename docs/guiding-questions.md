@@ -1,0 +1,3 @@
+# Guiding Questions
+
+Em construção.
