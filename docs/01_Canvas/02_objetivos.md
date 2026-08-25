@@ -50,7 +50,7 @@ Esse projeto **NÃO TRATA** de moderação automática de redes sociais, rastrea
       <td>1.1</td>
       <td>Refinamento das métricas de negócio e modelo</td>
       <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a></td>
-      <td> - </td>
+      <td><a href="https://github.com/DaviNegreiros">Davi Negreiros</a></td>
       <td>26/08/2026</td>
     </tr>
   </tbody>

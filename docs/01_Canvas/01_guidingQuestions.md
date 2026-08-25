@@ -9,7 +9,7 @@
 | DGQ1 | Quais critérios e características denotam um portal de notícia, agência de fact-checking ou base de dados confiável? | Definir métricas de credibilidade para selecionar as fontes de dados para IA. | Diretrizes de redes internacionais de checagem e literatura de confiabilidade de mídia. | | |
 | DGQ2 | Quais portais de notícias, agências de fact-checking e bases de dados específicas serão integradas e monitorados no projeto? | Através dos critérios da DGQ1, selecionar as fontes específicas que serão utilizadas: <br> 1. Portais de Notícias. <br> 2. Agências de Fact-Checking. <br> 3. Bases Oficiais. | Scripts de web scraping para portais, APIs de agências de checagem e bases abertas do governo (ex: TSE). | | |
 
-<p align="center">Fonte: Autoria de <a href="https://github.com/zzzBECK">Alexandre Beck</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+<p align="center">Fonte: Autoria de <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
 ## 1.2 Usuário
@@ -23,7 +23,7 @@
 | UGQ2 | Quais as melhores formas de entrada de conteúdo que o sistema deve ter tendo em vista idosos como usuários? | Mapear como os idosos costumam receber notícias e implementar múltiplos métodos práticos de envio na interface (texto colado, links, áudio do WhatsApp, prints de tela, etc). | Ferramentas de transcrição de áudio e leitura de imagens. | | |
 | UGQ3 | Quais formas de saída de conteúdo seriam melhores para idosos e como promover o engajamento com essa resposta? | Desenvolver formatos de veredito claros e amigáveis (alertas visuais intuitivos, síntese de voz para leitura em áudio e explicações didáticas). | Ferramentas de Text-to-Speech e diretrizes de comunicação clara (Plain Language). | | |
 
-<p align="center">Fonte: Autoria de <a href="https://github.com/zzzBECK">Alexandre Beck</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+<p align="center">Fonte: Autoria de <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 ## 1.3 Modelo
 
@@ -39,7 +39,7 @@
 | MQD5 | Como lidar com a classificação de Verdadeiro/Falso tendo em vistas as diversas categorias (como no caso de sensacionalista e fora de contexto)? | Estabelecer uma matriz de decisão onde um fato tecnicamente real, mas distorcido ou exagerado, receba o rótulo principal de "Fora do Contexto" ou "Sensacionalista" em vez de um binário simplista. | Diretrizes de análise de discurso, regras de desambiguação textual e curadoria de datasets complexos. | | |
 | MQD6 | Como estruturar a saída tendo em vista as classificações? devemos ter um parágrafo de explicação e contextualização na saída do sistema (especialmente para casos sensacionalistas)? | Projetar a resposta da IA para exibir um card de veredito claro, acompanhado obrigatoriamente de um parágrafo descritivo e didático, contextualizando a origem do fato e desconstruindo o apelo emocional. | Diretrizes de comunicação acessível (Plain Language) e protótipos de interface para exibição de texto explicativo. | | |
 
-<p align="center">Fonte: Autoria de <a href="https://github.com/zzzBECK">Alexandre Beck</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+<p align="center">Fonte: Autoria de <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
 ## 1.4 Produção
@@ -53,7 +53,7 @@
 | PGQ2 | Qual será a stack tecnológica usada no projeto? | Definir as linguagens, frameworks e ferramentas de hospedagem do projeto. | Python, Streamlit/FastAPI, MkDocs e plataformas de nuvem (AWS, Heroku, etc.). | | |
 | PGQ3 | Onde e como documentar o projeto? | Definir o framework ou ferramenta que será utilizada para documentação. | MkDocs com o tema Material e repositório Git. | | |
 
-<p align="center">Fonte: Autoria de <a href="https://github.com/zzzBECK">Alexandre Beck</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+<p align="center">Fonte: Autoria de <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
 ## 1.5 Ética 
@@ -66,7 +66,7 @@
 | EGQ1 | Como garantir clareza dos dados-fonte? | Exibir de forma clara para o usuário de onde a IA tirou a resposta e quais fontes foram consultadas. | Design de interface voltado à explicabilidade (Explainable AI) e links diretos para as fontes. | | |
 | EGQ2 | Como diminuir ao máximo o enviesamento tendo em vista as diversas fonte utilizadas? | Desenvolver uma estratégia de diversificação equilibrada de fontes e implementar diretrizes de balanceamento no modelo para que a IA analise os fatos com base em evidências objetivas. | Curadoria de datasets plurais e diretrizes de neutralidade algorítmica. | | |
 
-<p align="center">Fonte: Autoria de <a href="https://github.com/zzzBECK">Alexandre Beck</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+<p align="center">Fonte: Autoria de <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
 ## Histórico de Versão
@@ -93,7 +93,7 @@
       <td>1.1</td>
       <td>Refinamento das métricas de negócio e modelo</td>
       <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a></td>
-      <td> - </td>
+      <td><a href="https://github.com/DaviNegreiros">Davi Negreiros</a></td>
       <td>26/08/2026</td>
     </tr>
   </tbody>
