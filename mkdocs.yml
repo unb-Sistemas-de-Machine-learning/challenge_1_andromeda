@@ -2,26 +2,26 @@ site_name: Challenge 1 - Andrômeda
 
 theme:
   name: material
-  language: pt-BR
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      toggle:
-        icon: material/brightness-7
-        name: Modo escuro
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      toggle:
-        icon: material/brightness-4
-        name: Modo claro
+    scheme: slate
+    primary: black
+    accent: red
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.tabs.sticky
 
 repo_url: https://github.com/unb-Sistemas-de-Machine-learning/challenge_1_andromeda
 
+extra_css:
+  - assets/stylesheets/global.css
+  
 markdown_extensions:
   - admonition
   - tables
 
 nav:
   - Home: index.md
-  - Guiding Questions: guiding-questions.md
-  - Canvas: canva.md
+  - Canvas: 
+    - Guiding Questions: 01_Canvas/01_guidingQuestions.md
+    - Objetivos: 01_Canvas/02_objetivos.md
