@@ -66,7 +66,7 @@ A documentação do projeto é publicada em:
             <td align="center">
                 <a href="https://github.com/Pietrocv">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/86116655?v=4" width="150px;"/>
-                    <h5 class="text-center">Pietro Visentin <br>MATRICULA</h5>
+                    <h5 class="text-center">Pietro Visentin <br>232014754</h5>
                 </a>
             </td>
         </tr>
