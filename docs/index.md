@@ -7,10 +7,9 @@ Esta é a documentação do **Challenge 1** da disciplina de **Sistemas de Machi
 Circulam pelas redes sociais e pelos aplicativos de mensagem muitas notícias sobre
 política cuja veracidade é difícil de verificar. Quem recebe raramente tem tempo,
 ou familiaridade com as ferramentas de checagem que já existem, para conferir antes
-de repassar.
+de repassar, seja de forma oral ou através do compartilhamento dentro de redes sociais.
 
-Nossa ideia é ajudar essas pessoas a avaliar se um conteúdo é confiável antes de
-encaminhá-lo aos seus contatos, por meio de um assistente com interface simples.
+Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a avaliar se uma notícia é confiável por meio de um assistente com interface simples.
 
 
 ## Equipe
