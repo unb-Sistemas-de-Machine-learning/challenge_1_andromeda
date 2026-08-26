@@ -32,7 +32,7 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
             <td align="center">
                 <a href="https://github.com/Bertolazi">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/122479691?v=4" width="150px;"/>
-                    <h5 class="text-center">Gabriel Bertolazi <br>MATRICULA</h5>
+                    <h5 class="text-center">Gabriel Bertolazi <br>202023663</h5>
                 </a>
             </td>
         </tr>
@@ -52,7 +52,7 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
             <td align="center">
                 <a href="https://github.com/Pietrocv">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/86116655?v=4" width="150px;"/>
-                    <h5 class="text-center">Pietro Visentin <br>MATRICULA</h5>
+                    <h5 class="text-center">Pietro Visentin <br>232014754</h5>
                 </a>
             </td>
         </tr>
