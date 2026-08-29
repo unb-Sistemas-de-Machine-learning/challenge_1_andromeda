@@ -42,8 +42,8 @@ Esse projeto **NÃO TRATA** de moderação automática de redes sociais, rastrea
     <tr>
       <td>1.0</td>
       <td>Criação inicial da documentação </td>
-      <td><a href="https://github.com/Brenofrds">Breno Fernandes</a></td>
-       <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a></td>
+      <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a></td>
+      <td><a href="https://github.com/DaviNegreiros">Davi Negreiros<a></td>
       <td>23/08/2026</td>
     </tr>
     <tr>

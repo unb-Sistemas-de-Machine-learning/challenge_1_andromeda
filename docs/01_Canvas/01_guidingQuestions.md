@@ -1,6 +1,6 @@
-# 1. Guiding Questions
+# Guiding Questions
 
-## 1.1 Dados
+## 1. Dados
 
 <p align="center">Tabela 1 - Guiding Questions de Dados</p>
 
@@ -12,7 +12,7 @@
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
-## 1.2 Usuário
+## 2. Usuário
 
 
 <p align="center">Tabela 2 - Guiding Questions de Usuário</p>
@@ -25,7 +25,7 @@
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
-## 1.3 Modelo
+## 3. Modelo
 
 
 <p align="center">Tabela 3 - Guiding Questions de Modelo</p>
@@ -42,7 +42,7 @@
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
-## 1.4 Produção
+## 4. Produção
 
 
 <p align="center">Tabela 4 - Guiding Questions de Produção</p>
@@ -56,7 +56,7 @@
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 
-## 1.5 Ética 
+## 5. Ética 
 
 
 <p align="center">Tabela 5 - Guiding Questions de Ética</p>
@@ -85,8 +85,8 @@
     <tr>
       <td>1.0</td>
       <td>Criação inicial da documentação </td>
-      <td><a href="https://github.com/Brenofrds">Breno Fernandes</a></td>
        <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a></td>
+       <td><a href="https://github.com/DaviNegreiros">Davi Negreiros<a></td>
       <td>23/08/2026</td>
     </tr>
     <tr>

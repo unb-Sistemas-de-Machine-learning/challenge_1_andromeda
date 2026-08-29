@@ -18,12 +18,6 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
    <table class= "full-width-table">
         <tr>
             <td align="center">
-                <a href="https://github.com/Brenofrds">
-                    <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/132412607?v=4" width="150px;"/>
-                    <h5 class="text-center">Breno Fernandes <br>202017540</h5>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/DaviNegreiros">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/75706873?v=4" width="150px;"/>
                     <h5 class="text-center">Davi Negreiros <br>232013971</h5>
