@@ -32,12 +32,6 @@ A documentação do projeto é publicada em:
    <table style="margin-left: auto; margin-right: auto;">
         <tr>
             <td align="center">
-                <a href="https://github.com/Brenofrds">
-                    <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/132412607?v=4" width="150px;"/>
-                    <h5 class="text-center">Breno Fernandes <br>202017540</h5>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/DaviNegreiros">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/75706873?v=4" width="150px;"/>
                     <h5 class="text-center">Davi Negreiros <br>232013971</h5>
@@ -49,14 +43,14 @@ A documentação do projeto é publicada em:
                     <h5 class="text-center">Gabriel Bertolazi <br>202023663</h5>
                 </a>
             </td>
-        </tr>
-        <tr>
             <td align="center">
                 <a href="https://github.com/joaopedrodasilvarodrigues">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/100419740?v=4" width="150px;"/>
                     <h5 class="text-center">João Pedro da Silva Rodrigues <br>211031074</h5>
                 </a>
             </td>
+        </tr>
+        <tr>
             <td align="center">
                 <a href="https://github.com/bolzanMGB">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/149620306?v=4" width="150px;"/>
@@ -66,7 +60,7 @@ A documentação do projeto é publicada em:
             <td align="center">
                 <a href="https://github.com/Pietrocv">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/86116655?v=4" width="150px;"/>
-                    <h5 class="text-center">Pietro Visentin <br>202023663</h5>
+                    <h5 class="text-center">Pietro Visentin <br>232014754</h5>
                 </a>
             </td>
         </tr>

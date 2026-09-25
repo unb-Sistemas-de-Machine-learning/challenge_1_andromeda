@@ -13,9 +13,8 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
 
 
 ## Equipe
-
 <div align="center">
-   <table class= "full-width-table">
+   <table style="margin-left: auto; margin-right: auto;">
         <tr>
             <td align="center">
                 <a href="https://github.com/DaviNegreiros">
@@ -29,14 +28,14 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
                     <h5 class="text-center">Gabriel Bertolazi <br>202023663</h5>
                 </a>
             </td>
-        </tr>
-        <tr>
             <td align="center">
                 <a href="https://github.com/joaopedrodasilvarodrigues">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/100419740?v=4" width="150px;"/>
                     <h5 class="text-center">João Pedro da Silva Rodrigues <br>211031074</h5>
                 </a>
             </td>
+        </tr>
+        <tr>
             <td align="center">
                 <a href="https://github.com/bolzanMGB">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/149620306?v=4" width="150px;"/>
