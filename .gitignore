@@ -6,6 +6,14 @@ ENV/
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+dist/
+build/
+*.log
+.env
+.env.*
+.data/
+.pytest_cache/
 
 site/
 

@@ -70,3 +70,38 @@ A documentação do projeto é publicada em:
 ## Disciplina
 
 Sistemas de Machine Learning — UnB/FCTE — Profs. Isaque Alves e Guilherme Fernandes — 2026/2
+# Challenge 1 Andromeda
+
+## News Analysis Service
+
+This repository includes a FastAPI service that analyzes one HTTP/HTTPS news URL
+and returns an operational reliability index with traceable criterion evidence.
+The final score is not a probability that the news is true or false.
+
+### Setup
+
+```powershell
+uv sync --extra dev
+$env:FACTCHECK_API_KEY = "<your-api-key>"
+uv run uvicorn news_analysis.api.app:app --reload
+```
+
+Open the API documentation at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Analyze A URL
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://127.0.0.1:8000/analyses" `
+  -ContentType "application/json" `
+  -Body '{"url":"https://example.com/noticia","user_id":"demo"}'
+```
+
+The response includes article metadata, criterion availability, source/model
+details, normalized criterion scores, contributions, coverage, pipeline version,
+and explicit limitations. Full extracted article text is not returned or stored.

@@ -51,3 +51,18 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
         </tr>
     </table>
 </div>
+# Challenge 1 Andromeda
+
+## Implemented Feature: News Analysis System
+
+The feature specification lives in `specs/001-news-analysis/` and defines an
+auditable news-analysis pipeline with:
+
+- URL safety and fetch limits
+- Google Fact Check Tools criterion
+- Portuguese writing-style classifier criterion
+- reserved factual-claims criterion marked `NOT_IMPLEMENTED`
+- SQLite audit trail without retaining full extracted article text
+- explicit pipeline versioning, coverage, and non-verdict limitations
+
+Validation targets are documented in `specs/001-news-analysis/quickstart.md`.
