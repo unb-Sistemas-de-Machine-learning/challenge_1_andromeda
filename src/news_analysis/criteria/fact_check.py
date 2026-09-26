@@ -23,13 +23,13 @@ class FactCheckClient:
 
     def search(self, query: str) -> dict[str, Any]:
         if not self.settings.factcheck_api_key:
-            return {"claims": []}
+            return {"claims": [], "unavailable_reason": "missing_api_key"}
         close_client = self.client is None
         client = self.client or httpx.Client(timeout=10)
         try:
             response = client.get(
                 "https://factchecktools.googleapis.com/v1alpha1/claims:search",
-                params={"query": query, "key": self.settings.factcheck_api_key},
+                params={"query": query, "key": self.settings.factcheck_api_key, "pageSize": 10, "languageCode": "pt"},
             )
             response.raise_for_status()
             return response.json()
@@ -39,10 +39,33 @@ class FactCheckClient:
 
 
 def build_fact_check_query(title: str | None, main_text: str) -> str:
-    excerpt = " ".join(main_text.split())[:500]
+    excerpt = " ".join(main_text.split())[:240]
     if title and excerpt:
         return f"{title} {excerpt}"
     return title or excerpt
+
+
+def build_fact_check_queries(title: str | None, main_text: str) -> list[str]:
+    text = " ".join(main_text.split())
+    clean_title = _clean_title(title or "")
+    candidates = [
+        build_fact_check_query(clean_title or title, text),
+        title or "",
+        clean_title,
+        _first_sentence(text),
+        text[:180],
+        _keyword_query(clean_title or title, text),
+    ]
+    queries: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        query = " ".join(candidate.split()).strip()
+        if len(query) > 300:
+            query = query[:300].rsplit(" ", 1)[0]
+        if query and query not in seen:
+            seen.add(query)
+            queries.append(query)
+    return queries
 
 
 def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_text: str, query: str) -> FactCheckCriterionResult:
@@ -78,6 +101,7 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
         )
 
     if not normalizable:
+        message, details = _unavailable_message(raw, processed)
         return FactCheckCriterionResult(
             available=False,
             status=CriterionStatus.UNAVAILABLE,
@@ -88,8 +112,9 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
             reviews=processed,
             error=ErrorInfo(
                 code="CRITERION_UNAVAILABLE",
-                message="No applicable normalizable fact-check review was available.",
+                message=message,
                 retryable=False,
+                details=details,
             ),
         )
 
@@ -150,6 +175,37 @@ def _meaningful_tokens(value: str) -> set[str]:
     return {token for token in tokens if len(token) > 2 and token not in STOPWORDS}
 
 
+def _meaningful_tokens_ordered(value: str) -> list[str]:
+    tokens = normalize_text(value).split()
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for token in tokens:
+        if len(token) <= 2 or token in STOPWORDS or token in seen:
+            continue
+        seen.add(token)
+        ordered.append(token)
+    return ordered
+
+
+def _clean_title(title: str) -> str:
+    for separator in [" | ", " - ", " — "]:
+        if separator in title:
+            return title.split(separator, 1)[0].strip()
+    return title.strip()
+
+
+def _first_sentence(text: str) -> str:
+    for separator in [". ", "! ", "? ", "\n"]:
+        if separator in text:
+            return text.split(separator, 1)[0]
+    return text[:180]
+
+
+def _keyword_query(title: str | None, text: str) -> str:
+    tokens = _meaningful_tokens_ordered(f"{title or ''} {text[:500]}")
+    return " ".join(tokens[:10])
+
+
 def _flatten_reviews(raw: dict[str, Any]) -> list[dict[str, Any]]:
     flattened: list[dict[str, Any]] = []
     for claim in raw.get("claims", []):
@@ -171,3 +227,28 @@ def _flatten_reviews(raw: dict[str, Any]) -> list[dict[str, Any]]:
                 }
             )
     return flattened
+
+
+def _unavailable_message(raw: dict[str, Any], processed: list[FactCheckReview]) -> tuple[str, dict[str, Any]]:
+    if raw.get("unavailable_reason") == "missing_api_key":
+        return (
+            "Fact-checking was skipped because FACTCHECK_API_KEY is not configured. Set it before starting the server.",
+            {"reason": "missing_api_key"},
+        )
+    if not processed:
+        attempts = raw.get("search_attempts") or []
+        attempted_queries = [attempt.get("query") for attempt in attempts if attempt.get("query")]
+        return (
+            "Google Fact Check Tools returned no published fact-check reviews for the attempted queries.",
+            {"reason": "no_reviews_returned", "attempted_queries": attempted_queries},
+        )
+    applicable_count = sum(1 for review in processed if review.applicable)
+    if applicable_count == 0:
+        return (
+            "Fact-check reviews were found, but none clearly matched the article title or main claim.",
+            {"reason": "no_applicable_reviews", "reviews_count": len(processed)},
+        )
+    return (
+        "Applicable fact-check reviews were found, but their textual ratings could not be normalized by the documented mapping.",
+        {"reason": "no_normalizable_ratings", "applicable_reviews_count": applicable_count},
+    )

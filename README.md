@@ -86,11 +86,31 @@ $env:FACTCHECK_API_KEY = "<your-api-key>"
 uv run uvicorn news_analysis.api.app:app --reload
 ```
 
+Alternatively, create a local `.env` file in the repository root so the key is
+loaded automatically whenever the app starts:
+
+```text
+FACTCHECK_API_KEY=<your-api-key>
+```
+
 Open the API documentation at:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+Open the application screen at:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Paste a news URL, submit it, and the page will show the operational
+reliability index, criterion coverage, per-criterion scores, contribution
+details, pipeline version, and limitations.
+
+The home page also shows whether the Fact Check API key was detected, without
+exposing the key value.
 
 ### Analyze A URL
 
@@ -105,3 +125,19 @@ Invoke-RestMethod `
 The response includes article metadata, criterion availability, source/model
 details, normalized criterion scores, contributions, coverage, pipeline version,
 and explicit limitations. Full extracted article text is not returned or stored.
+
+### Troubleshooting
+
+If the result says fact-checking was skipped because `FACTCHECK_API_KEY` is not
+configured, create `.env` as shown above or stop the server, set the key in the
+same PowerShell session, and start it again:
+
+```powershell
+$env:FACTCHECK_API_KEY = "<your-api-key>"
+uv run --extra dev uvicorn news_analysis.api.app:app --reload
+```
+
+If the key is configured but the criterion is still unavailable, the interface
+will now distinguish whether Google returned no reviews, whether the returned
+reviews did not clearly match the article, or whether the rating text could not
+be normalized.
