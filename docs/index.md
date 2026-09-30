@@ -28,6 +28,7 @@ Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a aval
                     <h5 class="text-center">Gabriel Bertolazi <br>202023663</h5>
                 </a>
             </td>
+                 <td align="center">
             <td align="center">
                 <a href="https://github.com/joaopedrodasilvarodrigues">
                     <img style="border-radius: 50%;" src="https://avatars.githubusercontent.com/u/100419740?v=4" width="150px;"/>
