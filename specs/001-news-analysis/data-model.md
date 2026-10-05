@@ -108,7 +108,7 @@ Prepared metadata and transient content identity for the analyzed news item.
 | status | enum | yes | `EXECUTED`, `UNAVAILABLE`, `ERROR`. |
 | score | number/null | yes | `writing_score` in 0..1, or null. |
 | model | string | yes | `vzani/portuguese-fake-news-classifier-bertimbau-combined`. |
-| model_version | string | yes | Resolved local/model revision when available. |
+| model_version | string | yes | Pinned revision `86971e56e7f5ad781cf56673df73a57375455793`. |
 | prediction | WritingPrediction | no | Aggregate prediction. |
 | segments_analyzed | integer | yes | Number of text segments classified. |
 | segments | WritingSegmentResult[] | yes | Segment-level traceability. |
@@ -121,7 +121,12 @@ Prepared metadata and transient content identity for the analyzed news item.
 - `LABEL_0` maps to `Fake`; `LABEL_1` maps to `True`.
 - If predicted class is `True`, segment `writing_score = confidence`.
 - If predicted class is `Fake`, segment `writing_score = 1 - confidence`.
-- Long articles are segmented and aggregate score is a text-length-weighted mean.
+- Segment score is the softmax probability at class index 1 from actual BERTimbau inference.
+- Long articles use non-overlapping windows of at most 512 tokens including special tokens, with no discarded overflow.
+- Aggregate score is `sum(character_count * writing_score) / sum(character_count)`.
+- Aggregate class is `True` when the unrounded mean is at least 0.5, otherwise `Fake`; confidence is that mean or its complement respectively.
+- Aggregate score and prediction values are rounded to four decimal places; segment outputs preserve model probabilities.
+- Loading/inference failure sets `available=false`, `status=ERROR`, no prediction, no score, zero segments, and `WRITING_MODEL_ERROR`; nullable fields may be omitted by JSON serialization.
 - `qualitative_state` must not be presented as a factual verdict.
 
 ## WritingPrediction
@@ -136,9 +141,9 @@ Prepared metadata and transient content identity for the analyzed news item.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| index | integer | yes | Zero-based or one-based index, documented consistently. |
-| character_count | integer | yes | Used for weighted aggregation. |
-| token_count | integer | no | Optional if tokenizer exposes it. |
+| index | integer | yes | Zero-based segment index. |
+| character_count | integer | yes | Character span in whitespace-normalized extracted text, derived from offsets and used for weighted aggregation. |
+| token_count | integer | yes on successful inference | Actual model input token count, including special tokens; at most 512. |
 | label | enum | yes | `Fake` or `True`. |
 | confidence | number | yes | Classifier confidence. |
 | writing_score | number | yes | Segment score oriented toward `True`. |
@@ -177,10 +182,10 @@ Prepared metadata and transient content identity for the analyzed news item.
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | string | yes | Human-readable version identifier. |
-| rules_version | string | yes | Normalization and aggregation rules. |
+| rules_version | string | yes | `analysis-rules-v2-bertimbau`. |
 | fact_check_mapping_version | string | yes | Rating mapping version. |
 | writing_model_name | string | yes | Hugging Face model name. |
-| writing_model_revision | string | no | Model revision/hash if available. |
+| writing_model_revision | string | yes | `86971e56e7f5ad781cf56673df73a57375455793`. |
 | dependency_versions | object | yes | Relevant dependency versions. |
 
 ## ErrorInfo

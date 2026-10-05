@@ -9,6 +9,45 @@ from news_analysis.config import Settings
 from news_analysis.storage.audit_repository import AuditRepository
 
 
+class FakeWritingTokenizer:
+    model_input_names = ["input_ids", "attention_mask"]
+
+    def __call__(self, text, *, max_length, **kwargs):
+        size = max_length - 2
+        ids, masks, offsets = [], [], []
+        for start in range(0, len(text), size):
+            end = min(start + size, len(text))
+            window = [101, *[ord(char) for char in text[start:end]], 102]
+            ids.append(window)
+            masks.append([1] * len(window))
+            offsets.append([(0, 0), *[(i, i + 1) for i in range(start, end)], (0, 0)])
+        return {"input_ids": ids, "attention_mask": masks, "offset_mapping": offsets}
+
+
+class FakeWritingModel:
+    def __init__(self, true_probability=0.8):
+        from types import SimpleNamespace
+        self.config = SimpleNamespace(num_labels=2, max_position_embeddings=512)
+        self.true_probability = true_probability
+        self.inputs = []
+
+    def __call__(self, **inputs):
+        from types import SimpleNamespace
+        import torch
+        self.inputs.append(inputs)
+        logits = torch.tensor([[1 - self.true_probability, self.true_probability]]).log()
+        return SimpleNamespace(logits=logits)
+
+
+@pytest.fixture(autouse=True)
+def mocked_writing_model(monkeypatch):
+    """Keep normal tests deterministic and independent of downloads/real weights."""
+    from news_analysis.criteria import writing_style
+    model = FakeWritingModel()
+    monkeypatch.setattr(writing_style, "_load_model", lambda cache_dir: (FakeWritingTokenizer(), model))
+    return model
+
+
 @pytest.fixture
 def temp_settings():
     with tempfile.TemporaryDirectory() as directory:

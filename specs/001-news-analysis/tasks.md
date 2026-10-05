@@ -74,8 +74,8 @@
 - [X] T028 [US1] Enforce `ARTICLE_EXTRACTION_FAILED` when fewer than 1,000 characters of main article text are extracted in `src/news_analysis/article/extractor.py`
 - [X] T029 [P] [US1] Implement initial Fact Check Tools client in `src/news_analysis/criteria/fact_check.py` using `claims.search`, `FACTCHECK_API_KEY`, and a combined title plus representative excerpt query
 - [X] T030 [P] [US1] Implement rating normalization mapping in `src/news_analysis/criteria/rating_normalization.py` for recognized textual ratings into 0..1 values and unmapped ratings as null
-- [X] T031 [P] [US1] Implement writing classifier wrapper in `src/news_analysis/criteria/writing_style.py` mapping `LABEL_0` to `Fake`, `LABEL_1` to `True`, and confidence to `writing_score`
-- [X] T032 [US1] Implement long-text segmentation and text-length-weighted `writing_score` aggregation in `src/news_analysis/criteria/writing_style.py`
+- [X] T031 [P] [US1] Implement direct CPU BERTimbau inference in `src/news_analysis/criteria/writing_style.py`, with pinned revision, lazy cached loading, inference lock, softmax `LABEL_0`/`Fake` and `LABEL_1`/`True` outputs, configured cache directory, and unavailable errors without keyword scoring
+- [X] T032 [US1] Implement non-overlapping tokenizer overflow windows of at most 512 tokens including special tokens, per-segment token/character counts, and character-weighted `writing_score` aggregation in `src/news_analysis/criteria/writing_style.py`; verify probabilities, full token coverage, model failure, and cache configuration in `tests/unit/test_writing_style.py`
 - [X] T033 [US1] Implement analysis orchestration in `src/news_analysis/pipeline/analyzer.py` connecting URL safety, fetch, extraction, fact-checking, writing-style classification, aggregation, coverage, limitations, and audit save
 - [X] T034 [P] [US1] Implement FastAPI dependencies for settings, repository, and analyzer in `src/news_analysis/api/dependencies.py`
 - [X] T035 [US1] Implement `POST /analyses` endpoint in `src/news_analysis/api/app.py` returning `AnalysisResponse` and mapped HTTP status codes

@@ -308,11 +308,14 @@ components:
           const: vzani/portuguese-fake-news-classifier-bertimbau-combined
         model_version:
           type: string
+          description: Pinned BERTimbau weights revision used for inference.
+          const: 86971e56e7f5ad781cf56673df73a57375455793
         prediction:
           $ref: "#/components/schemas/WritingPrediction"
         segments_analyzed:
           type: integer
           minimum: 0
+          description: Number of non-overlapping token windows classified; zero on criterion error.
         segments:
           type: array
           items:
@@ -342,6 +345,7 @@ components:
       additionalProperties: false
     WritingPrediction:
       type: object
+      description: Character-weighted aggregate; True for score >= 0.5, otherwise Fake. Confidence is score for True or its complement for Fake, not factual certainty.
       required:
         - label
         - confidence
@@ -361,6 +365,7 @@ components:
       additionalProperties: false
     WritingSegment:
       type: object
+      description: One BERTimbau input window, without overlap or discarded overflow. Writing score is softmax probability of class index 1 (True).
       required:
         - index
         - character_count
@@ -377,6 +382,8 @@ components:
         token_count:
           type: integer
           minimum: 1
+          maximum: 512
+          description: Actual model input token count including special tokens; populated on successful inference.
         label:
           type: string
           enum: [Fake, True]

@@ -337,6 +337,8 @@ INDEX_HTML = """
             <div class="cell"><span>Contribuicao</span>${formatScore100(criterion.contribution)}</div>
           </div>
           ${criterion.qualitative_state ? `<ul><li>${escapeHtml(criterion.qualitative_state)}: sinal de escrita, nao veredito factual.</li></ul>` : ""}
+          ${criterion.model ? `<ul><li>Modelo: ${escapeHtml(criterion.model)}</li><li>Revisao: ${escapeHtml(criterion.model_version)}</li><li>Segmentos analisados: ${escapeHtml(criterion.segments_analyzed)}</li></ul>` : ""}
+          ${criterion.prediction ? `<ul><li>Classe prevista: ${escapeHtml(criterion.prediction.label)}</li><li>Confianca do classificador: ${formatWeight(criterion.prediction.confidence)} (nao comprova veracidade)</li></ul>` : ""}
           ${criterion.query ? `<ul><li>Consulta usada: ${escapeHtml(criterion.query)}</li></ul>` : ""}
           ${criterion.error ? `<ul><li>${escapeHtml(criterion.error.message)}</li></ul>` : ""}
           ${attemptsList(criterion)}

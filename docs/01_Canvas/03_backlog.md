@@ -8,8 +8,8 @@
 |  ID Épico | Nome Épico |  ID Requisito | Nome Requisito |Descrição Requisito | 
 | :--- | :--- | :--- | :--- | :---: |
 | EP01  | Avaliação das Notícias| RF01 | Detecção de Falsidades Factuais | O sistema deve ser capaz de identificar a presença de falsidades factuais na notícia através do cruzamento da própria notícia com uma base de dados com conhecimentos incontestáveis. |
-|  | | RF02 | Base de Dados de Padrões de Escrita | O sistema deve registrar e manter atualizados padrões linguísticos e estruturais comuns em notícias falsas e sensacionalistas. |
-|  | | RF03 | Análise de Padrões de Escrita | O sistema deve comparar o texto da notícia com os padrões de escrita definidos no RF02 para detectar indícios de viés falso ou sensacionalista. |
+|  | | RF02 | Modelo de Estilo de Escrita | O sistema deve carregar e reutilizar o modelo `vzani/portuguese-fake-news-classifier-bertimbau-combined`, com revisão fixa e registro da versão usada. |
+|  | | RF03 | Análise de Estilo de Escrita | O sistema deve executar exclusivamente a inferência do BERTimbau em segmentos de até 512 tokens, processar todo o texto extraído e agregar as notas orientadas à classe `True` pelos caracteres de cada segmento, sem apresentar a previsão como veredito factual. |
 |  | | RF04 | Triagem de Crediblidade da Fonte | O sistema deve executar um procedimento de triagem para avaliar a credibilidade do portal ou autor de origem da notícia. |
 |  | | RF05 | Verificação de Histórico da Fonte | A triagem de credibilidade (RF04) deve abranger a checagem do histórico de publicações anteriores do veículo em busca de reincidência em desinformação. |
 |  | | RF06 | Verificação de Reputação da Fonte | A triagem de credibilidade (RF04) deve abranger a validação externa da reputação do veículo perante agências de checagem, selos de qualidade e certificações institucionais (como a IFCN).|

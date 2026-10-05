@@ -10,18 +10,17 @@ A proposta é um assistente com interface simples, pensado para quem não tem
 familiaridade com as ferramentas de checagem que já existem hoje.
 
 ## Status
-O projeto está em **fase de exploração**. Ainda não definimos o nome, o escopo
-final, as fontes de dados, a abordagem de modelagem nem os critérios de avaliação
-— este repositório acompanha essas decisões conforme forem sendo tomadas.
+O projeto possui um MVP com interface web e API para analisar uma URL de notícia.
+O índice operacional combina checagens publicadas recuperadas pela Google Fact
+Check Tools API e classificação textual pelo BERTimbau. Os resultados incluem
+cobertura, contribuições, versões e registro de auditoria em SQLite. A checagem
+de alegações com XLM-RoBERTa permanece planejada e não participa da nota.
 
 ## Próximos passos
-1. Entender como jornalistas e agências de checagem verificam, hoje, se uma
-   notícia é falsa — quais sinais eles observam e qual é o processo que seguem.
-2. A partir disso, mapear quais dessas etapas podem ser apoiadas por Machine
-   Learning e quais não podem.
-3. Levantar que dados existem para isso e onde estão.
-4. Investigar que modelos e abordagens já são usados para problemas parecidos.
-5. Definir o escopo do sistema e como vamos medir se ele funciona.
+1. Avaliar os sinais do BERTimbau em notícias reais, incluindo textos que desmentem boatos.
+2. Avaliar a recuperação e a correspondência de checagens publicadas.
+3. Validar a compreensão da nota e da cobertura com o público-alvo.
+4. Investigar extração de alegações e recuperação de evidências para o critério factual planejado.
 
 ## Documentação
 A documentação do projeto é publicada em:
@@ -111,6 +110,23 @@ details, pipeline version, and limitations.
 
 The home page also shows whether the Fact Check API key was detected, without
 exposing the key value.
+
+### Writing-style inference
+
+The writing-style criterion runs the actual BERTimbau classifier
+`vzani/portuguese-fake-news-classifier-bertimbau-combined` on CPU. Tokenizer and
+weights are loaded lazily and reused within each server process. The first
+analysis downloads the pinned revision if it is not already cached. Optionally,
+set `NEWS_ANALYSIS_MODEL_CACHE` to choose a Hugging Face cache directory.
+
+The entire extracted text is processed in non-overlapping windows of at most
+512 tokens, including special tokens. Each segment reports the actual model
+label, confidence, token count, and probability of class `True` (`LABEL_1`;
+`LABEL_0` means `Fake`). The criterion score is the character-weighted average
+of those probabilities. No keyword rules or heuristic fallback are used.
+If loading or inference fails, this criterion is unavailable and excluded
+from scoring. Its intended weight remains 40%; fact-checking remains 60%.
+Class probabilities describe the model output, not factual verification.
 
 ### Analyze A URL
 

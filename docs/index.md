@@ -60,9 +60,26 @@ auditable news-analysis pipeline with:
 
 - URL safety and fetch limits
 - Google Fact Check Tools criterion
-- Portuguese writing-style classifier criterion
+- BERTimbau writing-style inference on CPU, with a pinned model revision,
+  complete token-window processing, and character-weighted aggregation
 - reserved factual-claims criterion marked `NOT_IMPLEMENTED`
 - SQLite audit trail without retaining full extracted article text
 - explicit pipeline versioning, coverage, and non-verdict limitations
 
 Validation targets are documented in `specs/001-news-analysis/quickstart.md`.
+
+## Estilo de escrita
+
+O critério usa exclusivamente o modelo
+`vzani/portuguese-fake-news-classifier-bertimbau-combined`. Cada segmento contém
+até 512 tokens, incluindo tokens especiais. Todo o texto extraído é processado
+em janelas sem sobreposição. A nota é a média das saídas para a classe `True`,
+ponderada pelos caracteres de cada segmento.
+
+A interface apresenta modelo, revisão, segmentos analisados, classe e confiança
+agregadas. Os resultados por segmento estão disponíveis na API e na auditoria.
+Confiança do classificador não comprova veracidade. Com apenas escrita disponível,
+o peso efetivo é 100%, mas a cobertura dos critérios permanece 40%.
+
+Consulte [Estilo de escrita com BERTimbau](TipoDeEscrita.md) para instalação,
+segmentação, interpretação das saídas e tratamento de falhas.

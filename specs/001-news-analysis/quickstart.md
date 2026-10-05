@@ -5,21 +5,26 @@ run and verification guide, not implementation code.
 
 ## Prerequisites
 
-- Python 3.11 available locally.
-- Google Fact Check Tools API key available as `FACTCHECK_API_KEY`.
+- Python 3.11 or newer and uv available locally.
+- Google Fact Check Tools API key as `FACTCHECK_API_KEY` for the fact-check criterion; writing inference does not require it.
 - Network access for article fetching, Google Fact Check Tools API, and initial
   model download/cache.
-- Dependencies installed from the implementation package once tasks create it.
+- Dependencies installed from `pyproject.toml`.
 
 ## Setup
 
 ```powershell
-python -m venv .venv
-.\\.venv\\Scripts\\Activate.ps1
-pip install -e .[dev]
+uv sync --extra dev
+uv run python teste_bertimbau.py --texto "A reportagem desmente um boato sobre a saúde."
 ```
 
-Set the required API key:
+The script runs the application's actual CPU classifier, downloads pinned
+weights if absent, and reports class, confidence, score, segment count, and
+revision. Subsequent executions reuse the disk cache; the server loads its own
+in-memory instance. Optionally set `NEWS_ANALYSIS_MODEL_CACHE` to select the
+Hugging Face cache directory.
+
+Set the fact-check API key:
 
 ```powershell
 $env:FACTCHECK_API_KEY = "<your-api-key>"
@@ -28,7 +33,7 @@ $env:FACTCHECK_API_KEY = "<your-api-key>"
 Start the service:
 
 ```powershell
-uvicorn news_analysis.api.app:app --reload
+uv run uvicorn news_analysis.api.app:app --reload
 ```
 
 Open the generated API docs:
@@ -143,10 +148,14 @@ Use an article long enough to exceed the classifier input limit.
 
 Expected outcome:
 
-- text is split into segments
-- each segment has label, confidence, character count, and `writing_score`
-- aggregate writing score is text-length-weighted mean of segment scores
+- all tokenized extracted text is processed in non-overlapping overflow windows
+- each input has at most 512 tokens including special tokens; no overflow is discarded
+- each segment has label, confidence, character count, actual token count, and `writing_score = P_model(True)`
+- aggregate writing score is the character-count-weighted mean of segment scores
 - `segments_analyzed` equals the number of classified segments
+- aggregate class is `True` for a mean of at least 0.5, otherwise `Fake`; aggregate confidence is the mean or its complement
+- the interface displays model, revision, segment count, aggregate class, and confidence
+- segments are token windows, not sentences or paragraphs
 
 ## Scenario 8: Writing Classifier `Fake` Label
 
@@ -194,9 +203,7 @@ Expected outcome:
 ## Automated Test Targets
 
 ```powershell
-pytest tests/unit
-pytest tests/contract
-pytest tests/integration
+uv run pytest tests/unit tests/contract tests/integration
 ```
 
 Minimum expected coverage before implementation is considered complete:
@@ -214,7 +221,7 @@ Minimum expected coverage before implementation is considered complete:
 ## Validation Notes
 
 Automated validation was run with mocked article fetching, mocked Fact Check
-Tools responses, deterministic writing-style classification, temporary SQLite
+Tools responses, deterministic tokenizer/model doubles, temporary SQLite
 storage, and FastAPI TestClient. The test suite covers the scenarios above
 without requiring live network calls, real Google API credentials, or model
 downloads during tests.
@@ -222,11 +229,24 @@ downloads during tests.
 Latest validation command:
 
 ```powershell
-uv run --extra dev --python "C:\Users\dvmrn\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" pytest tests/unit tests/contract tests/integration
+uv run pytest
 ```
 
 Latest result:
 
 ```text
-41 passed, 1 warning
+57 passed, 1 warning
 ```
+
+Real-weight validation exercises `POST /analyses` and
+`GET /analyses/{analysis_id}` with controlled article/fact-check inputs, CPU
+BERTimbau inference, multiple token windows, writing-only coverage of 40%, and
+SQLite audit retrieval. A second classification confirms in-process model reuse.
+
+## Scenario 12: Writing Model Failure
+
+Simulate a weight-loading or inference failure. Expect writing availability
+`false`, criterion status `ERROR`, error code `WRITING_MODEL_ERROR`, no score,
+no prediction, and zero reported completed segments. No keyword fallback runs.
+With fact-checking available, the analysis remains `SUCCESS` with coverage 60%
+and the fact-check criterion assumes the effective weight of 100%.

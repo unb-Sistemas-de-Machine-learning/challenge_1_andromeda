@@ -7,10 +7,10 @@ import json
 from news_analysis.pipeline.aggregation import INTENDED_WEIGHTS
 from news_analysis.pipeline.models import PipelineVersion
 
-RULES_VERSION = "analysis-rules-v1"
+RULES_VERSION = "analysis-rules-v2-bertimbau"
 FACT_CHECK_MAPPING_VERSION = "fact-check-rating-map-v1"
 WRITING_MODEL_NAME = "vzani/portuguese-fake-news-classifier-bertimbau-combined"
-WRITING_MODEL_REVISION = "main"
+WRITING_MODEL_REVISION = "86971e56e7f5ad781cf56673df73a57375455793"
 
 
 def dependency_versions() -> dict[str, str]:

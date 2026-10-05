@@ -13,6 +13,21 @@ The implementation will be a Python backend service with a small HTTP/JSON
 contract, local audit storage, strict URL safety controls, Google Fact Check
 Tools lookup, and Hugging Face model inference for Portuguese writing style.
 
+Writing inference uses `AutoTokenizer` with fast token offsets and
+`AutoModelForSequenceClassification` on CPU in evaluation/inference mode.
+Tokenizer and weights are loaded lazily and cached by cache directory per
+process; a lock serializes loading and inference. Revision
+`86971e56e7f5ad781cf56673df73a57375455793` is pinned. Tokenizer overflow windows
+cover the complete extracted text without overlap, with at most 512 tokens
+including special tokens per window. Softmax class index 1 supplies each
+writing score, aggregated by character count. Model failure makes the
+criterion unavailable; no rule-based substitute is executed.
+
+`NEWS_ANALYSIS_MODEL_CACHE` selects the optional Hugging Face cache directory.
+The HTML interface displays model, revision, segment count, aggregate class,
+and aggregate confidence. Per-segment details remain available in the JSON
+response and audit record. `analysis-rules-v2-bertimbau` identifies the rules.
+
 The third factual-claims criterion remains represented in outputs as
 `NOT_IMPLEMENTED` and is excluded from score and coverage calculations.
 

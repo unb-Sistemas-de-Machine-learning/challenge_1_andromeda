@@ -213,20 +213,31 @@ has no score, and is excluded from current scoring and coverage.
   that the article is true.
 - **FR-018**: System MUST execute a writing-style criterion using the
   `vzani/portuguese-fake-news-classifier-bertimbau-combined` Portuguese
-  fake-news writing classifier when article text is available.
-- **FR-019**: System MUST preserve the writing classifier's original predicted
-  class, associated confidence, number of analyzed segments, and the qualitative
-  state "Sinal de escrita suspeito" when the predicted class is `Fake`.
+  fake-news writing classifier when article text is available. This criterion
+  MUST use only actual model inference, without keyword-based scores or a
+  heuristic fallback. The model revision MUST be recorded in the result.
+- **FR-019**: System MUST preserve each segment's predicted class, confidence,
+  character count, token count including special tokens, and normalized score.
+  System MUST report the aggregate prediction and number of analyzed segments,
+  and the qualitative state "Sinal de escrita suspeito" when the aggregate
+  predicted class is `Fake`. Aggregate class is `True` for a writing score of at
+  least 0.5, otherwise `Fake`; aggregate confidence is that score for `True`
+  or its complement for `Fake`.
 - **FR-020**: System MUST treat classifier confidence as confidence in the
   classifier output, not as a calibrated probability that the article is true or
   false, and MUST explicitly state that "Sinal de escrita suspeito" is a
   writing-style signal rather than a factual verdict.
 - **FR-021**: System MUST normalize writing classifier output into a
-  `writing_score` between 0 and 1 oriented toward the `True` class.
+  `writing_score` between 0 and 1 equal to the model's class `True` probability
+  after softmax. Class index 0 (`LABEL_0`) means `Fake`; class index 1
+  (`LABEL_1`) means `True`.
 - **FR-022**: System MUST segment long article text when it exceeds the current
-  classifier input limit, calculate one `writing_score` per segment, aggregate
-  segment scores using a text-length-weighted mean, and record the number of
-  segments analyzed.
+  classifier input limit. Segments MUST be non-overlapping token windows of at
+  most 512 tokens including special tokens, covering all tokenized extracted
+  text without silently discarding the remainder. System MUST aggregate
+  segment scores using a character-count-weighted mean and record the number
+  of segments analyzed. Failure to load or execute the model MUST set this
+  criterion to `ERROR`, unavailable, and exclude it from final scoring.
 - **FR-023**: System MUST calculate the final index on a 0 to 100 scale when at
   least one current criterion is available.
 - **FR-024**: System MUST use initial intended weights of 60% for fact-checking
@@ -349,7 +360,8 @@ has no score, and is excluded from current scoring and coverage.
 - **SC-014**: For 100% of long articles that exceed classifier input limits, the
   result records that segmentation occurred, reports the number of analyzed
   segments, and calculates the final writing score as the text-length-weighted
-  mean of segment writing scores.
+  mean of segment writing scores, preserves token counts no greater than 512,
+  and processes all tokenized extracted text.
 - **SC-015**: For 100% of completed analyses, the audit record includes an
   analysis identifier, input URL, final URL when available, timestamp, pipeline
   version, executed criteria, criterion availability, normalized scores, weights,

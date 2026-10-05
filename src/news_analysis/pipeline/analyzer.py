@@ -50,7 +50,7 @@ class NewsAnalyzer:
         self.fetcher = fetcher or ArticleFetcher(settings)
         self.extractor = extractor or ArticleExtractor(settings.min_extracted_characters)
         self.fact_check_client = fact_check_client or FactCheckClient(settings)
-        self.writing_classifier = writing_classifier or WritingStyleClassifier()
+        self.writing_classifier = writing_classifier or WritingStyleClassifier(cache_dir=settings.model_cache)
 
     def analyze(self, url: str) -> Analysis:
         analysis_id = str(uuid4())
@@ -136,7 +136,7 @@ class NewsAnalyzer:
                 status="UNAVAILABLE",
                 score=None,
                 model="vzani/portuguese-fake-news-classifier-bertimbau-combined",
-                model_version="main",
+                model_version=current_pipeline_version().writing_model_revision,
                 segments_analyzed=0,
                 segments=[],
                 qualitative_state=None,

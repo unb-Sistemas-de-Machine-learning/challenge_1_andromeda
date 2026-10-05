@@ -81,17 +81,20 @@ markup and are outside the consumer analysis scope.
 - `pages.*`: requires OAuth and manages publisher markup rather than searching
   for related checks.
 
-## Decision: Combined Title Plus Representative Excerpt Query
+## Decision: Combined Query With Ordered Fallback Searches
 
-**Rationale**: The clarified spec requires one combined query using the article
-title and representative main-text excerpt when both are available. This gives
-the lookup more context than title alone while remaining deterministic.
+**Rationale**: Search starts with the cleaned article title plus a representative
+excerpt. When no applicable normalizable review is found, it tries the original
+title, cleaned title, first sentence, a shorter excerpt, and meaningful keywords.
+Queries are deduplicated and limited to 300 characters. Searching stops on an
+available result or missing API key; failed attempts are exposed in diagnostics.
+These search rules belong to fact-check retrieval, not writing classification.
 
 **Alternatives considered**:
 
 - Title-only query: simpler but may miss checks when titles are rewritten.
 - Excerpt-only query: may lose the editorial claim framing from the title.
-- Multiple fallback queries: higher recall, but more complex than current scope.
+- One combined query only: may miss published reviews with different wording.
 
 ## Decision: Applicable Fact Checks Require Clear Match
 
@@ -115,6 +118,14 @@ confidence, segment counts, segment-level scores, and model version. Direct
 model/tokenizer loading gives more control over segmentation and traceability
 than a high-level wrapper.
 
+The classifier runs on CPU using evaluation mode and `torch.inference_mode()`.
+The fast tokenizer and model are cached per process and cache directory, with
+loading and inference protected by a shared lock. The pinned model revision is
+`86971e56e7f5ad781cf56673df73a57375455793`. Softmax class index 1 (`True`) is
+the segment writing score; index 0 means `Fake`. Keyword rules are not a source
+of scores. Loading/inference failures produce `WRITING_MODEL_ERROR` and exclude
+the criterion from scoring.
+
 **Alternatives considered**:
 
 - Transformers pipeline: faster to prototype but less explicit for segmentation,
@@ -123,10 +134,11 @@ than a high-level wrapper.
 
 ## Decision: Segment Long Text and Use Text-Length-Weighted Mean
 
-**Rationale**: The model limit is around 512 tokens. The spec clarifies that long
-articles must be segmented and segment `writing_score` values aggregated by text
-length. This prevents silent truncation and reduces distortion from uneven
-segment sizes.
+**Rationale**: The model limit is 512 tokens including special tokens. Tokenizer
+overflow windows use zero stride to process all extracted tokenized text without
+overlap. Character spans from token offsets supply the weights for averaging
+segment `writing_score` values. `token_count` includes special tokens and is
+distinct from character count, word count, or paragraph count.
 
 **Alternatives considered**:
 

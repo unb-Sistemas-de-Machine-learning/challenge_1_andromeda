@@ -22,6 +22,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Estilo de escrita: TipoDeEscrita.md
   - Canvas: 
     - Guiding Questions: 01_Canvas/01_guidingQuestions.md
     - Objetivos: 01_Canvas/02_objetivos.md
