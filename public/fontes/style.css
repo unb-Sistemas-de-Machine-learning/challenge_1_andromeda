@@ -1,0 +1,56 @@
+:root {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  line-height: 1.65;
+  color: #26364b;
+  background: #fafbf9;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 800px;
+  margin: 48px auto;
+  padding: 32px;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.25;
+  color: #183c67;
+}
+.badge {
+  font-size: 16px;
+  color: #385875;
+  background: #eef3f8;
+  padding: 12px;
+  border-radius: 6px;
+}
+.meta {
+  font-size: 17px;
+  color: #5b6573;
+}
+aside {
+  border-left: 4px solid #58789c;
+  background: #edf3fa;
+  padding: 20px;
+  margin: 32px 0;
+}
+a {
+  display: inline-block;
+  color: #204f86;
+  min-height: 48px;
+  padding: 12px 0;
+}
+a:focus-visible {
+  outline: 3px solid #2464a6;
+  outline-offset: 4px;
+}
+@media (max-width: 600px) {
+  main {
+    margin: 0 auto;
+    padding: 24px;
+  }
+}
