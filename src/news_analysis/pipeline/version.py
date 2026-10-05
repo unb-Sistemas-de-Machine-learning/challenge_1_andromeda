@@ -7,7 +7,7 @@ import json
 from news_analysis.pipeline.aggregation import INTENDED_WEIGHTS
 from news_analysis.pipeline.models import PipelineVersion
 
-RULES_VERSION = "analysis-rules-v3-verifiable-facts"
+RULES_VERSION = "analysis-rules-v4-source-credibility"
 FACT_CHECK_MAPPING_VERSION = "fact-check-exact-labels-publisher-mean-v2"
 WRITING_MODEL_NAME = "vzani/portuguese-fake-news-classifier-bertimbau-combined"
 WRITING_MODEL_REVISION = "86971e56e7f5ad781cf56673df73a57375455793"

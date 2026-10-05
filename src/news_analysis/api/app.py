@@ -305,9 +305,11 @@ INDEX_HTML = """
 
     function renderAnalysis(data) {
       const score = data.final?.score;
-      const factCriterion = data.criteria?.verifiable_facts ?? data.criteria?.source_credibility;
-      const legacyFacts = !data.criteria?.verifiable_facts && Boolean(data.criteria?.source_credibility);
-      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available;
+      const sourceCredibility = data.criteria?.source_credibility;
+      const legacyFacts = !data.criteria?.verifiable_facts && sourceCredibility?.reviews_count !== undefined;
+      const factCriterion = data.criteria?.verifiable_facts ?? (legacyFacts ? sourceCredibility : null);
+      const credibilityCriterion = legacyFacts ? null : sourceCredibility;
+      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available && !credibilityCriterion?.available;
       const level = score === null || score === undefined ? "Indisponivel" : writingOnly ? "Somente estilo de escrita" : scoreLabel(score);
       const badgeClass = score === null || score === undefined || writingOnly ? "warn" : score >= 70 ? "good" : score >= 40 ? "warn" : "bad";
       result.className = "grid";
@@ -331,14 +333,14 @@ INDEX_HTML = """
         <section class="panel criteria">
           ${factCriterionCard(factCriterion, legacyFacts, data)}
           ${criterionCard("Estilo de escrita", data.criteria?.writing_style)}
-          ${reservedCard(data.criteria?.factual_claims)}
+          ${sourceCredibilityCard(credibilityCriterion)}
         </section>
       `;
     }
 
     function factCriterionCard(criterion, legacy, data) {
       const fallback = {
-        available: false, status: "UNAVAILABLE", intended_weight: 0.6,
+        available: false, status: "UNAVAILABLE", intended_weight: 0.5,
         target_claim: data.input?.claim || data.article?.title,
         error: { message: "A resposta da API não contém o critério de checagem de fatos. Reinicie o servidor e faça uma nova análise." }
       };
@@ -406,17 +408,22 @@ INDEX_HTML = """
       }).join("")}</ul>`;
     }
 
-    function reservedCard(criterion) {
+    function sourceCredibilityCard(criterion) {
       if (!criterion) return "";
       return `
         <article class="criterion">
-          <h3>Checagem factual por alegacoes</h3>
+          <h3>Credibilidade da fonte</h3>
           <div class="criterion-grid">
-            <div class="cell"><span>Status</span>${escapeHtml(criterion.status)}</div>
-            <div class="cell"><span>Modelo planejado</span>${escapeHtml(criterion.planned_model)}</div>
-            <div class="cell"><span>Entra no indice</span>Nao</div>
-            <div class="cell"><span>Score</span>--</div>
+            <div class="cell"><span>Disponivel</span>${criterion.available ? "Sim" : "Nao"}</div>
+            <div class="cell"><span>Status do critério</span>${escapeHtml(criterion.status || "Não informado")}</div>
+            <div class="cell"><span>Score</span>${formatScore(criterion.score)}</div>
+            <div class="cell"><span>Peso previsto</span>${formatWeight(criterion.intended_weight)}</div>
+            <div class="cell"><span>Peso efetivo</span>${formatWeight(criterion.effective_weight)}</div>
+            <div class="cell"><span>Contribuicao</span>${formatScore100(criterion.contribution)}</div>
           </div>
+          <p>${escapeHtml(criterion.scope || "Sinais observáveis da página e da fonte.")}</p>
+          ${criterion.signals?.length ? `<ul>${criterion.signals.map(signal => `<li>${signal.passed ? "✓" : "×"} ${escapeHtml(signal.label)} (${formatWeight(signal.weight)}): ${escapeHtml(signal.evidence)}</li>`).join("")}</ul>` : ""}
+          ${criterion.error ? `<ul><li>Motivo: ${escapeHtml(criterion.error.message)}</li><li>Código: ${escapeHtml(criterion.error.code || "Não informado")}</li></ul>` : ""}
         </article>
       `;
     }

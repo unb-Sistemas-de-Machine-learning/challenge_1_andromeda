@@ -72,7 +72,7 @@ class FactCheckCriterionResult(StrictModel):
     reviews_count: int = Field(ge=0)
     applicable_reviews_count: int = Field(ge=0)
     reviews: list[FactCheckReview]
-    intended_weight: float = 0.6
+    intended_weight: float = 0.5
     effective_weight: float | None = None
     contribution: float | None = None
     error: ErrorInfo | None = None
@@ -104,24 +104,40 @@ class WritingStyleCriterionResult(StrictModel):
     segments: list[WritingSegmentResult]
     qualitative_state: str | None = None
     limitation: str
-    intended_weight: float = 0.4
+    intended_weight: float = 0.3
     effective_weight: float | None = None
     contribution: float | None = None
     error: ErrorInfo | None = None
 
 
-class ReservedCriterionResult(StrictModel):
-    available: bool = False
-    score: None = None
-    status: str = "NOT_IMPLEMENTED"
-    planned_model: str = "Ashg2099/xlm-roberta-factchecker"
-    planned_flow: list[str]
+class SourceCredibilitySignal(StrictModel):
+    key: str
+    label: str
+    passed: bool
+    weight: float = Field(ge=0, le=1)
+    evidence: str
+
+
+class SourceCredibilityCriterionResult(StrictModel):
+    available: bool
+    status: CriterionStatus
+    score: float | None = Field(default=None, ge=0, le=1)
+    name: str = "Credibilidade da fonte"
+    method: str = "metadata_transparency_signals"
+    scope: str = "Sinais observáveis de transparência e estabilidade da página; não é reputação editorial externa."
+    formula: str = "C = sum(weights of passed credibility signals)"
+    limitation: str = "A ausência de metadados reduz o sinal de transparência, mas não prova baixa qualidade editorial."
+    signals: list[SourceCredibilitySignal]
+    intended_weight: float = 0.2
+    effective_weight: float | None = None
+    contribution: float | None = None
+    error: ErrorInfo | None = None
 
 
 class CriteriaSet(StrictModel):
     verifiable_facts: FactCheckCriterionResult
     writing_style: WritingStyleCriterionResult
-    factual_claims: ReservedCriterionResult
+    source_credibility: SourceCredibilityCriterionResult
 
 
 class FinalScore(StrictModel):

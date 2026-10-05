@@ -3,16 +3,21 @@ from __future__ import annotations
 from news_analysis.pipeline.coverage import calculate_coverage
 from news_analysis.pipeline.models import FinalScore
 
-INTENDED_WEIGHTS = {"verifiable_facts": 0.6, "writing_style": 0.4}
+INTENDED_WEIGHTS = {"verifiable_facts": 0.5, "writing_style": 0.3, "source_credibility": 0.2}
 LIMITATION = "Final score is an operational index from executed criteria, not a probability of truth or falsity."
 
 
-def aggregate_final_score(fact_score: float | None, writing_score: float | None) -> FinalScore:
+def aggregate_final_score(
+    fact_score: float | None,
+    writing_score: float | None,
+    credibility_score: float | None,
+) -> FinalScore:
     available = {
         "verifiable_facts": fact_score is not None,
         "writing_style": writing_score is not None,
+        "source_credibility": credibility_score is not None,
     }
-    coverage = calculate_coverage(available["verifiable_facts"], available["writing_style"])
+    coverage = calculate_coverage(available, INTENDED_WEIGHTS)
     active_weight_sum = sum(INTENDED_WEIGHTS[key] for key, is_available in available.items() if is_available)
 
     if active_weight_sum == 0:
@@ -38,6 +43,9 @@ def aggregate_final_score(fact_score: float | None, writing_score: float | None)
     if writing_score is not None:
         score += effective_weights["writing_style"] * writing_score * 100
         parts.append(f"{effective_weights['writing_style']:.2f} * W")
+    if credibility_score is not None:
+        score += effective_weights["source_credibility"] * credibility_score * 100
+        parts.append(f"{effective_weights['source_credibility']:.2f} * C")
 
     return FinalScore(
         score=round(score, 4),

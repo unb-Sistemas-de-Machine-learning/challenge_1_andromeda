@@ -57,7 +57,7 @@ class AuditRepository:
         # Project legacy records into the current output shape, preserving their
         # original score and pipeline version instead of silently rescoring them.
         criteria = payload.get("criteria", {})
-        if "source_credibility" in criteria:
+        if _has_legacy_source_credibility(criteria):
             criterion = criteria.pop("source_credibility")
             criterion["scope"] = "Historical analysis: original rating mapping and aggregation; not recalculated."
             criterion["target_claim"] = (payload.get("article") or {}).get("title")
@@ -66,6 +66,18 @@ class AuditRepository:
                 weights = payload.get("final", {}).get(key, {})
                 if "source_credibility" in weights:
                     weights["verifiable_facts"] = weights.pop("source_credibility")
+        if "source_credibility" not in criteria:
+            criteria["source_credibility"] = {
+                "available": False,
+                "status": "UNAVAILABLE",
+                "score": None,
+                "signals": [],
+                "error": {
+                    "code": "CRITERION_UNAVAILABLE",
+                    "message": "Historical analysis did not include source credibility.",
+                    "retryable": False,
+                },
+            }
         return payload
 
 
@@ -79,3 +91,10 @@ def _strip_forbidden_text(value: Any) -> Any:
     if isinstance(value, list):
         return [_strip_forbidden_text(item) for item in value]
     return value
+
+
+def _has_legacy_source_credibility(criteria: dict[str, Any]) -> bool:
+    if "source_credibility" not in criteria or "verifiable_facts" in criteria:
+        return False
+    criterion = criteria["source_credibility"]
+    return isinstance(criterion, dict) and "reviews_count" in criterion

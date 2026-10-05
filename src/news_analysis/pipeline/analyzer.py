@@ -13,7 +13,7 @@ from news_analysis.criteria.fact_check import (
     error_fact_check,
     evaluate_fact_checks,
 )
-from news_analysis.criteria.factual_claims import reserved_factual_claims_result
+from news_analysis.criteria.source_credibility import evaluate_source_credibility
 from news_analysis.criteria.writing_style import WritingStyleClassifier
 from news_analysis.pipeline.aggregation import aggregate_final_score, contribution
 from news_analysis.pipeline.errors import AnalysisError, AnalysisStatus
@@ -23,6 +23,7 @@ from news_analysis.pipeline.models import (
     ErrorInfo,
     FactCheckCriterionResult,
     FinalScore,
+    SourceCredibilityCriterionResult,
     WritingStyleCriterionResult,
 )
 from news_analysis.pipeline.version import current_pipeline_version
@@ -69,13 +70,14 @@ class NewsAnalyzer:
 
         fact_check = self._run_fact_check(extracted.article.title, extracted.main_text, claim)
         writing = self.writing_classifier.classify(extracted.main_text)
-        final = aggregate_final_score(fact_check.score, writing.score)
-        self._attach_contributions(fact_check, writing, final)
+        source_credibility = evaluate_source_credibility(extracted.article)
+        final = aggregate_final_score(fact_check.score, writing.score, source_credibility.score)
+        self._attach_contributions(fact_check, writing, source_credibility, final)
 
         criteria = CriteriaSet(
             verifiable_facts=fact_check,
             writing_style=writing,
-            factual_claims=reserved_factual_claims_result(),
+            source_credibility=source_credibility,
         )
         analysis = Analysis(
             id=analysis_id,
@@ -85,7 +87,7 @@ class NewsAnalyzer:
             criteria=criteria,
             final=final,
             pipeline_version=current_pipeline_version(),
-            limitations=self._limitations_for(final.coverage),
+            limitations=self._limitations_for(final),
             created_at=created_at,
             completed_at=datetime.now(timezone.utc),
         )
@@ -128,7 +130,7 @@ class NewsAnalyzer:
             return result
 
     def _terminal_analysis(self, analysis_id: str, url: str, created_at: datetime, exc: AnalysisError) -> Analysis:
-        final = aggregate_final_score(None, None)
+        final = aggregate_final_score(None, None, None)
         criteria = CriteriaSet(
             verifiable_facts=FactCheckCriterionResult(
                 available=False,
@@ -152,7 +154,13 @@ class NewsAnalyzer:
                 limitation="Writing-style labels are model signals, not factual verdicts about the news.",
                 error=ErrorInfo(code="CRITERION_UNAVAILABLE", message="Analysis did not reach writing-style classification.", retryable=False),
             ),
-            factual_claims=reserved_factual_claims_result(),
+            source_credibility=SourceCredibilityCriterionResult(
+                available=False,
+                status="UNAVAILABLE",
+                score=None,
+                signals=[],
+                error=ErrorInfo(code="CRITERION_UNAVAILABLE", message="Analysis did not reach source credibility evaluation.", retryable=False),
+            ),
         )
         return Analysis(
             id=analysis_id,
@@ -171,20 +179,32 @@ class NewsAnalyzer:
         self,
         fact_check: FactCheckCriterionResult,
         writing: WritingStyleCriterionResult,
+        source_credibility: SourceCredibilityCriterionResult,
         final: FinalScore,
     ) -> None:
         fact_check.effective_weight = final.effective_weights.get("verifiable_facts")
         writing.effective_weight = final.effective_weights.get("writing_style")
+        source_credibility.effective_weight = final.effective_weights.get("source_credibility")
         fact_check.contribution = contribution(fact_check.score, fact_check.effective_weight)
         writing.contribution = contribution(writing.score, writing.effective_weight)
+        source_credibility.contribution = contribution(source_credibility.score, source_credibility.effective_weight)
 
-    def _limitations_for(self, coverage: float) -> list[str]:
-        coverage_message = {
-            100: "Both current criteria were executed.",
-            60: "Only the fact-checking criterion contributed to the final index.",
-            40: "Only the writing-style criterion contributed to the final index.",
-            0: "No current criteria contributed to the final index.",
-        }.get(coverage, "Criterion coverage was calculated from available current criteria.")
+    def _limitations_for(self, final: FinalScore) -> list[str]:
+        active = set(final.effective_weights)
+        coverage_message_by_active = {
+            frozenset({"verifiable_facts", "writing_style", "source_credibility"}): "All current criteria were executed.",
+            frozenset({"verifiable_facts", "writing_style"}): "Fact-checking and writing style contributed to the final index.",
+            frozenset({"verifiable_facts", "source_credibility"}): "Fact-checking and source credibility contributed to the final index.",
+            frozenset({"writing_style", "source_credibility"}): "Writing style and source credibility contributed to the final index.",
+            frozenset({"verifiable_facts"}): "Only the fact-checking criterion contributed to the final index.",
+            frozenset({"writing_style"}): "Only the writing-style criterion contributed to the final index.",
+            frozenset({"source_credibility"}): "Only the source credibility criterion contributed to the final index.",
+            frozenset(): "No current criteria contributed to the final index.",
+        }
+        coverage_message = coverage_message_by_active.get(
+            frozenset(active),
+            "Criterion coverage was calculated from available current criteria.",
+        )
         return [*LIMITATIONS, coverage_message]
 
 

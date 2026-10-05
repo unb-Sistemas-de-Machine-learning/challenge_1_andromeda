@@ -3,7 +3,7 @@ from news_analysis.pipeline.analyzer import NewsAnalyzer
 from tests.conftest import FakeFactCheckClient, FakeFetcher
 
 
-def test_reserved_factual_claims_does_not_affect_score_or_coverage(temp_settings, repository, long_article_html, sample_fact_check_response):
+def test_source_credibility_affects_score_and_coverage(temp_settings, repository, long_article_html, sample_fact_check_response):
     analyzer = NewsAnalyzer(
         temp_settings,
         repository,
@@ -12,8 +12,12 @@ def test_reserved_factual_claims_does_not_affect_score_or_coverage(temp_settings
         extractor=ArticleExtractor(min_characters=1000),
     )
     analysis = analyzer.analyze("https://93.184.216.34/article")
-    assert analysis.criteria.factual_claims.available is False
-    assert analysis.criteria.factual_claims.status == "NOT_IMPLEMENTED"
-    assert analysis.criteria.factual_claims.score is None
+    assert analysis.criteria.source_credibility.available is True
+    assert analysis.criteria.source_credibility.status == "EXECUTED"
+    assert analysis.criteria.source_credibility.score is not None
     assert analysis.final.coverage == 100
-    assert "factual_claims" not in analysis.final.effective_weights
+    assert analysis.final.effective_weights == {
+        "verifiable_facts": 0.5,
+        "writing_style": 0.3,
+        "source_credibility": 0.2,
+    }

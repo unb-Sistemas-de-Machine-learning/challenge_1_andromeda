@@ -26,6 +26,7 @@ def test_legacy_records_are_readable_without_rescoring(temp_settings, repository
     analyzer = NewsAnalyzer(temp_settings, repository, fetcher=FakeFetcher(long_article_html), fact_check_client=FakeFactCheckClient(sample_fact_check_response))
     result = analyzer.analyze("https://93.184.216.34/article")
     payload = repository.get(result.id)
+    payload["criteria"].pop("source_credibility")
     payload["criteria"]["source_credibility"] = payload["criteria"].pop("verifiable_facts")
     payload["pipeline_version"]["rules_version"] = "legacy-rules"
     for key in ("intended_weights", "effective_weights"):

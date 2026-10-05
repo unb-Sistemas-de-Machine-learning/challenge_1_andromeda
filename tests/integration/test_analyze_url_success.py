@@ -30,7 +30,8 @@ def test_successful_post_analysis_with_mocked_services(temp_settings, repository
     assert payload["status"] == "SUCCESS"
     assert payload["article"]["extracted_character_count"] >= 1000
     assert payload["criteria"]["verifiable_facts"]["available"] is True
-    assert "source_credibility" not in payload["criteria"]
+    assert payload["criteria"]["source_credibility"]["available"] is True
+    assert payload["criteria"]["source_credibility"]["intended_weight"] == 0.2
     assert payload["criteria"]["verifiable_facts"]["name"] == "Checagem de fatos verificáveis"
     assert payload["criteria"]["verifiable_facts"]["claim_origin"] == "user"
     assert payload["criteria"]["verifiable_facts"]["scored_reviews_count"] == 1
@@ -38,5 +39,6 @@ def test_successful_post_analysis_with_mocked_services(temp_settings, repository
     assert payload["input"]["claim"] == "Vacina reduz casos graves"
     assert payload["criteria"]["writing_style"]["available"] is True
     assert payload["final"]["coverage"] == 100
+    assert payload["final"]["intended_weights"] == {"verifiable_facts": 0.5, "writing_style": 0.3, "source_credibility": 0.2}
     assert "probability" in payload["final"]["limitation"]
     assert "main_text" not in str(payload)

@@ -29,10 +29,18 @@ process.stdout.write(result.innerHTML);
 
 
 def payload(criterion=None, key="verifiable_facts"):
-    criteria = {"writing_style": {"available": True, "score": 1, "intended_weight": 0.4}, "factual_claims": {"status": "NOT_IMPLEMENTED"}}
+    criteria = {
+        "writing_style": {"available": True, "score": 1, "intended_weight": 0.3},
+        "source_credibility": {
+            "available": True,
+            "score": 0.35,
+            "intended_weight": 0.2,
+            "signals": [{"label": "URL final usa HTTPS", "passed": True, "weight": 0.25, "evidence": "Conexão HTTPS"}],
+        },
+    }
     if criterion is not None:
         criteria[key] = criterion
-    return {"status": "SUCCESS", "final": {"score": 100, "coverage": 40, "formula": "1.00 * W * 100"}, "criteria": criteria}
+    return {"status": "SUCCESS", "final": {"score": 65, "coverage": 50, "formula": "0.60 * W + 0.40 * C"}, "criteria": criteria}
 
 
 def test_unavailable_fact_check_remains_visible_with_all_attempts():
@@ -42,12 +50,12 @@ def test_unavailable_fact_check_remains_visible_with_all_attempts():
     assert "O Google Fact Check não retornou" in html
     assert "consulta 5" in html
     assert "Consultas realizadas (6)" in html
-    assert "Somente estilo de escrita" in html
+    assert "Credibilidade da fonte" in html
     assert "Confiabilidade mais alta" not in html
 
 
 def test_legacy_fact_key_and_error_attempts_are_supported():
-    criterion = {"available": False, "status": "UNAVAILABLE", "search_attempts": [], "error": {"message": "No matching reviews", "details": {"attempted_queries": ["consulta antiga"]}}}
+    criterion = {"available": False, "status": "UNAVAILABLE", "reviews_count": 0, "search_attempts": [], "error": {"message": "No matching reviews", "details": {"attempted_queries": ["consulta antiga"]}}}
     html = render(payload(criterion, key="source_credibility"))
     assert "Checagem de fatos verificáveis" in html
     assert "consulta antiga" in html

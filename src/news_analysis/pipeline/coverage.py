@@ -1,8 +1,8 @@
-def calculate_coverage(source_available: bool, writing_available: bool) -> int:
-    if source_available and writing_available:
-        return 100
-    if source_available:
-        return 60
-    if writing_available:
-        return 40
-    return 0
+def calculate_coverage(available: dict[str, bool], intended_weights: dict[str, float]) -> int:
+    return round(
+        sum(
+            intended_weights[key] * 100
+            for key, is_available in available.items()
+            if is_available
+        )
+    )
