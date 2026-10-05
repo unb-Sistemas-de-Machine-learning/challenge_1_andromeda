@@ -12,7 +12,7 @@ def test_partial_availability_renormalizes_available_criterion(temp_settings, re
         extractor=ArticleExtractor(min_characters=1000),
     )
     analysis = analyzer.analyze("https://93.184.216.34/article")
-    assert analysis.criteria.source_credibility.available is False
+    assert analysis.criteria.verifiable_facts.available is False
     assert analysis.criteria.writing_style.available is True
     assert analysis.final.coverage == 40
     assert analysis.final.effective_weights == {"writing_style": 1.0}
@@ -35,5 +35,5 @@ def test_model_load_failure_preserves_fact_check_flow(temp_settings, repository,
     assert not analysis.criteria.writing_style.available
     assert analysis.criteria.writing_style.score is None
     assert analysis.final.coverage == 60
-    assert analysis.final.effective_weights == {"source_credibility": 1.0}
+    assert analysis.final.effective_weights == {"verifiable_facts": 1.0}
     assert repository.get(analysis.id)["criteria"]["writing_style"]["error"]["code"] == "WRITING_MODEL_ERROR"

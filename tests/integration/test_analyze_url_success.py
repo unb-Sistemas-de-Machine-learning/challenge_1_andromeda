@@ -21,7 +21,7 @@ def test_successful_post_analysis_with_mocked_services(temp_settings, repository
     try:
         response = TestClient(app).post(
             "/analyses",
-            json={"url": "https://93.184.216.34/article", "user_id": "success-user"},
+            json={"url": "https://93.184.216.34/article", "user_id": "success-user", "claim": "Vacina reduz casos graves"},
         )
     finally:
         app.dependency_overrides.clear()
@@ -29,7 +29,13 @@ def test_successful_post_analysis_with_mocked_services(temp_settings, repository
     payload = response.json()
     assert payload["status"] == "SUCCESS"
     assert payload["article"]["extracted_character_count"] >= 1000
-    assert payload["criteria"]["source_credibility"]["available"] is True
+    assert payload["criteria"]["verifiable_facts"]["available"] is True
+    assert "source_credibility" not in payload["criteria"]
+    assert payload["criteria"]["verifiable_facts"]["name"] == "Checagem de fatos verificáveis"
+    assert payload["criteria"]["verifiable_facts"]["claim_origin"] == "user"
+    assert payload["criteria"]["verifiable_facts"]["scored_reviews_count"] == 1
+    assert payload["criteria"]["verifiable_facts"]["reviews"][0]["included_in_score"]
+    assert payload["input"]["claim"] == "Vacina reduz casos graves"
     assert payload["criteria"]["writing_style"]["available"] is True
     assert payload["final"]["coverage"] == 100
     assert "probability" in payload["final"]["limitation"]

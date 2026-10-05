@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from news_analysis.pipeline.models import Analysis, ErrorInfo
 
@@ -10,6 +10,7 @@ class AnalysisRequest(BaseModel):
 
     url: str
     user_id: str | None = None
+    claim: str | None = Field(default=None, min_length=3, max_length=500)
 
 
 class ErrorResponse(BaseModel):

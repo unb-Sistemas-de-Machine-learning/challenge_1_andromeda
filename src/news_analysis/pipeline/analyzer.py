@@ -52,7 +52,7 @@ class NewsAnalyzer:
         self.fact_check_client = fact_check_client or FactCheckClient(settings)
         self.writing_classifier = writing_classifier or WritingStyleClassifier(cache_dir=settings.model_cache)
 
-    def analyze(self, url: str) -> Analysis:
+    def analyze(self, url: str, claim: str | None = None) -> Analysis:
         analysis_id = str(uuid4())
         created_at = datetime.now(timezone.utc)
         try:
@@ -62,23 +62,25 @@ class NewsAnalyzer:
             extracted = self.extractor.extract(html, original_url=url, final_url=final_url)
         except AnalysisError as exc:
             analysis = self._terminal_analysis(analysis_id, url, created_at, exc)
+            if claim and claim.strip():
+                analysis.input["claim"] = claim.strip()
             self.repository.save(analysis)
             return analysis
 
-        fact_check = self._run_fact_check(extracted.article.title, extracted.main_text)
+        fact_check = self._run_fact_check(extracted.article.title, extracted.main_text, claim)
         writing = self.writing_classifier.classify(extracted.main_text)
         final = aggregate_final_score(fact_check.score, writing.score)
         self._attach_contributions(fact_check, writing, final)
 
         criteria = CriteriaSet(
-            source_credibility=fact_check,
+            verifiable_facts=fact_check,
             writing_style=writing,
             factual_claims=reserved_factual_claims_result(),
         )
         analysis = Analysis(
             id=analysis_id,
             status=AnalysisStatus.SUCCESS,
-            input={"url": url},
+            input={"url": url, **({"claim": claim.strip()} if claim and claim.strip() else {})},
             article=extracted.article,
             criteria=criteria,
             final=final,
@@ -90,8 +92,11 @@ class NewsAnalyzer:
         self.repository.save(analysis)
         return analysis
 
-    def _run_fact_check(self, title: str | None, text: str) -> FactCheckCriterionResult:
-        queries = build_fact_check_queries(title, text)
+    def _run_fact_check(self, title: str | None, text: str, claim: str | None = None) -> FactCheckCriterionResult:
+        explicit_claim = claim.strip() if claim and claim.strip() else None
+        target_claim = explicit_claim or title
+        claim_origin = "user" if explicit_claim else "article_title_or_excerpt"
+        queries = build_fact_check_queries(target_claim, explicit_claim or text)
         search_attempts: list[dict[str, object]] = []
         best_result: FactCheckCriterionResult | None = None
         try:
@@ -100,7 +105,7 @@ class NewsAnalyzer:
                 claims_count = len(raw.get("claims", []))
                 search_attempts.append({"query": query, "claims_count": claims_count})
                 raw = {**raw, "search_attempts": search_attempts}
-                result = evaluate_fact_checks(raw, title, text, query)
+                result = evaluate_fact_checks(raw, title, text, query, target_claim=explicit_claim, claim_origin=claim_origin)
                 if result.available:
                     return result
                 if raw.get("unavailable_reason") == "missing_api_key":
@@ -114,14 +119,18 @@ class NewsAnalyzer:
                         "attempted_queries": [attempt["query"] for attempt in search_attempts],
                     }
                 return best_result
-            return evaluate_fact_checks({"claims": [], "search_attempts": search_attempts}, title, text, "")
+            return evaluate_fact_checks({"claims": [], "search_attempts": search_attempts}, title, text, "", target_claim=explicit_claim, claim_origin=claim_origin)
         except Exception as exc:
-            return error_fact_check(queries[0] if queries else "", exc)
+            result = error_fact_check(queries[0] if queries else "", exc)
+            result.target_claim = explicit_claim or title or text[:240]
+            result.claim_origin = claim_origin
+            result.search_attempts = search_attempts
+            return result
 
     def _terminal_analysis(self, analysis_id: str, url: str, created_at: datetime, exc: AnalysisError) -> Analysis:
         final = aggregate_final_score(None, None)
         criteria = CriteriaSet(
-            source_credibility=FactCheckCriterionResult(
+            verifiable_facts=FactCheckCriterionResult(
                 available=False,
                 status="UNAVAILABLE",
                 score=None,
@@ -164,7 +173,7 @@ class NewsAnalyzer:
         writing: WritingStyleCriterionResult,
         final: FinalScore,
     ) -> None:
-        fact_check.effective_weight = final.effective_weights.get("source_credibility")
+        fact_check.effective_weight = final.effective_weights.get("verifiable_facts")
         writing.effective_weight = final.effective_weights.get("writing_style")
         fact_check.contribution = contribution(fact_check.score, fact_check.effective_weight)
         writing.contribution = contribution(writing.score, writing.effective_weight)

@@ -25,8 +25,25 @@ criterion unavailable; no rule-based substitute is executed.
 
 `NEWS_ANALYSIS_MODEL_CACHE` selects the optional Hugging Face cache directory.
 The HTML interface displays model, revision, segment count, aggregate class,
-and aggregate confidence. Per-segment details remain available in the JSON
-response and audit record. `analysis-rules-v2-bertimbau` identifies the rules.
+and aggregate confidence. Expandable per-segment details show character/token
+counts and model predictions; JSON and audit records retain these outputs.
+The fact-check card is always rendered, including absence/unavailability reasons,
+status, weights, counts, original evidence and recorded queries. The renderer
+accepts legacy `source_credibility` payloads with explicit compatibility feedback.
+The summary identifies writing-only results and exposes formula and analysis ID.
+Node-executed rendering regression tests cover current/legacy/missing payloads,
+all recorded queries, escaped evidence and per-segment details.
+`analysis-rules-v3-verifiable-facts` identifies the rules.
+
+Criterion 1 is `verifiable_facts`, named "Checagem de fatos verificáveis".
+Optional `claim` selects one statement; without it the cleaned title or first
+sentence is a candidate. Google retrieves reviews of claims, not source ratings.
+At most three pages are fetched per query. Lexical matching uses `Claim.text`,
+numeric/negation/debunking guards and 80% bidirectional token overlap or exact
+equality. Whole-label mapping, deduplication and equal-weight publisher means
+define the score. Original verdicts, exclusions, divergence and scope are exposed.
+Historic records are projected into the new key without changing original scores
+or pipeline versions.
 
 The third factual-claims criterion remains represented in outputs as
 `NOT_IMPLEMENTED` and is excluded from score and coverage calculations.

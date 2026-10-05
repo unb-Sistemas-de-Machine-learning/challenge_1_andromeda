@@ -99,9 +99,19 @@ These search rules belong to fact-check retrieval, not writing classification.
 ## Decision: Applicable Fact Checks Require Clear Match
 
 **Rationale**: The Fact Check Tools API can return related but non-identical
-claims. A returned review contributes to the score only when its checked claim or
-review title clearly matches the article title or main claim. Non-matching
-results are preserved for traceability but excluded from scoring.
+claims. The criterion compares `Claim.text` with a user-selected statement or
+the cleaned article-title/first-sentence candidate. A review headline cannot
+establish identity. Numeric, negation and debunking-marker mismatches are rejected;
+otherwise exact normalized equality or 80% overlap in both directions with three
+shared meaningful tokens is required. This lexical rule is not semantic proof.
+Pagination uses at most three pages, with truncation and attempts exposed.
+
+`textualRating` is an agency's claim verdict, not source reputation. Whole-label
+mapping uses a local scale of 1, 0.75, 0.5, 0.25 and 0; unknown labels stay unscored.
+Duplicate review URL/claim pairs are excluded. Values are averaged per checking
+publisher, then publisher means receive equal weights to avoid extra influence
+from publication volume. Identity does not imply reputation or independent
+decisions. Divergence is flagged instead of presenting a mean as consensus.
 
 **Alternatives considered**:
 

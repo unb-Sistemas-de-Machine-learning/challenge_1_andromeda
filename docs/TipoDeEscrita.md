@@ -112,18 +112,23 @@ quatro casas decimais; as probabilidades por segmento são preservadas.
 
 A interface mostra nota, peso, contribuição, modelo, revisão, quantidade de
 segmentos, classe e confiança agregadas. Os detalhes por segmento são
-retornados pela API e conservados no registro de auditoria, sem o texto integral.
+retornados pela API, exibidos na seção expansível “Resultados por segmento” e
+conservados no registro de auditoria, sem o texto integral.
 Uma nota interna `0.9945` pode aparecer como `0.99`, enquanto sua contribuição,
 com peso de 100%, aparece como `99.5`. Cada campo tem precisão de exibição própria.
 
 ## Índice final e cobertura
 
-Com os dois critérios disponíveis, `Índice = (0,60 × C + 0,40 × W) × 100`.
-`C` representa checagens publicadas e `W` representa escrita. Com apenas
+Com os dois critérios disponíveis, `Índice = (0,60 × F + 0,40 × W) × 100`.
+`F` representa checagens da afirmação selecionada e `W` representa escrita. Com apenas
 escrita disponível, seu peso efetivo é 100% e o índice é `W × 100`, mas a
 cobertura permanece **40%**. Cobertura mede a participação dos critérios
 previstos, não a proporção de segmentos nem a certeza da classificação.
 A busca Google Fact Check Tools é independente deste classificador.
+
+Nesse caso, o resumo da interface indica “Somente estilo de escrita” e informa
+que o resultado não confirma os fatos. A fórmula e os pesos efetivos permitem
+identificar exatamente como o índice foi composto.
 
 ## Instalação e teste
 

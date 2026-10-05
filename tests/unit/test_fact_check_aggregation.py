@@ -6,7 +6,7 @@ def test_multiple_applicable_ratings_use_arithmetic_mean(sample_fact_check_respo
         {
             "text": "Vacina reduz casos graves",
             "languageCode": "pt",
-            "claimReview": [{"title": "Vacina reduz casos graves", "textualRating": "Meia verdade"}],
+            "claimReview": [{"publisher": {"name": "Outra Agência"}, "title": "Vacina reduz casos graves", "textualRating": "Meia verdade"}],
         }
     )
     result = evaluate_fact_checks(sample_fact_check_response, "Vacina reduz casos graves", long_article_text, "query")

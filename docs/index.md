@@ -59,7 +59,7 @@ The feature specification lives in `specs/001-news-analysis/` and defines an
 auditable news-analysis pipeline with:
 
 - URL safety and fetch limits
-- Google Fact Check Tools criterion
+- Checagem de fatos verificáveis: published claim reviews, explicit selected-claim scope and publisher-balanced scores
 - BERTimbau writing-style inference on CPU, with a pinned model revision,
   complete token-window processing, and character-weighted aggregation
 - reserved factual-claims criterion marked `NOT_IMPLEMENTED`
@@ -67,6 +67,9 @@ auditable news-analysis pipeline with:
 - explicit pipeline versioning, coverage, and non-verdict limitations
 
 Validation targets are documented in `specs/001-news-analysis/quickstart.md`.
+
+Consulte [Checagem de fatos verificáveis](ChecagemDeFatos.md) para a interpretação
+dos vereditos, a escala local, as entradas e saídas e os limites da correspondência.
 
 ## Estilo de escrita
 
@@ -77,9 +80,20 @@ em janelas sem sobreposição. A nota é a média das saídas para a classe `Tru
 ponderada pelos caracteres de cada segmento.
 
 A interface apresenta modelo, revisão, segmentos analisados, classe e confiança
-agregadas. Os resultados por segmento estão disponíveis na API e na auditoria.
+agregadas. Os resultados por segmento estão disponíveis na seção expansível
+da interface, na API e na auditoria.
 Confiança do classificador não comprova veracidade. Com apenas escrita disponível,
 o peso efetivo é 100%, mas a cobertura dos critérios permanece 40%.
 
 Consulte [Estilo de escrita com BERTimbau](TipoDeEscrita.md) para instalação,
 segmentação, interpretação das saídas e tratamento de falhas.
+
+## Interface e integração
+
+O cartão de checagem factual permanece visível com ou sem evidências. Status,
+motivos, consultas registradas, vereditos, links e exclusões mostram o que foi
+possível avaliar. Com somente escrita disponível, o resumo indica “Somente
+estilo de escrita”, sem apresentar a nota como confirmação factual.
+
+- [Google Fact Check Tools API](Manual_Google_Fact_Check_Tools_API.md)
+- [Interface, API e fluxo do sistema](InterfaceEAPI.md)

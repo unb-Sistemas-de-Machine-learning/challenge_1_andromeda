@@ -39,7 +39,7 @@
 - [X] T010 [P] Implement pipeline version constants in `src/news_analysis/pipeline/version.py` with `id`, `rules_version`, `fact_check_mapping_version`, `writing_model_name`, `writing_model_revision`, and `dependency_versions`
 - [X] T011 Implement SQLite schema creation in `src/news_analysis/storage/schema.py` for analysis records, criterion payloads, raw external responses, model outputs, final score, coverage, and pipeline version
 - [X] T012 Implement audit repository in `src/news_analysis/storage/audit_repository.py` that saves and retrieves analyses without retaining full extracted article text
-- [X] T013 [P] Implement final score and coverage utilities in `src/news_analysis/pipeline/aggregation.py` for `(0.60 * C + 0.40 * W) * 100`, `C * 100`, `W * 100`, and `score = null` when no current criteria are available
+- [X] T013 [P] Implement final score and coverage utilities in `src/news_analysis/pipeline/aggregation.py` for `(0.60 * F + 0.40 * W) * 100`, `F * 100`, `W * 100`, and `score = null` when no current criteria are available
 - [X] T014 [P] Implement coverage utility in `src/news_analysis/pipeline/coverage.py` returning `100`, `60`, `40`, or `0` based on available current criteria
 - [X] T015 [P] Create shared test fixtures in `tests/conftest.py` for temporary SQLite database, sample article metadata, sample fact-check responses, and deterministic writing classifier doubles
 - [X] T016 [P] Create contract test skeleton loading `specs/001-news-analysis/contracts/openapi.yaml` in `tests/contract/test_openapi_contract.py`
@@ -72,8 +72,8 @@
 - [X] T026 [US1] Implement streaming article fetcher in `src/news_analysis/article/fetcher.py` with 10-second timeout, 5 MB maximum downloaded content, and 5 redirect maximum
 - [X] T027 [P] [US1] Implement trafilatura-based article extraction in `src/news_analysis/article/extractor.py` preserving original URL, final URL, canonical URL, publisher, title, subtitle, author, publication date, content hash, and extracted character count
 - [X] T028 [US1] Enforce `ARTICLE_EXTRACTION_FAILED` when fewer than 1,000 characters of main article text are extracted in `src/news_analysis/article/extractor.py`
-- [X] T029 [P] [US1] Implement initial Fact Check Tools client in `src/news_analysis/criteria/fact_check.py` using `claims.search`, `FACTCHECK_API_KEY`, and a combined title plus representative excerpt query
-- [X] T030 [P] [US1] Implement rating normalization mapping in `src/news_analysis/criteria/rating_normalization.py` for recognized textual ratings into 0..1 values and unmapped ratings as null
+- [X] T029 [P] [US1] Implement Fact Check Tools client in `src/news_analysis/criteria/fact_check.py` using `claims.search`, `FACTCHECK_API_KEY`, selected-claim/fallback queries, bounded three-page pagination and recorded search diagnostics
+- [X] T030 [P] [US1] Implement exact whole-label rating mapping in `src/news_analysis/criteria/rating_normalization.py`, preserving unknown/compound ratings without scores and rejecting substring-based interpretations
 - [X] T031 [P] [US1] Implement direct CPU BERTimbau inference in `src/news_analysis/criteria/writing_style.py`, with pinned revision, lazy cached loading, inference lock, softmax `LABEL_0`/`Fake` and `LABEL_1`/`True` outputs, configured cache directory, and unavailable errors without keyword scoring
 - [X] T032 [US1] Implement non-overlapping tokenizer overflow windows of at most 512 tokens including special tokens, per-segment token/character counts, and character-weighted `writing_score` aggregation in `src/news_analysis/criteria/writing_style.py`; verify probabilities, full token coverage, model failure, and cache configuration in `tests/unit/test_writing_style.py`
 - [X] T033 [US1] Implement analysis orchestration in `src/news_analysis/pipeline/analyzer.py` connecting URL safety, fetch, extraction, fact-checking, writing-style classification, aggregation, coverage, limitations, and audit save
@@ -96,18 +96,20 @@
 ### Tests for User Story 2
 
 - [X] T038 [P] [US2] Add unit tests for final score formulas and coverage values in `tests/unit/test_aggregation.py`
-- [X] T039 [P] [US2] Add unit tests for arithmetic mean of multiple applicable normalized fact-check ratings in `tests/unit/test_fact_check_aggregation.py`
-- [X] T040 [P] [US2] Add unit tests preserving but excluding fact-check results that do not clearly match article title or main claim in `tests/unit/test_fact_check_applicability.py`
+- [X] T039 [P] [US2] Add unit tests for equal-weight checking-publisher means of unique applicable mapped reviews in `tests/unit/test_fact_check_aggregation.py`
+- [X] T040 [P] [US2] Add unit tests preserving but excluding fact-check results that do not clearly match selected claim in `tests/unit/test_fact_check_applicability.py`
 - [X] T041 [P] [US2] Add unit tests for unmapped textual fact-check ratings remaining original and unnormalized in `tests/unit/test_rating_normalization.py`
 - [X] T042 [P] [US2] Add integration test for partial criterion availability and renormalized weights in `tests/integration/test_partial_criteria.py`
 
 ### Implementation for User Story 2
 
-- [X] T043 [US2] Implement documented conservative fact-check applicability filtering in `src/news_analysis/criteria/fact_check.py` where a review contributes only when the checked claim or review title matches the article title or main claim according to the normalized matching rule
+- [X] T043 [US2] Implement documented conservative fact-check applicability filtering in `src/news_analysis/criteria/fact_check.py` where a review contributes only when the checked claim text matches the selected claim according to the normalized matching rule
 - [X] T044 [US2] Preserve non-applicable Fact Check Tools results for traceability while excluding them from score aggregation in `src/news_analysis/criteria/fact_check.py`
 - [X] T045 [US2] Implement fact-check criterion unavailable state when no applicable normalizable review exists in `src/news_analysis/criteria/fact_check.py`
 - [X] T046 [US2] Extend aggregation output in `src/news_analysis/pipeline/aggregation.py` with intended weights, effective weights, formula string, and contribution details
 - [X] T047 [US2] Extend response schema mapping in `src/news_analysis/api/schemas.py` to expose criterion original result, normalized result, method/model, weight, contribution, and supporting evidence
+- [X] T075 [US2] Render fact-check availability, status, selected claim, review/publisher counts, exclusions, verdicts, links, search diagnostics and missing/legacy payload feedback in `src/news_analysis/api/app.py`; verify using `tests/unit/test_frontend_rendering.py`
+- [X] T076 [US2] Expose formula and analysis ID, writing-only summary and expandable model segment outputs in `src/news_analysis/api/app.py`, with rendering regression tests
 - [X] T048 [US2] Add criterion coverage explanations to `src/news_analysis/pipeline/analyzer.py` for 100, 60, 40, and 0 percent cases
 
 **Checkpoint**: User Stories 1 and 2 both work independently.
@@ -223,8 +225,8 @@ Task: "T021 [P] [US1] Add unit tests for article extraction threshold requiring 
 
 ```text
 Task: "T038 [P] [US2] Add unit tests for final score formulas and coverage values in tests/unit/test_aggregation.py"
-Task: "T039 [P] [US2] Add unit tests for arithmetic mean of multiple applicable normalized fact-check ratings in tests/unit/test_fact_check_aggregation.py"
-Task: "T040 [P] [US2] Add unit tests preserving but excluding fact-check results that do not clearly match article title or main claim in tests/unit/test_fact_check_applicability.py"
+Task: "T039 [P] [US2] Add unit tests for equal-weight checking-publisher means of unique applicable mapped reviews in tests/unit/test_fact_check_aggregation.py"
+Task: "T040 [P] [US2] Add unit tests preserving but excluding fact-check results that do not clearly match selected claim in tests/unit/test_fact_check_applicability.py"
 Task: "T041 [P] [US2] Add unit tests for unmapped textual fact-check ratings remaining original and unnormalized in tests/unit/test_rating_normalization.py"
 ```
 

@@ -65,7 +65,7 @@ Expected outcome:
 
 - `status = SUCCESS`
 - `article.extracted_character_count >= 1000`
-- `criteria.source_credibility.available = true`
+- `criteria.verifiable_facts.available = true`
 - `criteria.writing_style.available = true`
 - `final.coverage = 100`
 - `final.score` is between 0 and 100
@@ -129,7 +129,7 @@ Expected outcome:
 
 Mock Fact Check Tools results containing:
 
-- one review that clearly matches the article title or main claim
+- one review that clearly matches the selected claim
 - one review that does not clearly match
 - one review with unmapped textual rating
 
@@ -138,7 +138,10 @@ Expected outcome:
 - all returned reviews are preserved for traceability
 - only clearly matching reviews may contribute to scoring
 - unmapped ratings remain unnormalized
-- multiple applicable normalized values are averaged arithmetically
+- matching uses `Claim.text`, not review headlines, and rejects numeric/negation differences
+- duplicate reviews and unidentified publishers do not contribute
+- mapped whole labels are averaged per publisher, then equally across publishers
+- original verdicts, inclusion/exclusion reasons and divergence remain visible
 - absence of applicable normalizable reviews makes the criterion unavailable
   rather than zero
 
@@ -174,7 +177,7 @@ Mock one current criterion as unavailable and the other as available.
 
 Expected outcome:
 
-- if only fact-checking is available, `coverage = 60` and `score = C * 100`
+- if only fact-checking is available, `coverage = 60` and `score = F * 100`
 - if only writing style is available, `coverage = 40` and `score = W * 100`
 - unavailable criterion is not substituted with zero
 - output explains which criterion ran and which did not
@@ -215,6 +218,8 @@ Minimum expected coverage before implementation is considered complete:
   aggregation
 - writing classifier label mapping, segmentation, and weighted aggregation
 - final score and coverage formulas
+- UI rendering for unavailable, absent and legacy fact-check payloads,
+  evidence escaping, recorded queries and expandable writing-segment details
 - audit record persistence without full extracted article text
 - rate limiting
 
@@ -235,7 +240,7 @@ uv run pytest
 Latest result:
 
 ```text
-57 passed, 1 warning
+75 passed, 1 warning
 ```
 
 Real-weight validation exercises `POST /analyses` and
@@ -250,3 +255,30 @@ Simulate a weight-loading or inference failure. Expect writing availability
 no prediction, and zero reported completed segments. No keyword fallback runs.
 With fact-checking available, the analysis remains `SUCCESS` with coverage 60%
 and the fact-check criterion assumes the effective weight of 100%.
+
+## Scenario 13: Selected Verifiable Claim
+
+Submit a URL with optional `claim` of 3 to 500 characters. Response fields
+`criteria.verifiable_facts.target_claim` and `claim_origin=user` identify scope.
+The note concerns that assertion, not the article's endorsement or source reputation.
+Writing classification still uses the article text. Verify original verdicts,
+evidence URLs, scoring exclusions, publisher means, divergence and search limits.
+
+## Scenario 14: Unavailable Facts in the Interface
+
+Render a response with `criteria.verifiable_facts.available=false` and a
+writing-only score of 100. Expect the fact-check card to remain visible, show
+status, reason, counts and recorded queries, and the summary to say
+"Somente estilo de escrita" with coverage 40%. It must not present the score
+as confirmation of the article's facts. An absent criterion must produce an
+explicit missing-data notice; a legacy `source_credibility` response must remain
+readable without inventing new scoring metadata.
+
+## Scenario 15: Writing Segment Details
+
+Expand "Resultados por segmento". Verify each input window displays index,
+characters, actual model tokens including special tokens, class, confidence and
+writing score, consistently with `criteria.writing_style.segments` in JSON.
+Summary formula and analysis ID must be visible. Node-executed rendering tests
+in `tests/unit/test_frontend_rendering.py` check these behaviors when Node.js is
+available; environments without Node.js skip those rendering tests.

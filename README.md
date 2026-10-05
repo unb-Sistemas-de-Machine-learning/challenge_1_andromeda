@@ -16,6 +16,9 @@ Check Tools API e classificação textual pelo BERTimbau. Os resultados incluem
 cobertura, contribuições, versões e registro de auditoria em SQLite. A checagem
 de alegações com XLM-RoBERTa permanece planejada e não participa da nota.
 
+O critério **Checagem de fatos verificáveis** avalia uma afirmação selecionada,
+não a reputação da fonte. Consulte [a regra de cálculo e o escopo](docs/ChecagemDeFatos.md).
+
 ## Próximos passos
 1. Avaliar os sinais do BERTimbau em notícias reais, incluindo textos que desmentem boatos.
 2. Avaliar a recuperação e a correspondência de checagens publicadas.
@@ -104,9 +107,12 @@ Open the application screen at:
 http://127.0.0.1:8000/
 ```
 
-Paste a news URL, submit it, and the page will show the operational
-reliability index, criterion coverage, per-criterion scores, contribution
-details, pipeline version, and limitations.
+Paste a news URL and optionally select a specific claim to check. The page
+shows the operational index, formula, analysis ID, coverage, criterion status,
+intended/effective weights, contributions, evidence and limitations. The
+fact-check card remains visible when unavailable, displaying the reason and
+recorded queries. Writing-only results are labeled "Somente estilo de escrita".
+Expandable writing-segment details expose tokens, characters and predictions.
 
 The home page also shows whether the Fact Check API key was detected, without
 exposing the key value.
@@ -129,6 +135,14 @@ from scoring. Its intended weight remains 40%; fact-checking remains 60%.
 Class probabilities describe the model output, not factual verification.
 
 ### Analyze A URL
+
+Optional `claim` (3 to 500 characters) selects an assertion to check; otherwise
+the cleaned title or first sentence is a candidate. Outputs use
+`criteria.verifiable_facts` and include the selected claim, original verdicts,
+evidence URLs, exclusions, publisher means and search limits. Only whole mapped
+labels and unique applicable reviews contribute. Values are averaged per checking
+publisher, then equally across publishers. Google does not supply source ratings,
+and this result does not verify all facts in the article.
 
 ```powershell
 Invoke-RestMethod `
@@ -153,7 +167,12 @@ $env:FACTCHECK_API_KEY = "<your-api-key>"
 uv run --extra dev uvicorn news_analysis.api.app:app --reload
 ```
 
-If the key is configured but the criterion is still unavailable, the interface
-will now distinguish whether Google returned no reviews, whether the returned
-reviews did not clearly match the article, or whether the rating text could not
-be normalized.
+If the key is configured but the criterion is unavailable, inspect its card:
+Google may return no reviews, claims may not match the selected assertion,
+ratings may be unmapped, publisher identity may be missing, or the API may fail.
+Recorded queries and evidence exclusions remain available. Missing criterion
+data is explicitly reported; legacy response keys are recognized without
+inventing details. Refresh the page after restarting a server to load its UI.
+
+See [Google Fact Check integration](docs/Manual_Google_Fact_Check_Tools_API.md),
+[fact scoring](docs/ChecagemDeFatos.md), and [interface and API](docs/InterfaceEAPI.md).

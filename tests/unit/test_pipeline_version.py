@@ -16,4 +16,4 @@ def test_pipeline_identifier_changes_when_version_inputs_change():
     assert derive_pipeline_id(deps={"fastapi": "1"}, writing_model_revision="b") != base
     assert derive_pipeline_id(deps={"fastapi": "1"}, rules_version="other") != base
     assert derive_pipeline_id(deps={"fastapi": "1"}, fact_check_mapping_version="other") != base
-    assert derive_pipeline_id(deps={"fastapi": "1"}, intended_weights={"source_credibility": 1.0}) != base
+    assert derive_pipeline_id(deps={"fastapi": "1"}, intended_weights={"verifiable_facts": 1.0}) != base

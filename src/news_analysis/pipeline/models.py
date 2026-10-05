@@ -41,7 +41,12 @@ class FactCheckReview(StrictModel):
     review_date: str | None = None
     textual_rating: str | None = None
     language: str | None = None
+    claimant: str | None = None
+    claim_date: str | None = None
     applicable: bool
+    included_in_score: bool = False
+    exclusion_reason: str | None = None
+    publisher_key: str | None = None
     normalized_value: float | None = Field(default=None, ge=0, le=1)
     raw: dict[str, Any]
 
@@ -50,7 +55,19 @@ class FactCheckCriterionResult(StrictModel):
     available: bool
     status: CriterionStatus
     score: float | None = Field(default=None, ge=0, le=1)
-    method: str = "google_fact_check_rating"
+    name: str = "Checagem de fatos verificáveis"
+    method: str = "google_fact_check_claim_reviews"
+    target_claim: str | None = None
+    claim_origin: str = "article_title_or_excerpt"
+    scope: str = "Uma afirmação selecionada; não verifica todos os fatos da notícia nem a reputação da fonte."
+    formula: str = "F = mean(publisher means of unique applicable mapped reviews)"
+    limitation: str = "Google retrieves published reviews; matching is lexical, the score is project-defined, and absence of a review is not a verdict."
+    scored_reviews_count: int = 0
+    publishers_count: int = 0
+    publisher_scores: dict[str, float] = Field(default_factory=dict)
+    conflicting_verdicts: bool = False
+    search_attempts: list[dict[str, Any]] = Field(default_factory=list)
+    search_truncated: bool = False
     query: str = ""
     reviews_count: int = Field(ge=0)
     applicable_reviews_count: int = Field(ge=0)
@@ -102,7 +119,7 @@ class ReservedCriterionResult(StrictModel):
 
 
 class CriteriaSet(StrictModel):
-    source_credibility: FactCheckCriterionResult
+    verifiable_facts: FactCheckCriterionResult
     writing_style: WritingStyleCriterionResult
     factual_claims: ReservedCriterionResult
 

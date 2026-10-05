@@ -10,6 +10,8 @@ def test_root_serves_link_analysis_interface():
     assert 'id="analysis-form"' in response.text
     assert 'fetch("/analyses"' in response.text
     assert 'fetch("/config"' in response.text
+    assert 'id="claim"' in response.text
+    assert "Checagem de fatos verificáveis" in response.text
 
 
 def test_config_status_does_not_expose_secret():
@@ -34,3 +36,7 @@ def test_create_analysis_rejects_unknown_request_fields():
     client = TestClient(app)
     response = client.post("/analyses", json={"url": "https://example.com", "extra": True})
     assert response.status_code == 422
+
+
+def test_claim_length_is_validated():
+    assert TestClient(app).post("/analyses", json={"url": "https://example.com", "claim": "x"}).status_code == 422

@@ -8,7 +8,7 @@ Represents one submitted URL analysis.
 |-------|------|----------|-------|
 | id | string | yes | Unique analysis identifier. |
 | status | enum | yes | `SUCCESS`, `INVALID_URL`, `BLOCKED_INTERNAL_URL`, `NEWS_FETCH_FAILED`, `ARTICLE_EXTRACTION_FAILED`, `FACT_CHECK_API_ERROR`, `WRITING_MODEL_ERROR`, `CRITERION_UNAVAILABLE`, `RATE_LIMITED`. |
-| input_url | string | yes | Original URL submitted by the user. |
+| input | object | yes | Original `url` and optional user-selected `claim`. |
 | final_url | string | no | Final URL after redirects. |
 | created_at | datetime | yes | Analysis start timestamp. |
 | completed_at | datetime | no | Analysis completion timestamp. |
@@ -56,7 +56,7 @@ Prepared metadata and transient content identity for the analyzed news item.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| source_credibility | FactCheckCriterionResult | yes | Current scoring criterion, intended weight 0.60. |
+| verifiable_facts | FactCheckCriterionResult | yes | Current scoring criterion, intended weight 0.60. |
 | writing_style | WritingStyleCriterionResult | yes | Current scoring criterion, intended weight 0.40. |
 | factual_claims | ReservedCriterionResult | yes | Future criterion, `NOT_IMPLEMENTED`. |
 
@@ -67,19 +67,35 @@ Prepared metadata and transient content identity for the analyzed news item.
 | available | boolean | yes | True only when at least one applicable normalizable review exists. |
 | status | enum | yes | `EXECUTED`, `UNAVAILABLE`, `ERROR`. |
 | score | number/null | yes | Normalized criterion score in 0..1, or null. |
-| method | string | yes | `google_fact_check_rating`. |
-| query | string | yes | Combined title plus representative excerpt when both are available. |
+| name | string | yes | `Checagem de fatos verificáveis`. |
+| method | string | yes | `google_fact_check_claim_reviews`. |
+| target_claim / claim_origin | string | no / yes | Selected claim and user or article-title/excerpt origin. |
+| scope / limitation / formula | string | yes | Single-claim scope, lexical matching limits and publisher-balanced formula. |
+| query | string | yes | Selected search query, after combined/fallback construction. |
 | reviews_count | integer | yes | Count of returned reviews preserved for traceability. |
-| applicable_reviews_count | integer | yes | Count included in score aggregation. |
+| applicable_reviews_count | integer | yes | Matched reviews, including those excluded for other reasons. |
+| scored_reviews_count / publishers_count | integer | yes | Unique scored reviews and identified checking publishers. |
+| publisher_scores | object | yes | Mean claim-rating value per checking publisher; not publisher reputation. |
+| conflicting_verdicts | boolean | yes | Retained values occur both below and above 0.5. |
+| search_attempts / search_truncated | array / boolean | yes | Queries attempted and pagination boundary. |
 | reviews | FactCheckReview[] | yes | Returned review evidence. |
 | error | ErrorInfo | no | Present when API call fails. |
 
+The UI renders this criterion even when unavailable or absent in a payload.
+Legacy `source_credibility` can be read as a compatibility input; missing new
+metadata is not inferred. `publisher_scores` describes claim verdicts per agency,
+not reputation. The summary shows formula and analysis ID, and distinguishes
+writing-only scores from factual verification.
+
 ### Validation Rules
 
-- A review contributes to `score` only if its checked claim or review title
-  matches the article title or main claim according to the documented
-  conservative normalized matching rule.
-- Multiple applicable normalized values are aggregated using arithmetic mean.
+- Match only `Claim.text` to the selected claim. Reject numeric, negation and
+  debunking-marker differences; otherwise require exact normalized equality or
+  80% overlap in both directions with at least three shared meaningful tokens.
+- Map only complete recognized labels; never match a rating substring.
+- Exclude duplicate review URL/claim pairs and missing checking-publisher identity.
+- Average ratings per publisher, then average publisher means equally.
+- This is a single-claim signal, not source reputation or verification of all article facts.
 - Absence of applicable checks makes the criterion unavailable, not zero.
 - Unmapped textual ratings are preserved and excluded from normalized score
   aggregation.
@@ -96,8 +112,11 @@ Prepared metadata and transient content identity for the analyzed news item.
 | review_date | date/datetime | no | Review date. |
 | textual_rating | string | no | Original rating text. |
 | language | string | no | Returned language code. |
+| claimant / claim_date | string | no | Originator and date of the reviewed claim. |
 | applicable | boolean | yes | Whether it matches article title/main claim according to the documented matching rule. |
 | normalized_value | number/null | yes | 0..1 when mapped, otherwise null. |
+| included_in_score | boolean | yes | Whether all scoring filters passed. |
+| exclusion_reason / publisher_key | string | no | Filter reason and checking-publisher identity. |
 | raw | object | yes | Raw returned fields necessary for traceability. |
 
 ## WritingStyleCriterionResult
@@ -148,6 +167,11 @@ Prepared metadata and transient content identity for the analyzed news item.
 | confidence | number | yes | Classifier confidence. |
 | writing_score | number | yes | Segment score oriented toward `True`. |
 
+These per-segment values are accessible through the expandable UI section,
+the response JSON and the audit record. UI scores use two decimal places,
+contributions one, and displayed weights/confidence whole percentages; this
+presentation precision does not replace the stored numeric values.
+
 ## ReservedCriterionResult
 
 | Field | Type | Required | Notes |
@@ -171,8 +195,8 @@ Prepared metadata and transient content identity for the analyzed news item.
 
 ### Validation Rules
 
-- Both criteria available: `(0.60 * C + 0.40 * W) * 100`.
-- Only fact-checking available: `C * 100`.
+- Both criteria available: `(0.60 * F + 0.40 * W) * 100`.
+- Only fact-checking available: `F * 100`.
 - Only writing style available: `W * 100`.
 - No current criteria available: `score = null`, `coverage = 0`.
 - Unavailable criteria are never substituted with zero.
@@ -182,7 +206,7 @@ Prepared metadata and transient content identity for the analyzed news item.
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | string | yes | Human-readable version identifier. |
-| rules_version | string | yes | `analysis-rules-v2-bertimbau`. |
+| rules_version | string | yes | `analysis-rules-v3-verifiable-facts`. |
 | fact_check_mapping_version | string | yes | Rating mapping version. |
 | writing_model_name | string | yes | Hugging Face model name. |
 | writing_model_revision | string | yes | `86971e56e7f5ad781cf56673df73a57375455793`. |

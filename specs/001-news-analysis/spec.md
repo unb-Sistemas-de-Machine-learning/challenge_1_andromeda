@@ -164,7 +164,10 @@ has no score, and is excluded from current scoring and coverage.
 ### Functional Requirements
 
 - **FR-001**: System MUST accept a single HTTP or HTTPS news URL as the primary
-  input for an analysis.
+  input for an analysis and an optional `claim` string of 3 to 500 characters.
+  The fact-check criterion evaluates that claim when provided, otherwise the
+  cleaned article title or first sentence as a candidate claim. This scope
+  MUST be explicit; it does not establish verification of all article facts.
 - **FR-002**: System MUST reject invalid URLs and URLs with unsupported schemes
   with an `INVALID_URL` failure and no final index.
 - **FR-003**: System MUST attempt to fetch the reachable content for a valid URL
@@ -185,28 +188,39 @@ has no score, and is excluded from current scoring and coverage.
   1,000 characters of main article text can be extracted for current analysis.
 - **FR-009**: System MUST execute a fact-checking criterion that searches the
   Google Fact Check Tools API for published fact checks related to the article's
-  claims or representative text.
+  selected claim. Its name MUST be "Checagem de fatos verificáveis" and its
+  output key MUST be `verifiable_facts`. `textualRating` concerns the reviewed
+  claim, while `publisher` identifies the checking agency, not the news source.
 - **FR-010**: System MUST preserve each fact-check result found, including the
   checked claim, checking organization, organization site, review URL, review
   title, review date, textual rating, language, and other relevant returned
   fields when available.
-- **FR-011**: System MUST use one combined query containing the article title and
-  a representative excerpt of the main text when both are available for
-  fact-checking lookup.
-- **FR-012**: System MUST treat a fact-check result as applicable only when the
-  checked claim or review title clearly matches the article title or main claim.
+- **FR-011**: System MUST start with a combined query for the selected claim
+  and representative text, then try ordered fallback queries until an available
+  result is found. `claims.search` MUST keep query and filters fixed across
+  pagination, retrieve at most three pages per query, and expose truncated
+  search and attempts. The first usable query's retrieved reviews define scope.
+- **FR-012**: System MUST match the returned `Claim.text` against the selected
+  claim. A review headline MUST NOT establish applicability by itself.
 - **FR-012A**: System MUST determine fact-check applicability using a documented
-  conservative matching rule: normalize article title or main claim and returned
-  checked claim or review title, compare meaningful tokens after stopword
-  removal, and mark a review applicable only when the overlap or configured
-  matcher indicates the same central claim.
+  conservative lexical rule: reject mismatched numeric sequences, presence of
+  negation, or debunking markers; otherwise accept normalized exact equality,
+  or at least three shared meaningful tokens with at least 80% overlap in
+  both directions. This matcher MUST NOT be described as semantic entailment.
 - **FR-013**: System MUST normalize recognized fact-check ratings into values
-  between 0 and 1 using documented mapping rules.
+  between 0 and 1 using a project-defined exact-label mapping: true 1,
+  mostly true 0.75, mixed/partly true 0.5, misleading/mostly false 0.25,
+  false 0. Unknown or compound ratings MUST NOT match substrings.
 - **FR-014**: System MUST preserve unmapped textual fact-check ratings without
   converting them arbitrarily.
-- **FR-015**: System MUST aggregate multiple applicable normalized fact-check
-  ratings using the arithmetic mean while preserving each individual review and
-  normalized value.
+- **FR-015**: System MUST exclude duplicate review URL/claim pairs, ratings
+  without an identifiable checking publisher, nonmatching claims and unmapped
+  labels. It MUST average retained ratings within each publisher and then average
+  publisher means with equal weights. It MUST preserve all returned reviews,
+  inclusion/exclusion reasons, scored-review count, publisher means and count,
+  original verdicts, and a divergence flag when retained values occur both
+  below and above 0.5. The score is not a Google-provided probability or a
+  reputation rating. Intermediate values do not establish consensus.
 - **FR-016**: System MUST mark the fact-checking criterion unavailable when no
   applicable fact checks or no normalizable fact-check result is available.
 - **FR-017**: System MUST NOT interpret absence of fact-check results as evidence
@@ -254,7 +268,13 @@ has no score, and is excluded from current scoring and coverage.
   writing style is available, and 0% when neither is available.
 - **FR-029**: System MUST report, for each criterion, whether it was executed,
   source or model used, original result, normalized result, contribution to the
-  final index, and supporting information.
+  final index, and supporting information. The interface MUST keep the fact-check
+  card visible when unavailable or absent from a response, expose status,
+  intended/effective weights, counts, evidence, exclusions, errors and recorded
+  queries, and recognize both `verifiable_facts` and legacy `source_credibility`
+  responses without inventing missing details. Writing-only results MUST say
+  "Somente estilo de escrita" rather than imply factual verification. Writing
+  segment details MUST be accessible in the interface as well as in JSON.
 - **FR-030**: System MUST include the reserved factual-claims criterion in the
   result as `NOT_IMPLEMENTED` while it remains outside current scope.
 - **FR-031**: System MUST document the reserved factual-claims criterion as a
@@ -341,18 +361,19 @@ has no score, and is excluded from current scoring and coverage.
   writing-only, and no-criteria cases, 100% of final score calculations follow
   the documented weighting and renormalization rules.
 - **SC-008**: For 100% of fact-checking lookups where both title and main text
-  are available, the initial lookup uses one combined query containing the title
-  and a representative excerpt of the main text.
+  are available and no explicit claim is supplied, the initial lookup combines
+  the cleaned title and a representative excerpt. With explicit `claim`, lookup
+  and applicability target that assertion, and the result identifies its origin.
 - **SC-009**: For 100% of fact-check results that do not clearly match the
-  article title or main claim, the result is preserved for traceability but
+  selected claim, the result is preserved for traceability but
   excluded from fact-checking score aggregation.
 - **SC-010**: For 100% of fact-check results with recognized ratings, normalized
   values fall within the 0 to 1 range and preserve the original rating text.
 - **SC-011**: For 100% of unmapped fact-check ratings, the original rating is
   preserved and no arbitrary normalized value is assigned.
-- **SC-012**: For 100% of analyses with multiple applicable normalizable
-  fact-check reviews, the fact-checking criterion score equals the arithmetic
-  mean of the individual normalized review values.
+- **SC-012**: For 100% of analyses with applicable mapped reviews, the fact-check
+  score equals the mean of publisher means after duplicate exclusion, with
+  no arbitrary score for unknown labels, missing provenance or unmatched claims.
 - **SC-013**: For 100% of writing-style analyses, the result preserves the
   predicted class, classifier confidence, normalized writing score, segment
   count, and displays "Sinal de escrita suspeito" with a non-verdict explanation

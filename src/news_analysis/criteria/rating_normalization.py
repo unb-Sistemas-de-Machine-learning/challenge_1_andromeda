@@ -21,6 +21,10 @@ RATING_MAP = {
     "false": 0.0,
     "falso": 0.0,
     "fake": 0.0,
+    "nao e verdade": 0.0,
+    "nao e verdadeiro": 0.0,
+    "e falso": 0.0,
+    "e verdadeiro": 1.0,
 }
 
 
@@ -28,12 +32,9 @@ def normalize_rating(textual_rating: str | None) -> float | None:
     if not textual_rating:
         return None
     normalized = normalize_text(textual_rating)
-    if normalized in RATING_MAP:
-        return RATING_MAP[normalized]
-    for key, value in RATING_MAP.items():
-        if re.search(rf"\b{re.escape(key)}\b", normalized):
-            return value
-    return None
+    # Editorial scales are not standardized by Google. Only explicit whole
+    # labels are mapped: e.g. 'not true' must never match the word 'true'.
+    return RATING_MAP.get(normalized)
 
 
 def normalize_text(value: str) -> str:

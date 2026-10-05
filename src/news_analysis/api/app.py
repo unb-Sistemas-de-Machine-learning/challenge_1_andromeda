@@ -230,6 +230,10 @@ INDEX_HTML = """
         <input id="url" name="url" type="url" placeholder="https://..." required>
       </label>
       <button id="submit" type="submit">Analisar</button>
+      <label>
+        Afirmação a checar (opcional)
+        <input id="claim" name="claim" type="text" minlength="3" maxlength="500" placeholder="Uma afirmação verificável; sem preencher, usamos o título">
+      </label>
     </form>
 
     <section id="result" class="empty panel">A analise aparecera aqui.</section>
@@ -256,7 +260,8 @@ INDEX_HTML = """
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             url: document.querySelector("#url").value,
-            user_id: "web-user"
+            user_id: "web-user",
+            claim: document.querySelector("#claim").value.trim() || null
           })
         });
         const payload = await response.json();
@@ -300,17 +305,23 @@ INDEX_HTML = """
 
     function renderAnalysis(data) {
       const score = data.final?.score;
-      const level = score === null || score === undefined ? "Indisponivel" : scoreLabel(score);
-      const badgeClass = score === null || score === undefined ? "warn" : score >= 70 ? "good" : score >= 40 ? "warn" : "bad";
+      const factCriterion = data.criteria?.verifiable_facts ?? data.criteria?.source_credibility;
+      const legacyFacts = !data.criteria?.verifiable_facts && Boolean(data.criteria?.source_credibility);
+      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available;
+      const level = score === null || score === undefined ? "Indisponivel" : writingOnly ? "Somente estilo de escrita" : scoreLabel(score);
+      const badgeClass = score === null || score === undefined || writingOnly ? "warn" : score >= 70 ? "good" : score >= 40 ? "warn" : "bad";
       result.className = "grid";
       result.innerHTML = `
         <aside class="panel score">
           <span class="badge ${badgeClass}">${level}</span>
           <div class="score-number">${score === null || score === undefined ? "--" : Math.round(score)}</div>
           <p class="muted">Indice operacional de confiabilidade</p>
+          ${writingOnly ? `<p><strong>Sem checagem factual disponível.</strong> Esta nota usa apenas o estilo de escrita; não confirma os fatos da notícia.</p>` : ""}
           <dl>
             <dt>Cobertura</dt><dd>${data.final?.coverage ?? 0}%</dd>
+            <dt>Fórmula</dt><dd>${escapeHtml(data.final?.formula || "Não informada")}</dd>
             <dt>Status</dt><dd>${escapeHtml(data.status)}</dd>
+            <dt>ID da análise</dt><dd>${escapeHtml(data.id || "Não informado")}</dd>
             <dt>Titulo</dt><dd>${escapeHtml(data.article?.title || "Nao extraido")}</dd>
             <dt>URL final</dt><dd>${escapeHtml(data.article?.final_url || data.input?.url || "")}</dd>
             <dt>Versao</dt><dd>${escapeHtml(data.pipeline_version?.id || "")}</dd>
@@ -318,38 +329,81 @@ INDEX_HTML = """
           <ul>${(data.limitations || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
         </aside>
         <section class="panel criteria">
-          ${criterionCard("Checagem publicada", data.criteria?.source_credibility)}
+          ${factCriterionCard(factCriterion, legacyFacts, data)}
           ${criterionCard("Estilo de escrita", data.criteria?.writing_style)}
           ${reservedCard(data.criteria?.factual_claims)}
         </section>
       `;
     }
 
-    function criterionCard(title, criterion) {
+    function factCriterionCard(criterion, legacy, data) {
+      const fallback = {
+        available: false, status: "UNAVAILABLE", intended_weight: 0.6,
+        target_claim: data.input?.claim || data.article?.title,
+        error: { message: "A resposta da API não contém o critério de checagem de fatos. Reinicie o servidor e faça uma nova análise." }
+      };
+      return criterionCard("Checagem de fatos verificáveis", criterion || fallback, true) +
+        (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "");
+    }
+
+    function criterionCard(title, criterion, isFactCheck = false) {
       if (!criterion) return "";
       return `
         <article class="criterion">
           <h3>${escapeHtml(title)}</h3>
           <div class="criterion-grid">
             <div class="cell"><span>Disponivel</span>${criterion.available ? "Sim" : "Nao"}</div>
+            <div class="cell"><span>Status do critério</span>${escapeHtml(criterion.status || "Não informado")}</div>
             <div class="cell"><span>Score</span>${formatScore(criterion.score)}</div>
+            <div class="cell"><span>Peso previsto</span>${formatWeight(criterion.intended_weight)}</div>
             <div class="cell"><span>Peso efetivo</span>${formatWeight(criterion.effective_weight)}</div>
             <div class="cell"><span>Contribuicao</span>${formatScore100(criterion.contribution)}</div>
           </div>
+          ${isFactCheck ? `<p><strong>Afirmação avaliada:</strong> ${escapeHtml(criterion.target_claim || "Não informada nesta resposta")}</p><p>Checagens recuperadas: ${escapeHtml(criterion.reviews_count ?? "Não informado")} · Correspondentes: ${escapeHtml(criterion.applicable_reviews_count ?? "Não informado")} · Usadas na nota: ${escapeHtml(criterion.scored_reviews_count ?? "Não informado")} · Agências: ${escapeHtml(criterion.publishers_count ?? "Não informado")}</p><p>Nota da afirmação selecionada; não avalia a reputação da fonte nem todos os fatos da notícia.</p>${!criterion.available ? `<p>Este critério não contribuiu para a nota. Ausência de checagens não significa verdadeiro ou falso.</p>` : ""}` : ""}
           ${criterion.qualitative_state ? `<ul><li>${escapeHtml(criterion.qualitative_state)}: sinal de escrita, nao veredito factual.</li></ul>` : ""}
           ${criterion.model ? `<ul><li>Modelo: ${escapeHtml(criterion.model)}</li><li>Revisao: ${escapeHtml(criterion.model_version)}</li><li>Segmentos analisados: ${escapeHtml(criterion.segments_analyzed)}</li></ul>` : ""}
           ${criterion.prediction ? `<ul><li>Classe prevista: ${escapeHtml(criterion.prediction.label)}</li><li>Confianca do classificador: ${formatWeight(criterion.prediction.confidence)} (nao comprova veracidade)</li></ul>` : ""}
+          ${criterion.segments?.length ? `<details><summary>Resultados por segmento (${criterion.segments.length})</summary><ul>${criterion.segments.map(segment => `<li>Segmento ${escapeHtml(segment.index + 1)}: ${escapeHtml(segment.character_count)} caracteres · ${escapeHtml(segment.token_count ?? "Não informado")} tokens · Classe ${escapeHtml(segment.label)} · Confiança ${formatWeight(segment.confidence)} · Nota ${formatScore(segment.writing_score)}</li>`).join("")}</ul></details>` : ""}
           ${criterion.query ? `<ul><li>Consulta usada: ${escapeHtml(criterion.query)}</li></ul>` : ""}
-          ${criterion.error ? `<ul><li>${escapeHtml(criterion.error.message)}</li></ul>` : ""}
+          ${criterion.scope ? `<p>${escapeHtml(criterion.scope)}</p>` : ""}
+          ${criterion.publishers_count ? `<p>Regra: média das notas únicas por agência, seguida da média entre agências com pesos iguais.</p><ul>${Object.entries(criterion.publisher_scores || {}).map(([agency, score]) => `<li>${escapeHtml(agency)}: ${formatScore(score)} na afirmação avaliada</li>`).join("")}</ul>` : ""}
+          ${criterion.conflicting_verdicts ? `<p>Há vereditos divergentes. A média não representa consenso.</p>` : ""}
+          ${criterion.search_truncated ? `<p>Busca limitada a três páginas por consulta; podem existir outras checagens.</p>` : ""}
+          ${isFactCheck && !criterion.reviews?.length ? `<p>Nenhuma evidência de checagem retornada nesta análise.</p>` : ""}
+          ${factCheckEvidence(criterion)}
+          ${criterion.error ? `<ul><li>Motivo: ${escapeHtml(factCheckErrorMessage(criterion.error))}</li><li>Código: ${escapeHtml(criterion.error.code || "Não informado")}</li></ul>` : ""}
           ${attemptsList(criterion)}
         </article>
       `;
     }
 
     function attemptsList(criterion) {
-      const attempts = criterion?.error?.details?.attempted_queries || [];
+      const recorded = criterion?.search_attempts || [];
+      const attempts = recorded.length ? recorded : (criterion?.error?.details?.attempted_queries || []).map(query => ({query}));
       if (!attempts.length) return "";
-      return `<ul><li>Tentativas de busca:</li>${attempts.slice(0, 5).map(query => `<li>${escapeHtml(query)}</li>`).join("")}</ul>`;
+      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}</li>`).join("")}</ul></details>`;
+    }
+
+    function factCheckErrorMessage(error) {
+      const messages = {
+        missing_api_key: "A chave do Google Fact Check não está configurada.",
+        no_reviews_returned: "O Google Fact Check não retornou checagens publicadas para as consultas realizadas.",
+        no_applicable_reviews: "Foram encontradas checagens, mas nenhuma correspondeu à afirmação selecionada.",
+        no_normalizable_ratings: "As checagens correspondentes têm vereditos sem conversão na escala do projeto.",
+        missing_publisher_identity: "As checagens correspondentes não identificam a agência responsável."
+      };
+      return messages[error.details?.reason] || error.message;
+    }
+
+    function factCheckEvidence(criterion) {
+      if (!criterion.reviews?.length) return "";
+      return `<ul>${criterion.reviews.map(review => {
+        const url = review.review_url || "";
+        const safeLink = /^https?:\/\//i.test(url) ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir checagem</a>` : "";
+        const reasons = {claim_mismatch: "afirmação diferente", unmapped_rating: "veredito não mapeado", missing_publisher_identity: "agência não identificada", duplicate_review: "checagem duplicada"};
+        const inclusion = review.included_in_score === undefined ? "Inclusão na nota não informada neste resultado" : review.included_in_score ? "Incluída na nota" : `Excluída: ${escapeHtml(reasons[review.exclusion_reason] || review.exclusion_reason || "Não aplicável")}`;
+        return `<li><strong>${escapeHtml(review.claim || "Afirmação ausente")}</strong><br>Agência: ${escapeHtml(review.publisher_name || review.publisher_key || "Não informada")} · Veredito: ${escapeHtml(review.textual_rating || "Não informado")} · Nota: ${formatScore(review.normalized_value)}<br>Data: ${escapeHtml(review.review_date || "Não informada")} · ${inclusion} ${safeLink}</li>`;
+      }).join("")}</ul>`;
     }
 
     function reservedCard(criterion) {
@@ -445,7 +499,7 @@ def create_analysis(
             status_code=429,
             content={"status": AnalysisStatus.RATE_LIMITED.value, "error": model_to_dict(error)},
         )
-    analysis = analyzer.analyze(request.url)
+    analysis = analyzer.analyze(request.url, claim=request.claim)
     status_code = HTTP_STATUS_BY_ANALYSIS_STATUS.get(AnalysisStatus(analysis.status), 200)
     if status_code != 200:
         return JSONResponse(

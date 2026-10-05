@@ -27,6 +27,6 @@ def test_fact_check_falls_back_from_combined_query_to_title(temp_settings, repos
 
     analysis = analyzer.analyze("https://93.184.216.34/article")
 
-    assert analysis.criteria.source_credibility.available is True
+    assert analysis.criteria.verifiable_facts.available is True
     assert len(fact_check_client.queries) == 2
     assert fact_check_client.queries[1] == "Vacina reduz casos graves"

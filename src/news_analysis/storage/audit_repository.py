@@ -53,7 +53,20 @@ class AuditRepository:
             ).fetchone()
         if row is None:
             return None
-        return json.loads(row[0])
+        payload = json.loads(row[0])
+        # Project legacy records into the current output shape, preserving their
+        # original score and pipeline version instead of silently rescoring them.
+        criteria = payload.get("criteria", {})
+        if "source_credibility" in criteria:
+            criterion = criteria.pop("source_credibility")
+            criterion["scope"] = "Historical analysis: original rating mapping and aggregation; not recalculated."
+            criterion["target_claim"] = (payload.get("article") or {}).get("title")
+            criteria["verifiable_facts"] = criterion
+            for key in ("intended_weights", "effective_weights"):
+                weights = payload.get("final", {}).get(key, {})
+                if "source_credibility" in weights:
+                    weights["verifiable_facts"] = weights.pop("source_credibility")
+        return payload
 
 
 def _strip_forbidden_text(value: Any) -> Any:
