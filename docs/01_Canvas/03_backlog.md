@@ -7,17 +7,15 @@
 <table>
   <thead>
     <tr>
-      <!-- Primeiro nível de cabeçalho (Agrupadores) -->
       <th colspan="2">Épico</th>
       <th colspan="3">Requisito</th>
     </tr>
     <tr>
-      <!-- Segundo nível de cabeçalho (Campos) -->
-      <th>ID Épico</th>
-      <th>Nome Épico</th>
-      <th>ID Requisito</th>
-      <th>Nome Requisito</th>
-      <th>Descrição Requisito</th>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Descrição</th>
     </tr>
   </thead>
   <tbody>
@@ -59,57 +57,54 @@
       <td>Verificação da Relação entre Fontes</td>
       <td>A triagem de credibilidade (RF04) deve confrontar a notícia analisada com os registros de outras fontes de dados sobre o mesmo acontecimento, avaliando o grau de concordância entre as informações.</td>
     </tr>
-    <!-- ÉPICO 02 -->
+    <!-- ÉPICO 02 - Interação -->
     <tr>
-      <td>EP02</td>
-      <td>Seleção de Fontes e Banco de Dados</td>
-      <td>EP02-RF01</td>
-      <td>-</td>
-      <td>-</td>
-    </tr>
-    <!-- ÉPICO 03 - Interação -->
-    <tr>
-      <td rowspan="3">EP03</td>
+      <td rowspan="3">EP02</td>
       <td rowspan="3">Interação</td>
-      <td>EP03-RF01</td>
+      <td>EP02-RF01</td>
       <td>Entrada por Texto</td>
-      <td>O sistema deve aceitar como fonte a ser verificada texto inserido pelo usuário via digitação ou copy/paste.</td>
+      <td>O sistema deve aceitar texto inserido pelo usuário via digitação ou copy/paste.</td>
+    </tr>
+    <tr>
+      <td>EP02-RF02</td>
+      <td>Entrada por Imagens</td>
+      <td>O sistema deve aceitar imagens e capturas de tela inseridas pelo usuário nos formatos PNG e JPEG.</td>
+    </tr>
+    <tr>
+      <td>EP02-RF03</td>
+      <td>Entrada de Voz</td>
+      <td>O sistema deve aceitar gravações de áudio como entrada de pesquisa.</td>
+    </tr>
+    <!-- ÉPICO 03 - Acessibilidade -->
+    <tr>
+      <td rowspan="5">EP03</td>
+      <td rowspan="5">Acessibilidade</td>
+      <td>EP03-RF01</td>
+      <td>Ajustes de Tipografia e Interface Visual</td>
+      <td>O sistema deve apresentar um layout simples, com elementos visualmente claros e opções para utilização de fontes maiores.</td>
     </tr>
     <tr>
       <td>EP03-RF02</td>
-      <td>Entrada por Imagens</td>
-      <td>O sistema deve aceitar como fonte a ser verificada imagens e capturas de tela inseridas pelo usuário nos formatos PNG e JPEG.</td>
+      <td>Alvos de Toque Ampliados</td>
+      <td>A interface deve possuir botões e áreas de interação significativamente maiores.</td>
     </tr>
     <tr>
       <td>EP03-RF03</td>
-      <td>Entrada de Voz</td>
-      <td>O sistema deve aceitar como fonte a ser verificada gravações de áudio inseridas pelo usuário.</td>
-    </tr>
-    <!-- ÉPICO 04 - Acessibilidade -->
-    <tr>
-      <td rowspan="4">EP04</td>
-      <td rowspan="4">Acessibilidade</td>
-      <td>EP04-RF01</td>
-      <td>Ajustes de Tipografia</td>
-      <td>-</td>
+      <td>Distância Ampliada entre Alvos de Toque</td>
+      <td>A interface deve possuir botões e áreas de interação com uma distância significante grande entre si, de modo a evitar toques acidentais.</td>
     </tr>
     <tr>
-      <td>EP04-RF02</td>
-      <td>Alvos de Toque Ampliados</td>
-      <td>-</td>
+      <td>EP03-RF04</td>
+      <td>Ícones Acessíveis e Descritivos</td>
+      <td>A interface deve utilizar ícones de fácil compreensão universal quando necessário.</td>
     </tr>
     <tr>
-      <td>EP04-RF03</td>
-      <td>Leitura de Resposta em Voz</td>
-      <td>-</td>
-    </tr>
-    <tr>
-      <td>EP04-RF04</td>
-      <td>Veredicto em Linguagem Simples</td>
-      <td>-</td>
+      <td>EP03-RF05</td>
+      <td>Navegação Simplificada</td>
+      <td>O sistema deve manter uma estrutura de navegação linear e previsível, evitando funcionalidades secundárias, menus ocultos e passos desnecessários.</td>
     </tr>
   </tbody>
-</table>                                                                         
+</table>
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
@@ -124,8 +119,8 @@
 | CRT01        |        Falsidades Factuais         |
 | CRT02        | Padrões de Escrita Sensacionalista |
 | CRT03        |         Histórico da Fonte         |
-| CRT03        |         Reputação da Fonte         |
-| CRT03        |        Relação entre Fontes        |
+| CRT04        |         Reputação da Fonte         |
+| CRT05        |        Relação entre Fontes        |
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
@@ -138,10 +133,14 @@
 | CRT01        |        Falsidades Factuais         |
 | CRT02        | Padrões de Escrita Sensacionalista |
 | CRT03        |         Histórico da Fonte         |
-| CRT03        |         Reputação da Fonte         |
-| CRT03        |        Relação entre Fontes        |
+| CRT04        |         Reputação da Fonte         |
+| CRT05        |        Relação entre Fontes        |
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p> -->
+
+## Referências
+
+Referências: Gomez-Hernandez et al. (2023) — “Design Guidelines of Mobile Apps for Older Adults: Systematic Review and Thematic Analysis” e  Amouzadeh et al. (2025) — “Optimizing mobile app design for older adults: systematic review of age-friendly design”.
 
 ## Histórico de Versão
 
@@ -166,6 +165,13 @@
     <tr>
       <td>1.1</td>
       <td> Análise inicial dos requisitos e critérios</td>
+      <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a> e <a href="https://github.com/DaviNegreiros">Davi Negreiros</a></td>
+      <td>- </td>
+      <td>29/08/2026</td>
+    </tr>
+      <tr>
+      <td>1.1</td>
+      <td> Reorganização dos requisitos de acessibilidade.</td>
       <td><a href="https://github.com/bolzanMGB">Othavio Bolzan</a> e <a href="https://github.com/DaviNegreiros">Davi Negreiros</a></td>
       <td>- </td>
       <td>29/08/2026</td>
