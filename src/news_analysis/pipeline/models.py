@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
 from news_analysis.pipeline.errors import AnalysisStatus, CriterionStatus
 
@@ -110,15 +110,51 @@ class WritingStyleCriterionResult(StrictModel):
     error: ErrorInfo | None = None
 
 
+class HistoricalSourceSignal(StrictModel):
+    key: str
+    label: str
+    passed: bool
+    weight: float = Field(ge=0, le=1)
+    evidence: str
+
+
+class HistoricalSourceCredibility(StrictModel):
+    """Read-only compatibility with the v4 metadata criterion (50/30/20)."""
+    available: bool
+    status: CriterionStatus
+    score: float | None = Field(default=None, ge=0, le=1)
+    name: str | None = None
+    method: str | None = None
+    scope: str | None = None
+    formula: str | None = None
+    limitation: str | None = None
+    signals: list[HistoricalSourceSignal]
+    intended_weight: float
+    effective_weight: float | None = None
+    contribution: float | None = None
+    error: ErrorInfo | None = None
+
+
 class CriteriaSet(StrictModel):
     verifiable_facts: FactCheckCriterionResult
     writing_style: WritingStyleCriterionResult
     credibility: dict[str, Any] | None = None
     credibility_evidence: dict[str, Any] | None = None
+    source_credibility: HistoricalSourceCredibility | None = Field(
+        default=None, description="Historical v4 metadata criterion only; never produced by new analyses.")
+
+    @model_serializer(mode='wrap')
+    def omit_absent_historical_criterion(self, handler):
+        result = handler(self)
+        if self.source_credibility is None:
+            result.pop('source_credibility', None)
+        return result
 
 
 class FinalScore(StrictModel):
     score: float | None = Field(default=None, ge=0, le=100)
+    score_before_veto: float | None = Field(default=None, ge=0, le=100)
+    source_veto_applied: bool | None = None
     coverage: float
     intended_weights: dict[str, float]
     effective_weights: dict[str, float]
@@ -133,6 +169,7 @@ class PipelineVersion(StrictModel):
     writing_model_name: str
     writing_model_revision: str | None = None
     dependency_versions: dict[str, str]
+    credibility_policy_hash: str | None = None
 
 
 class Analysis(StrictModel):

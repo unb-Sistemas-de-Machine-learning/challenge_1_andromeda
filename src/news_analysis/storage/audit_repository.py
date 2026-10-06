@@ -60,14 +60,18 @@ class AuditRepository:
         # Removed placeholder is omitted when projecting old records; stored
         # historical payloads and scores are preserved without recalculation.
         criteria.pop("factual_claims", None)
-        if "source_credibility" in criteria:
+        legacy = criteria.get("source_credibility")
+        # v1/v2 used this name for fact reviews; v4 reused it for independent
+        # metadata signals. Never overwrite existing facts or their weights.
+        if ("verifiable_facts" not in criteria and isinstance(legacy, dict)
+                and "reviews_count" in legacy and "signals" not in legacy):
             criterion = criteria.pop("source_credibility")
             criterion["scope"] = "Historical analysis: original rating mapping and aggregation; not recalculated."
             criterion["target_claim"] = (payload.get("article") or {}).get("title")
             criteria["verifiable_facts"] = criterion
             for key in ("intended_weights", "effective_weights"):
                 weights = payload.get("final", {}).get(key, {})
-                if "source_credibility" in weights:
+                if "source_credibility" in weights and "verifiable_facts" not in weights:
                     weights["verifiable_facts"] = weights.pop("source_credibility")
         return payload
 

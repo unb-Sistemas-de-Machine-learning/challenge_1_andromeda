@@ -68,16 +68,23 @@ O resumo exibe índice operacional, cobertura, status, fórmula, identificador d
 análise, título, URL final, versão da pipeline e limitações. `SUCCESS` significa
 que a análise concluiu o fluxo; não significa que a notícia foi comprovada.
 
-| Critérios disponíveis | Fórmula do índice | Cobertura |
+| Critérios disponíveis | Média antes do veto | Cobertura |
 | --- | --- | --- |
 | Fatos e escrita | `(0,60 × F + 0,40 × W) × 100` | 100% |
 | Apenas fatos | `F × 100` | 60% |
 | Apenas escrita | `W × 100` | 40% |
 | Nenhum | Sem índice | 0% |
 
+A nota final é essa média, limitada a 35 quando houver veto comprovado da fonte.
+`final.score_before_veto` preserva a média e `final.source_veto_applied` indica
+a aplicação do teto. As contribuições somam a média anterior ao teto, não
+necessariamente a nota final. Fonte totalmente indisponível não aplica veto;
+blocklist comprovada continua aplicando. Sem média disponível, a nota permanece nula.
+Cobertura final mede fatos e escrita; a cobertura dos sinais da fonte é separada.
+
 Com apenas escrita disponível, a interface utiliza **“Somente estilo de escrita”**
 e informa que a nota não confirma os fatos. Mesmo uma nota próxima de 100 nesse
-caso deriva exclusivamente da classificação textual.
+caso usa a classificação textual como média, sujeita ao teto da fonte.
 
 Cobertura não é confiança estatística, percentual de texto processado ou
 percentual de fatos verificados. O peso efetivo de um único critério é 100%,
@@ -97,8 +104,10 @@ O cartão permanece visível mesmo sem checagens utilizáveis. Ele apresenta:
 
 O critério ausente na resposta produz um aviso de dados não recebidos, sem
 desaparecer da interface ou inventar uma nota. Respostas com `source_credibility`
-também são reconhecidas; dados que não existem nesse formato aparecem como
-não informados. Links de evidências são exibidos somente com HTTP/HTTPS, e
+também são reconhecidas: `reviews_count` identifica o formato factual antigo;
+`signals` identifica o critério histórico de metadados v4, exibido em cartão
+separado com pesos e nota preservados. Dados ausentes aparecem como não informados.
+Links de evidências são exibidos somente com HTTP/HTTPS, e
 conteúdo recebido é escapado antes de sua inserção na página.
 
 ## Cartão de estilo de escrita
@@ -114,7 +123,9 @@ do modelo não comprova veracidade. Consulte [Estilo de escrita](TipoDeEscrita.m
 ## Credibilidade da fonte
 
 `criteria.credibility` retorna o SCORE_FONTE. `criteria.credibility_evidence`
-registra a origem e a versão da base de reconhecimento. Consulte [Atlas](Atlas.md).
+registra a origem e a versão da base de reconhecimento, política/hash, estado/hash
+da blocklist e motivo do veto. Consulte [Atlas](Atlas.md) e a
+[decisão de credibilidade](DecisaoCredibilidade.md).
 
 ## Saídas e precisão
 

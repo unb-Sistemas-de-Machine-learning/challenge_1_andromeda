@@ -111,6 +111,35 @@ def test_total_network_failure(config):
     assert result['confianca_fonte'] == 'baixa'
     assert all(c['status'] == 'indisponivel' for c in result['criterios'])
     assert result['erros']
+    assert result['score_fonte'] is None
+    assert result['veto_dominio_suspeito'] is False
+
+
+def test_confirmed_blocklist_veto_survives_network_failure(config):
+    class Failed(Network):
+        def fetch(self, url):
+            raise httpx.ConnectError('offline')
+    config.blocklist_path.write_text('["example.com"]')
+    result, evidence = SourceCredibility(config, Failed()).calculate_with_evidence('https://example.com')
+    assert result['score_fonte'] == 0
+    assert result['veto_dominio_suspeito'] is True
+    assert evidence['veto']['reason_code'] == 'blocklist_match'
+    assert evidence['blocklist']['matched_domains'] == ['example.com']
+
+
+def test_blocklist_evidence_hashes_consulted_bytes_and_preserves_failures(config):
+    import hashlib
+    source = SourceCredibility(config, Network())
+    _, original = source.calculate_with_evidence('https://example.com')
+    assert original['blocklist']['content_hash'] == hashlib.sha256(config.blocklist_path.read_bytes()).hexdigest()
+    config.blocklist_path.write_text('["example.com"]')
+    _, updated = source.calculate_with_evidence('https://example.com')
+    assert updated['blocklist']['content_hash'] != original['blocklist']['content_hash']
+    assert updated['policy_hash'] == original['policy_hash']
+    config.blocklist_path.write_text('invalid json')
+    _, failed = source.calculate_with_evidence('https://example.com')
+    assert failed['blocklist']['status'] == 'unavailable'
+    assert failed['blocklist']['content_hash'] is None
 
 
 def test_local_csv(tmp_path):

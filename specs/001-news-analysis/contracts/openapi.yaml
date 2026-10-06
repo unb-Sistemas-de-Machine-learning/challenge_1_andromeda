@@ -74,58 +74,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
-    Analysis: &id001
-      properties:
-        id:
-          type: string
-          title: Id
-        status:
-          $ref: '#/components/schemas/AnalysisStatus'
-        input:
-          additionalProperties:
-            type: string
-          type: object
-          title: Input
-        article:
-          anyOf:
-          - $ref: '#/components/schemas/Article'
-          - type: 'null'
-        criteria:
-          $ref: '#/components/schemas/CriteriaSet'
-        final:
-          $ref: '#/components/schemas/FinalScore'
-        pipeline_version:
-          $ref: '#/components/schemas/PipelineVersion'
-        limitations:
-          items:
-            type: string
-          type: array
-          title: Limitations
-        error:
-          anyOf:
-          - $ref: '#/components/schemas/ErrorInfo'
-          - type: 'null'
-        created_at:
-          type: string
-          format: date-time
-          title: Created At
-        completed_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Completed At
-      additionalProperties: false
-      type: object
-      required:
-      - id
-      - status
-      - input
-      - criteria
-      - final
-      - pipeline_version
-      - limitations
-      title: Analysis
     AnalysisRequest:
       properties:
         url:
@@ -233,6 +181,12 @@ components:
             type: object
           - type: 'null'
           title: Credibility Evidence
+        source_credibility:
+          anyOf:
+          - $ref: '#/components/schemas/HistoricalSourceCredibility'
+          - type: 'null'
+          description: Historical v4 metadata criterion only; never produced by new
+            analyses.
       additionalProperties: false
       type: object
       required:
@@ -481,6 +435,18 @@ components:
             minimum: 0.0
           - type: 'null'
           title: Score
+        score_before_veto:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Score Before Veto
+        source_veto_applied:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Source Veto Applied
         coverage:
           type: number
           title: Coverage
@@ -518,6 +484,104 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    HistoricalSourceCredibility:
+      properties:
+        available:
+          type: boolean
+          title: Available
+        status:
+          $ref: '#/components/schemas/CriterionStatus'
+        score:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Score
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        method:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Method
+        scope:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Scope
+        formula:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Formula
+        limitation:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Limitation
+        signals:
+          items:
+            $ref: '#/components/schemas/HistoricalSourceSignal'
+          type: array
+          title: Signals
+        intended_weight:
+          type: number
+          title: Intended Weight
+        effective_weight:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Effective Weight
+        contribution:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Contribution
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorInfo'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - available
+      - status
+      - signals
+      - intended_weight
+      title: HistoricalSourceCredibility
+      description: Read-only compatibility with the v4 metadata criterion (50/30/20).
+    HistoricalSourceSignal:
+      properties:
+        key:
+          type: string
+          title: Key
+        label:
+          type: string
+          title: Label
+        passed:
+          type: boolean
+          title: Passed
+        weight:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Weight
+        evidence:
+          type: string
+          title: Evidence
+      additionalProperties: false
+      type: object
+      required:
+      - key
+      - label
+      - passed
+      - weight
+      - evidence
+      title: HistoricalSourceSignal
     PipelineVersion:
       properties:
         id:
@@ -542,6 +606,11 @@ components:
             type: string
           type: object
           title: Dependency Versions
+        credibility_policy_hash:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Credibility Policy Hash
       additionalProperties: false
       type: object
       required:
@@ -707,15 +776,68 @@ components:
       - segments
       - limitation
       title: WritingStyleCriterionResult
-    AnalysisResponse: *id001
-    ErrorResponse:
+    AnalysisResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        status:
+          $ref: '#/components/schemas/AnalysisStatus'
+        input:
+          additionalProperties:
+            type: string
+          type: object
+          title: Input
+        article:
+          anyOf:
+          - $ref: '#/components/schemas/Article'
+          - type: 'null'
+        criteria:
+          $ref: '#/components/schemas/CriteriaSet'
+        final:
+          $ref: '#/components/schemas/FinalScore'
+        pipeline_version:
+          $ref: '#/components/schemas/PipelineVersion'
+        limitations:
+          items:
+            type: string
+          type: array
+          title: Limitations
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorInfo'
+          - type: 'null'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+      additionalProperties: false
       type: object
+      required:
+      - id
+      - status
+      - input
+      - criteria
+      - final
+      - pipeline_version
+      - limitations
+      title: Analysis
+    ErrorResponse:
+      additionalProperties: false
+      properties:
+        status:
+          title: Status
+          type: string
+        error:
+          $ref: '#/components/schemas/ErrorInfo'
       required:
       - status
       - error
-      properties:
-        status:
-          $ref: '#/components/schemas/AnalysisStatus'
-        error:
-          $ref: '#/components/schemas/ErrorInfo'
-      additionalProperties: false
+      title: ErrorResponse
+      type: object

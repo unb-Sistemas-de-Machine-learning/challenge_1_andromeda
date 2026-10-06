@@ -35,8 +35,13 @@ quando aplicável, URL oficial e método de correspondência.
 Campo opcional `criteria.credibility_evidence`, com cópia autocontida da decisão e
 evidências. `criteria.credibility` conserva o resultado SCORE_FONTE existente.
 Persistência usa payload_json; modelos e contrato recebem campo opcional para
-compatibilidade. Nunca usar `criteria.source_credibility`, chave histórica de
-checagem factual. Lista local também tem hash e domínio utilizado registrados.
+compatibilidade. Novas análises não usam `criteria.source_credibility`: a chave
+também foi usada pelo critério de metadados v4 e é aceita apenas para leitura
+histórica desse formato, sem sobrescrever fatos ou pesos. Lista local também tem
+hash e domínio utilizado registrados. A evidência inclui `policy`, `policy_hash`,
+`blocklist` (estado, hash dos bytes consultados, domínios correspondentes) e `veto`
+(decisão e motivo). Sem reconhecimento consultável, esses campos de auditoria
+continuam presentes. Nenhuma credencial ou caminho local é registrado.
 
 ## Validações e transições
 

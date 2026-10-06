@@ -46,6 +46,11 @@ def test_atlas_evidence_and_blocklist_survive_new_snapshot(tmp_path, temp_settin
     assert blocked.criteria.credibility['score_fonte'] == 0
     assert blocked.final.score == 35
     assert blocked.criteria.credibility_evidence['status'] == 'matched'
+    blocked_before = repository.get(blocked.id)
+    blocklist.write_text('[]')
+    assert repository.get(blocked.id) == blocked_before
+    assert blocked_before['criteria']['credibility_evidence']['blocklist']['matched_domains'] == ['example.com']
+    assert blocked_before['criteria']['credibility_evidence']['veto']['reason_code'] == 'blocklist_match'
 
 
 def test_dry_run_and_failure_keep_active(tmp_path):

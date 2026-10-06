@@ -58,6 +58,9 @@ Prepared metadata and transient content identity for the analyzed news item.
 |-------|------|----------|-------|
 | verifiable_facts | FactCheckCriterionResult | yes | Current scoring criterion, intended weight 0.60. |
 | writing_style | WritingStyleCriterionResult | yes | Current scoring criterion, intended weight 0.40. |
+| credibility | object | no | Independent SCORE_FONTE; null source score means unavailable, without veto. |
+| credibility_evidence | object | no | Recognition evidence, effective policy/hash, blocklist state/hash and veto reason. |
+| source_credibility | HistoricalSourceCredibility | no | Read-only v4 metadata criterion; original 50/30/20 scoring is preserved. |
 
 ## FactCheckCriterionResult
 
@@ -177,6 +180,8 @@ presentation precision does not replace the stored numeric values.
 |-------|------|----------|-------|
 | score | number/null | yes | 0..100 when any current criterion is available. |
 | coverage | number | yes | 100, 60, 40, or 0 under current criteria. |
+| score_before_veto | number or null | no | New analyses: averaging result before the source cap. Absent from old records. |
+| source_veto_applied | boolean or null | no | Whether a source veto was applied to an existing final score. |
 | intended_weights | object | yes | Fact-checking 0.60; writing style 0.40. |
 | effective_weights | object | yes | Renormalized over available criteria. |
 | formula | string | yes | Human-readable formula used. |
@@ -185,6 +190,10 @@ presentation precision does not replace the stored numeric values.
 ### Validation Rules
 
 - Both criteria available: `(0.60 * F + 0.40 * W) * 100`.
+  This and the renormalized cases define the pre-veto mean. An available source
+  score below 20 or a confirmed blocklist match caps the final score at 35;
+  completely unavailable source evidence does not. Contributions describe the
+  pre-veto mean. Source evidence never creates a final score on its own.
 - Only fact-checking available: `F * 100`.
 - Only writing style available: `W * 100`.
 - No current criteria available: `score = null`, `coverage = 0`.

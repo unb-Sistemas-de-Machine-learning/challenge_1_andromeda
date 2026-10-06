@@ -59,7 +59,7 @@ def test_unavailable_fact_check_remains_visible_with_all_attempts():
 
 
 def test_legacy_fact_key_and_error_attempts_are_supported():
-    criterion = {"available": False, "status": "UNAVAILABLE", "search_attempts": [], "error": {"message": "No matching reviews", "details": {"attempted_queries": ["consulta antiga"]}}}
+    criterion = {"available": False, "status": "UNAVAILABLE", "reviews_count": 0, "search_attempts": [], "error": {"message": "No matching reviews", "details": {"attempted_queries": ["consulta antiga"]}}}
     html = render(payload(criterion, key="source_credibility"))
     assert "Checagem de fatos verificáveis" in html
     assert "consulta antiga" in html
@@ -90,3 +90,27 @@ def test_writing_segment_details_are_available():
     assert "Resultados por segmento (1)" in html
     assert "1200 caracteres" in html
     assert "512 tokens" in html
+
+
+def test_historical_metadata_is_not_rendered_as_fact_check():
+    data = payload()
+    data['criteria']['source_credibility'] = dict(available=True, score=1, intended_weight=.2,
+        effective_weight=.4, contribution=40, signals=[dict(label='HTTPS', passed=True, evidence='<unsafe>')])
+    html = render(data)
+    assert 'Credibilidade da fonte — análise histórica' in html
+    assert 'sem recálculo' in html
+    assert 'não contém o critério' in html
+    assert 'Somente estilo de escrita' not in html
+    assert '&lt;unsafe&gt;' in html
+
+
+def test_unavailable_source_and_pre_veto_score_are_explicit():
+    data = payload()
+    data['final']['score_before_veto'] = 100
+    data['criteria']['credibility'] = dict(score_fonte=None, confianca_fonte='baixa', criterios=[],
+                                         veto_dominio_suspeito=False)
+    html = render(data)
+    assert 'Score: Indisponível' in html
+    assert 'indisponibilidade não aplica veto' in html
+    assert 'Média antes do veto' in html
+    assert 'Teto de 35 aplicado' not in html

@@ -32,11 +32,19 @@ NEWS_ANALYSIS_DB_PATH. Base remota fixa em HTTPS; sem URL remota arbitrária do 
 `SourceCredibility` recebe provedor por injeção. Operação interna retorna score e
 evidências juntos. `calcular_score_fonte(url)` mantém somente as chaves públicas
 originais e usa detalhe para a explicação textual.
+Desde a versão v6, `score_fonte` pode ser nulo quando nenhum sinal é disponível;
+nesse caso o veto é falso, salvo correspondência comprovada na blocklist, que
+retorna zero e veto verdadeiro. As evidências incluem política/hash, estado/hash
+da blocklist, domínios correspondentes e motivo estruturado do veto.
 
 ## API/interface
 
 POST /analyses e GET /analyses/{id} continuam com semântica atual; novo campo
 opcional `criteria.credibility_evidence`. Registros anteriores podem omiti-lo.
+`final.score_before_veto` e `final.source_veto_applied` explicitam o teto sobre a
+média 60/40. `pipeline_version.credibility_policy_hash` identifica a política
+efetiva. Registros v4 podem conter `criteria.source_credibility` como metadados
+históricos independentes de fatos; seus pesos e notas nunca são recalculados.
 GET /config pode adicionar `atlas_enabled`, `atlas_status`, `atlas_last_success_at`.
 Não expor segredos. Texto UI: cadastro identificado, fonte local, não localizado
 nas bases consultáveis, consulta indisponível ou vínculo ambíguo, conforme estado.

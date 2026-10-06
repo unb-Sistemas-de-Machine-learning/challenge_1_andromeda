@@ -234,6 +234,11 @@ scores, weights, coverage, final score, and pipeline/model versions.
   least one current criterion is available.
 - **FR-024**: System MUST use initial intended weights of 60% for fact-checking
   and 40% for writing style when both criteria are available.
+  This defines the pre-veto mean. Independent source credibility has no averaging
+  weight: an available source score below 20 or a confirmed blocklist match caps
+  an existing final score at 35. Completely unavailable source evidence MUST NOT
+  trigger a veto. Record `score_before_veto` and `source_veto_applied`; preserve null
+  final scores when neither averaging criterion is available.
 - **FR-025**: System MUST renormalize weights across available criteria when one
   current criterion is unavailable.
 - **FR-026**: System MUST NOT use zero as a substitute for an unavailable
@@ -273,6 +278,11 @@ scores, weights, coverage, final score, and pipeline/model versions.
 - **FR-040**: System MUST version changes to models, weights, normalization
   rules, aggregation rules, or relevant dependencies so results remain
   interpretable over time.
+  The pipeline ID MUST include the effective source-policy hash. Audit evidence
+  MUST include that policy, blocklist state and content hash when read, matched
+  domains and the structured veto reason, without credentials or local paths.
+  Historical v4 metadata `source_credibility` MUST remain distinct from factual
+  reviews and preserve original 50/30/20 weights, scores and stored payloads.
 - **FR-041**: System MUST present the final index as an operational combination
   of executed criteria, not as a probability that the news is true or false.
 - **FR-042**: System MUST NOT preserve the full extracted article text in the

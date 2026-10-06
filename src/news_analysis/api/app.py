@@ -310,9 +310,11 @@ INDEX_HTML = """
 
     function renderAnalysis(data) {
       const score = data.final?.score;
-      const factCriterion = data.criteria?.verifiable_facts ?? data.criteria?.source_credibility;
-      const legacyFacts = !data.criteria?.verifiable_facts && Boolean(data.criteria?.source_credibility);
-      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available;
+      const historicalSource = data.criteria?.source_credibility;
+      const legacyFacts = !data.criteria?.verifiable_facts && historicalSource?.reviews_count !== undefined && !historicalSource?.signals;
+      const factCriterion = data.criteria?.verifiable_facts ?? (legacyFacts ? historicalSource : null);
+      const metadataSource = historicalSource?.signals ? historicalSource : null;
+      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available && !metadataSource?.available;
       const level = score === null || score === undefined ? "Indisponivel" : writingOnly ? "Somente estilo de escrita" : scoreLabel(score);
       const badgeClass = score === null || score === undefined || writingOnly ? "warn" : score >= 70 ? "good" : score >= 40 ? "warn" : "bad";
       result.className = "grid";
@@ -325,6 +327,7 @@ INDEX_HTML = """
           <dl>
             <dt>Cobertura</dt><dd>${data.final?.coverage ?? 0}%</dd>
             <dt>Fórmula</dt><dd>${escapeHtml(data.final?.formula || "Não informada")}</dd>
+            ${data.final?.score_before_veto != null ? `<dt>Média antes do veto</dt><dd>${formatScore100(data.final.score_before_veto)}</dd>` : ''}
             <dt>Status</dt><dd>${escapeHtml(data.status)}</dd>
             <dt>ID da análise</dt><dd>${escapeHtml(data.id || "Não informado")}</dd>
             <dt>Titulo</dt><dd>${escapeHtml(data.article?.title || "Nao extraido")}</dd>
@@ -336,7 +339,8 @@ INDEX_HTML = """
         <section class="panel criteria">
           ${factCriterionCard(factCriterion, legacyFacts, data)}
           ${criterionCard("Estilo de escrita", data.criteria?.writing_style)}
-          ${credibilityCard(data.criteria?.credibility, data.criteria?.credibility_evidence)}
+          ${credibilityCard(data.criteria?.credibility, data.criteria?.credibility_evidence, data.final)}
+          ${historicalCredibilityCard(metadataSource)}
         </section>
       `;
     }
@@ -351,10 +355,17 @@ INDEX_HTML = """
         (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "");
     }
 
-    function credibilityCard(source, evidence) {
+    function historicalCredibilityCard(source) {
+      if (!source) return "";
+      return criterionCard("Credibilidade da fonte — análise histórica", source) +
+        `<p>Critério de metadados da versão anterior. Pesos, contribuições e nota preservados, sem recálculo.</p><ul>${source.signals.map(s => `<li>${escapeHtml(s.label)}: ${s.passed ? 'Sim' : 'Não'} — ${escapeHtml(s.evidence)}</li>`).join('')}</ul>`;
+    }
+
+    function credibilityCard(source, evidence, final) {
       if (!source) return "";
       return `<article class="criterion"><h3>Credibilidade da fonte</h3>
-        <p>Score: ${escapeHtml(source.score_fonte)}/100 · Confiança: ${escapeHtml(source.confianca_fonte)}</p>
+        <p>Score: ${source.score_fonte == null ? 'Indisponível' : `${escapeHtml(source.score_fonte)}/100`} · Confiança: ${escapeHtml(source.confianca_fonte)}</p>
+        ${source.score_fonte == null ? '<p>Sem sinais suficientes para avaliar a fonte; a indisponibilidade não aplica veto.</p>' : ''}
         <p>Domínio: ${escapeHtml(source.dominio)}. Sinais da fonte não comprovam a veracidade da notícia.</p>
         <ul>${(source.criterios || []).map(c => `<li>${escapeHtml(c.nome)}: ${escapeHtml(c.pontos)}/${escapeHtml(c.maximo)} — ${escapeHtml(c.status)}. ${escapeHtml(c.detalhe)}</li>`).join("")}</ul>
         ${evidence ? `<details><summary>Origem do reconhecimento da fonte</summary>
@@ -362,7 +373,7 @@ INDEX_HTML = """
           <ul>${(evidence.providers || []).map(p => `<li>${escapeHtml(p.source)}: ${escapeHtml(p.status)} · ${escapeHtml(p.reason_code)}${p.fetched_at ? ` · Base de ${escapeHtml(p.fetched_at)}` : ''}${p.freshness === 'stale' ? ' · Atualização pendente; cópia dentro da validade' : ''}</li>`).join('')}</ul>
           <ul>${(evidence.evidence || []).map(e => `<li>${escapeHtml(e.source)}${e.atlas_id ? ` · Cadastro ${escapeHtml(e.atlas_id)}: ${escapeHtml(e.name)}` : ''}${e.resolved_url && /^https?:\\/\\//i.test(e.resolved_url) ? ` · <a href="${escapeHtml(e.resolved_url)}" target="_blank" rel="noopener noreferrer">Site registrado</a>` : ''}</li>`).join('')}</ul>
         </details>` : ''}
-        ${source.veto_dominio_suspeito ? '<p>Teto de 35 aplicado à nota final. As contribuições acima mostram a média antes do teto.</p>' : ''}
+        ${source.veto_dominio_suspeito ? (final?.score != null ? '<p>Teto de 35 aplicado à nota final. As contribuições acima mostram a média antes do teto.</p>' : '<p>Veto da fonte identificado; não há nota final à qual aplicar o teto.</p>') : ''}
         <ul>${[...(source.flags || []), ...(source.erros || [])].map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>`;
     }
 

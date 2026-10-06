@@ -46,3 +46,18 @@ Reiniciar o servidor para carregar código/configuração novos. Sincronizaçõe
 posteriores são vistas sem reinício. Renovar o índice via comando documentado;
 não há agendamento automático. Consulte [operação](../../docs/Atlas.md),
 [smoke test](smoke-result.json) e [benchmark](benchmark-result.txt).
+
+## Reconciliação posterior — 2026-10-06
+
+O resultado anterior de 123 testes refere-se à implementação de 2026-10-05.
+A reconciliação do merge mantém Atlas e a média 60/40, corrige a leitura da
+variante histórica 50/30/20 e impede veto por indisponibilidade total da fonte.
+A auditoria passa a registrar política/hash, blocklist/hash e motivo do veto;
+a resposta explicita a média anterior ao teto. Veja a
+[decisão](../../docs/DecisaoCredibilidade.md).
+
+Validação posterior: suíte completa com 132 testes aprovados, incluindo
+regressões de API, histórico, pontuação e frontend, usando serviços simulados.
+No Windows, o TestClient exigiu execução fora do sandbox para criar seu socket
+local. Permanece um aviso de depreciação de terceiros sobre httpx/TestClient.
+Não foi executada nova sincronização Atlas nem novo benchmark remoto.

@@ -54,15 +54,28 @@ editoriais, idade fica limitada a 8. Domínio com menos de 30 dias gera flag.
 
 A nota inteira é a soma obtida dividida pelo máximo disponível, vezes 100.
 Confiança mede cobertura: baixa abaixo de 50%, média de 50% até menos de 80%,
-alta a partir de 80%. Se nenhum critério puder ser avaliado, retorna 0 com
-confiança baixa e todos indisponíveis; esse zero não é evidência de desinformação.
-O contrato exige veto sempre que a nota for menor que 20, inclusive nesse caso.
-A blocklist prevalece sobre qualquer pontuação.
+alta a partir de 80%. Se nenhum critério puder ser avaliado, retorna
+`score_fonte: null`, confiança baixa e veto falso. Indisponibilidade não é evidência
+negativa. Uma nota disponível menor que 20 aciona o veto; uma correspondência
+comprovada na blocklist prevalece, produzindo zero e veto mesmo se a página falhar.
 
 A API e a auditoria incluem `criteria.credibility`, e a tela mostra explicações,
 flags e falhas. Não há peso especificado para a fonte na média: os pesos 60/40
 existentes permanecem. O motor aplica `min(nota, 35)` quando há veto. Contribuições
 dos demais critérios representam a média anterior ao teto, explicitado na fórmula.
+`final.score_before_veto` registra essa média; `final.source_veto_applied` informa
+se o teto foi aplicado a uma nota existente. Sem fatos nem escrita disponíveis,
+a nota final permanece nula, mesmo quando houver veto da fonte.
+
+`criteria.credibility_evidence` registra a política efetiva e seu hash, estado e
+hash dos bytes consultados da blocklist, domínios correspondentes e motivo do veto
+(`blocklist_match`, `score_below_threshold`, `source_unavailable` ou
+`score_above_threshold`). A versão da pipeline inclui o hash da política, sem
+credenciais nem caminhos locais. Hashes de bases identificam os dados utilizados;
+não são substitutos para conservar as versões das listas curadas.
+
+Consulte a [decisão de reconciliação do merge](DecisaoCredibilidade.md) para a
+compatibilidade com análises históricas que usavam a média 50/30/20.
 
 ## Exemplos reproduzíveis
 

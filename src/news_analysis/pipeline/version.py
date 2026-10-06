@@ -6,8 +6,10 @@ import json
 
 from news_analysis.pipeline.aggregation import INTENDED_WEIGHTS
 from news_analysis.pipeline.models import PipelineVersion
+from news_analysis.criteria.credibility_config import CONFIG, CredibilityConfig
+from news_analysis.criteria.credibility_policy import policy_hash, scoring_policy
 
-RULES_VERSION = "analysis-rules-v5-atlas-domain-evidence"
+RULES_VERSION = "analysis-rules-v6-source-abstention-history"
 FACT_CHECK_MAPPING_VERSION = "fact-check-exact-labels-publisher-mean-v2"
 WRITING_MODEL_NAME = "vzani/portuguese-fake-news-classifier-bertimbau-combined"
 WRITING_MODEL_REVISION = "86971e56e7f5ad781cf56673df73a57375455793"
@@ -31,6 +33,7 @@ def derive_pipeline_id(
     intended_weights: dict[str, float] | None = None,
     writing_model_revision: str | None = WRITING_MODEL_REVISION,
     deps: dict[str, str] | None = None,
+    credibility_config: CredibilityConfig = CONFIG,
 ) -> str:
     payload = {
         "rules_version": rules_version,
@@ -39,18 +42,20 @@ def derive_pipeline_id(
         "writing_model_name": WRITING_MODEL_NAME,
         "writing_model_revision": writing_model_revision,
         "dependency_versions": deps or dependency_versions(),
+        "credibility_policy_hash": policy_hash(scoring_policy(credibility_config)),
     }
     digest = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()[:12]
     return f"pipeline-{digest}"
 
 
-def current_pipeline_version() -> PipelineVersion:
+def current_pipeline_version(credibility_config: CredibilityConfig = CONFIG) -> PipelineVersion:
     deps = dependency_versions()
     return PipelineVersion(
-        id=derive_pipeline_id(deps=deps),
+        id=derive_pipeline_id(deps=deps, credibility_config=credibility_config),
         rules_version=RULES_VERSION,
         fact_check_mapping_version=FACT_CHECK_MAPPING_VERSION,
         writing_model_name=WRITING_MODEL_NAME,
         writing_model_revision=WRITING_MODEL_REVISION,
         dependency_versions=deps,
+        credibility_policy_hash=policy_hash(scoring_policy(credibility_config)),
     )

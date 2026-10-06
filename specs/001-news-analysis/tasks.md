@@ -228,3 +228,11 @@ Task: "T041 [P] [US2] Add unit tests for unmapped textual fact-check ratings rem
 - Full extracted article text must not be persisted.
 - Pipeline version must appear on completed or partial analyses.
 - Final score and writing labels must never be presented as factual truth/falsity probabilities.
+
+### Merge reconciliation — 2026-10-06
+
+- [X] Preserve historical v4 metadata separately from legacy factual reviews, including HTTP retrieval and immutable stored payloads.
+- [X] Formalize 60/40 plus source cap; expose the mean before the cap and abstain when the source is unavailable.
+- [X] Version the effective source policy and audit blocklist hashes, matched domains and veto reasons without secrets.
+- [X] Align documentation, OpenAPI models and frontend with the scoring and historical compatibility rules.
+- [X] Validate regression coverage for API history, source failures, blocklists, policy changes and frontend rendering.

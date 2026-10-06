@@ -33,7 +33,14 @@ accepts legacy `source_credibility` payloads with explicit compatibility feedbac
 The summary identifies writing-only results and exposes formula and analysis ID.
 Node-executed rendering regression tests cover current/legacy/missing payloads,
 all recorded queries, escaped evidence and per-segment details.
-`analysis-rules-v3-verifiable-facts` identifies the rules.
+`analysis-rules-v6-source-abstention-history` identifies the current rules.
+The independent Atlas source score can cap the 60/40 averaging result at 35;
+complete source unavailability abstains. Store the pre-veto mean, whether a cap
+was applied, effective source policy/hash, blocklist state/hash and veto reason.
+Historical metadata results using 50/30/20 remain readable in their original
+`source_credibility` field, separately from facts, without rescoring or writes.
+The [reconciliation decision](../../docs/DecisaoCredibilidade.md) supersedes the
+discarded branch's scoring policy for new analyses.
 
 Criterion 1 is `verifiable_facts`, named "Checagem de fatos verificáveis".
 Optional `claim` selects one statement; without it the cleaned title or first

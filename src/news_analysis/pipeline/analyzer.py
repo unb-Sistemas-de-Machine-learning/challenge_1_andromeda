@@ -15,6 +15,7 @@ from news_analysis.criteria.fact_check import (
 )
 from news_analysis.criteria.writing_style import WritingStyleClassifier
 from news_analysis.criteria.source_credibility import SourceCredibility
+from news_analysis.criteria.credibility_policy import SOURCE_SCORE_CAP
 from news_analysis.pipeline.aggregation import aggregate_final_score, contribution
 from news_analysis.pipeline.errors import AnalysisError, AnalysisStatus
 from news_analysis.pipeline.models import (
@@ -80,9 +81,12 @@ class NewsAnalyzer:
         final = aggregate_final_score(fact_check.score, writing.score)
         self._attach_contributions(fact_check, writing, final)
         credibility, credibility_evidence = self.source_credibility.calculate_with_evidence(url, page=(html, final_url))
+        final.score_before_veto = final.score
+        final.source_veto_applied = False
         if credibility['veto_dominio_suspeito'] and final.score is not None:
-            final.score = min(final.score, 35)
-            final.formula = f"min(35, {final.formula}); veto da fonte"
+            final.score = min(final.score, SOURCE_SCORE_CAP)
+            final.source_veto_applied = True
+            final.formula = f"min({SOURCE_SCORE_CAP}, {final.formula}); veto da fonte"
 
         criteria = CriteriaSet(
             verifiable_facts=fact_check,
@@ -97,7 +101,7 @@ class NewsAnalyzer:
             article=extracted.article,
             criteria=criteria,
             final=final,
-            pipeline_version=current_pipeline_version(),
+            pipeline_version=current_pipeline_version(self.source_credibility.config),
             limitations=self._limitations_for(final.coverage),
             created_at=created_at,
             completed_at=datetime.now(timezone.utc),
@@ -172,7 +176,7 @@ class NewsAnalyzer:
             input={"url": url},
             criteria=criteria,
             final=final,
-            pipeline_version=current_pipeline_version(),
+            pipeline_version=current_pipeline_version(self.source_credibility.config),
             limitations=LIMITATIONS,
             error=ErrorInfo(code=exc.status.value, message=exc.message, retryable=exc.retryable, details=exc.details or None),
             created_at=created_at,

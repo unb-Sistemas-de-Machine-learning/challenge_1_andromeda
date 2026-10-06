@@ -32,6 +32,8 @@ inclui evidências de reconhecimento e permite consulta local durante a análise
 O critério [Credibilidade da fonte](docs/Credibilidade.md) já está disponível na
 API e na interface, com SCORE_FONTE independente, bases locais configuráveis e
 teto na nota final quando houver veto da fonte.
+Fonte totalmente indisponível não aplica veto. A [decisão de reconciliação](docs/DecisaoCredibilidade.md)
+documenta os pesos 60/40 atuais, a auditoria e a leitura dos formatos históricos.
 
 A documentação do projeto é publicada em:
 <https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/>

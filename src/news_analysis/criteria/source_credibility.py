@@ -12,7 +12,8 @@ from urllib.parse import urljoin, urlsplit
 from lxml import html as html_parser
 
 from news_analysis.criteria.credibility_config import CONFIG, CredibilityConfig
-from news_analysis.criteria.credibility_io import SourceNetwork, TTLCache, load_domains, normalize_url, registrable_domain
+from news_analysis.criteria.credibility_io import SourceNetwork, TTLCache, load_domain_base, normalize_url, registrable_domain
+from news_analysis.criteria.credibility_policy import policy_hash, scoring_policy
 from news_analysis.criteria.recognition import RecognitionProvider, recognition_detail
 
 logger = logging.getLogger(__name__)
@@ -129,7 +130,9 @@ class SourceCredibility:
         flags: list[str] = []
         results = [criterion(name, 0, weight, 'Não foi possível avaliar', True) for name, weight in zip(NAMES, config.weights)]
         final, domain = url, ''
-        recognition_evidence = None
+        recognition_evidence = dict(status='unavailable', reason_code='destination_unavailable',
+                                    checked_at=datetime.now(timezone.utc).isoformat(), providers=[], evidence=[])
+        blocklist_evidence = dict(status='not_configured', content_hash=None, matched_domains=[])
 
         def attempt(name, operation):
             try:
@@ -144,9 +147,17 @@ class SourceCredibility:
         blocked = False
         if normalized:
             final = normalized
-            blocklist = attempt('lista_desinformacao', lambda: load_domains(config.blocklist_path)) if config.blocklist_path is not None else None
+            blocklist = None
+            if config.blocklist_path is not None:
+                blocklist_evidence['status'] = 'unavailable'
+                base = attempt('lista_desinformacao', lambda: load_domain_base(config.blocklist_path))
+                if base is not None:
+                    blocklist, digest = base
+                    blocklist_evidence.update(status='available', content_hash=digest)
             original_domain = attempt('dominio_original', lambda: registrable_domain(normalized))
             blocked = blocklist is not None and original_domain in blocklist
+            if blocked:
+                blocklist_evidence['matched_domains'].append(original_domain)
             # Resolve first: metadata must describe the destination, not the shortener.
             fetched = attempt('pagina', lambda: page or self.pages.get(normalized, config.page_ttl, lambda: self.network.fetch(normalized)))
             if fetched:
@@ -167,6 +178,8 @@ class SourceCredibility:
                     recognition_evidence = recognized
                     results[0] = recognized_vehicle(recognized, config)
                 blocked |= blocklist is not None and domain in blocklist
+                if blocklist is not None and domain in blocklist and domain not in blocklist_evidence['matched_domains']:
+                    blocklist_evidence['matched_domains'].append(domain)
                 if created is not None:
                     age = attempt(NAMES[2], lambda: domain_age(created, bool(results[0]['pontos']), results[1]['pontos'], config))
                     if age:
@@ -174,15 +187,21 @@ class SourceCredibility:
                         flags.extend(age_flags)
                 results[3] = institutional_tld(domain, config)
         available = sum(item['maximo'] for item in results if item['status'] != 'indisponivel')
-        score = round(sum(item['pontos'] for item in results) / available * 100) if available else 0
+        score = round(sum(item['pontos'] for item in results) / available * 100) if available else None
         if blocked:
             score = 0
             flags.append('dominio_em_lista_desinformacao')
         coverage = available / sum(config.weights)
         confidence = 'baixa' if coverage < config.low_coverage else 'alta' if coverage >= config.high_coverage else 'media'
+        veto = blocked or (score is not None and score < config.veto_threshold)
+        policy = scoring_policy(config)
+        recognition_evidence.update(policy=policy, policy_hash=policy_hash(policy), blocklist=blocklist_evidence,
+                                    veto=dict(applied=veto, reason_code='blocklist_match' if blocked else
+                                              'score_below_threshold' if veto else
+                                              'source_unavailable' if score is None else 'score_above_threshold'))
         return dict(url_original=url, url_final=final, dominio=domain, score_fonte=score,
                     confianca_fonte=confidence, criterios=results, flags=flags,
-                    veto_dominio_suspeito=score < config.veto_threshold, erros=sorted(errors)), recognition_evidence
+                    veto_dominio_suspeito=veto, erros=sorted(errors)), recognition_evidence
 
 
 def calcular_score_fonte(url: str) -> dict[str, Any]:
