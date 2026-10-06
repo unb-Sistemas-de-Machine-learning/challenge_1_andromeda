@@ -27,7 +27,7 @@
 | :--- |  :---: |
 | CRT01  | Checagem de fatos verificáveis: afirmação selecionada e checagens publicadas, peso previsto 60%. |
 | CRT02  | Estilo de escrita com BERTimbau, peso previsto 40%. |
-| CRT03  | Verificação de alegações com evidências e XLM-RoBERTa, planejada e fora da nota atual. |
+| CRT03 | Credibilidade da fonte: Atlas da Notícia, sinais editoriais, idade, TLD e HTTPS; score próprio e veto. |
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 

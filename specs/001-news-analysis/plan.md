@@ -45,8 +45,6 @@ define the score. Original verdicts, exclusions, divergence and scope are expose
 Historic records are projected into the new key without changing original scores
 or pipeline versions.
 
-The third factual-claims criterion remains represented in outputs as
-`NOT_IMPLEMENTED` and is excluded from score and coverage calculations.
 
 ## Technical Context
 

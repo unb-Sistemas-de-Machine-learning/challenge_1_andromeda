@@ -1,0 +1,1 @@
+2026-10-05 | simulated SQLite, 50000 links, 200 indexed lookups | p95 4.883 ms | target <50 ms

@@ -40,6 +40,15 @@ class FakeWritingModel:
 
 
 @pytest.fixture(autouse=True)
+def mocked_source_service(monkeypatch):
+    """Existing pipeline tests isolate source networking; source tests inject it."""
+    from types import SimpleNamespace
+    monkeypatch.setattr('news_analysis.pipeline.analyzer.SourceCredibility', lambda config, **kwargs: SimpleNamespace(
+        calculate_with_evidence=lambda *args, **kwargs: (dict(url_original=args[0], url_final=args[0], dominio='example.com',
+            score_fonte=50, confianca_fonte='alta', criterios=[], flags=[], veto_dominio_suspeito=False, erros=[]), None)))
+
+
+@pytest.fixture(autouse=True)
 def mocked_writing_model(monkeypatch):
     """Keep normal tests deterministic and independent of downloads/real weights."""
     from news_analysis.criteria import writing_style

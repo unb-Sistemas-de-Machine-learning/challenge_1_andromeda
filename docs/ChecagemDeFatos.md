@@ -148,6 +148,3 @@ As evidências e decisões do critério são armazenadas em SQLite. O texto
 integral extraído não é persistido. As regras são identificadas por
 `analysis-rules-v3-verifiable-facts`, e o mapeamento por
 `fact-check-exact-labels-publisher-mean-v2`.
-
-A verificação automática de múltiplas alegações com evidências e XLM-RoBERTa
-continua reservada como `factual_claims`, fora da nota atual.

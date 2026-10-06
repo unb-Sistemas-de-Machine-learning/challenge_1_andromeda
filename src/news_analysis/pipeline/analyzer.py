@@ -13,8 +13,8 @@ from news_analysis.criteria.fact_check import (
     error_fact_check,
     evaluate_fact_checks,
 )
-from news_analysis.criteria.factual_claims import reserved_factual_claims_result
 from news_analysis.criteria.writing_style import WritingStyleClassifier
+from news_analysis.criteria.source_credibility import SourceCredibility
 from news_analysis.pipeline.aggregation import aggregate_final_score, contribution
 from news_analysis.pipeline.errors import AnalysisError, AnalysisStatus
 from news_analysis.pipeline.models import (
@@ -44,6 +44,7 @@ class NewsAnalyzer:
         extractor: ArticleExtractor | None = None,
         fact_check_client: FactCheckClient | None = None,
         writing_classifier: WritingStyleClassifier | None = None,
+        source_credibility: SourceCredibility | None = None,
     ):
         self.settings = settings
         self.repository = repository
@@ -51,6 +52,13 @@ class NewsAnalyzer:
         self.extractor = extractor or ArticleExtractor(settings.min_extracted_characters)
         self.fact_check_client = fact_check_client or FactCheckClient(settings)
         self.writing_classifier = writing_classifier or WritingStyleClassifier(cache_dir=settings.model_cache)
+        if source_credibility is None:
+            from news_analysis.criteria.recognition import RecognitionProvider
+            from news_analysis.storage.atlas_repository import AtlasRepository
+            config = settings.credibility_config()
+            source_credibility = SourceCredibility(config, recognition=RecognitionProvider(
+                config, AtlasRepository(settings.db_path) if config.atlas.enabled else None))
+        self.source_credibility = source_credibility
 
     def analyze(self, url: str, claim: str | None = None) -> Analysis:
         analysis_id = str(uuid4())
@@ -71,11 +79,16 @@ class NewsAnalyzer:
         writing = self.writing_classifier.classify(extracted.main_text)
         final = aggregate_final_score(fact_check.score, writing.score)
         self._attach_contributions(fact_check, writing, final)
+        credibility, credibility_evidence = self.source_credibility.calculate_with_evidence(url, page=(html, final_url))
+        if credibility['veto_dominio_suspeito'] and final.score is not None:
+            final.score = min(final.score, 35)
+            final.formula = f"min(35, {final.formula}); veto da fonte"
 
         criteria = CriteriaSet(
             verifiable_facts=fact_check,
             writing_style=writing,
-            factual_claims=reserved_factual_claims_result(),
+            credibility=credibility,
+            credibility_evidence=credibility_evidence,
         )
         analysis = Analysis(
             id=analysis_id,
@@ -152,7 +165,6 @@ class NewsAnalyzer:
                 limitation="Writing-style labels are model signals, not factual verdicts about the news.",
                 error=ErrorInfo(code="CRITERION_UNAVAILABLE", message="Analysis did not reach writing-style classification.", retryable=False),
             ),
-            factual_claims=reserved_factual_claims_result(),
         )
         return Analysis(
             id=analysis_id,

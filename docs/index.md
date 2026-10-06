@@ -62,7 +62,7 @@ auditable news-analysis pipeline with:
 - Checagem de fatos verificáveis: published claim reviews, explicit selected-claim scope and publisher-balanced scores
 - BERTimbau writing-style inference on CPU, with a pinned model revision,
   complete token-window processing, and character-weighted aggregation
-- reserved factual-claims criterion marked `NOT_IMPLEMENTED`
+- Credibilidade da fonte com índice local do Atlas da Notícia e evidências auditáveis
 - SQLite audit trail without retaining full extracted article text
 - explicit pipeline versioning, coverage, and non-verdict limitations
 

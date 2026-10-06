@@ -74,31 +74,48 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
-    AnalysisRequest:
-      additionalProperties: false
+    Analysis: &id001
       properties:
-        url:
-          title: Url
+        id:
           type: string
-        user_id:
+          title: Id
+        status:
+          $ref: '#/components/schemas/AnalysisStatus'
+        input:
+          additionalProperties:
+            type: string
+          type: object
+          title: Input
+        article:
+          anyOf:
+          - $ref: '#/components/schemas/Article'
+          - type: 'null'
+        criteria:
+          $ref: '#/components/schemas/CriteriaSet'
+        final:
+          $ref: '#/components/schemas/FinalScore'
+        pipeline_version:
+          $ref: '#/components/schemas/PipelineVersion'
+        limitations:
+          items:
+            type: string
+          type: array
+          title: Limitations
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorInfo'
+          - type: 'null'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        completed_at:
           anyOf:
           - type: string
+            format: date-time
           - type: 'null'
-          default: null
-          title: User Id
-        claim:
-          anyOf:
-          - maxLength: 500
-            minLength: 3
-            type: string
-          - type: 'null'
-          default: null
-          title: Claim
-      required:
-      - url
-      title: AnalysisRequest
-      type: object
-    AnalysisResponse:
+          title: Completed At
+      additionalProperties: false
       type: object
       required:
       - id
@@ -108,46 +125,29 @@ components:
       - final
       - pipeline_version
       - limitations
-      - created_at
+      title: Analysis
+    AnalysisRequest:
       properties:
-        id:
+        url:
           type: string
-        status:
-          $ref: '#/components/schemas/AnalysisStatus'
-        input:
-          type: object
-          required:
-          - url
-          properties:
-            url:
-              type: string
-              format: uri
-            claim:
-              type: string
-              description: Optional user-selected claim; evaluated independently of
-                source reputation.
-          additionalProperties: false
-        article:
-          $ref: '#/components/schemas/Article'
-        criteria:
-          $ref: '#/components/schemas/Criteria'
-        final:
-          $ref: '#/components/schemas/FinalScore'
-        pipeline_version:
-          $ref: '#/components/schemas/PipelineVersion'
-        limitations:
-          type: array
-          items:
-            type: string
-        error:
-          $ref: '#/components/schemas/ErrorInfo'
-        created_at:
-          type: string
-          format: date-time
-        completed_at:
-          type: string
-          format: date-time
+          title: Url
+        user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Id
+        claim:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 3
+          - type: 'null'
+          title: Claim
       additionalProperties: false
+      type: object
+      required:
+      - url
+      title: AnalysisRequest
     AnalysisStatus:
       type: string
       enum:
@@ -160,165 +160,225 @@ components:
       - WRITING_MODEL_ERROR
       - CRITERION_UNAVAILABLE
       - RATE_LIMITED
+      title: AnalysisStatus
     Article:
+      properties:
+        original_url:
+          type: string
+          title: Original Url
+        final_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Final Url
+        canonical_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Canonical Url
+        publisher:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Publisher
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        subtitle:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Subtitle
+        author:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Author
+        published_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Published At
+        content_hash:
+          type: string
+          title: Content Hash
+        extracted_character_count:
+          type: integer
+          minimum: 0.0
+          title: Extracted Character Count
+      additionalProperties: false
       type: object
       required:
       - original_url
       - content_hash
       - extracted_character_count
+      title: Article
+    CriteriaSet:
       properties:
-        original_url:
-          type: string
-          format: uri
-        final_url:
-          type: string
-          format: uri
-        canonical_url:
-          type: string
-          format: uri
-        publisher:
-          type: string
-        title:
-          type: string
-        subtitle:
-          type: string
-        author:
-          type: string
-        published_at:
-          type: string
-        content_hash:
-          type: string
-        extracted_character_count:
-          type: integer
-          minimum: 1000
+        verifiable_facts:
+          $ref: '#/components/schemas/FactCheckCriterionResult'
+        writing_style:
+          $ref: '#/components/schemas/WritingStyleCriterionResult'
+        credibility:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Credibility
+        credibility_evidence:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Credibility Evidence
       additionalProperties: false
-    Criteria:
       type: object
       required:
       - verifiable_facts
       - writing_style
-      - factual_claims
+      title: CriteriaSet
+    CriterionStatus:
+      type: string
+      enum:
+      - EXECUTED
+      - UNAVAILABLE
+      - ERROR
+      title: CriterionStatus
+    ErrorInfo:
       properties:
-        verifiable_facts:
-          $ref: '#/components/schemas/FactCheckCriterion'
-        writing_style:
-          $ref: '#/components/schemas/WritingStyleCriterion'
-        factual_claims:
-          $ref: '#/components/schemas/ReservedCriterion'
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+        retryable:
+          type: boolean
+          title: Retryable
+        details:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Details
       additionalProperties: false
-    FactCheckCriterion:
-      additionalProperties: false
+      type: object
+      required:
+      - code
+      - message
+      - retryable
+      title: ErrorInfo
+    FactCheckCriterionResult:
       properties:
         available:
-          title: Available
           type: boolean
+          title: Available
         status:
           $ref: '#/components/schemas/CriterionStatus'
         score:
           anyOf:
-          - maximum: 1
-            minimum: 0
-            type: number
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
           - type: 'null'
-          default: null
           title: Score
         name:
-          default: Checagem de fatos verificáveis
+          type: string
           title: Name
-          type: string
+          default: Checagem de fatos verificáveis
         method:
-          default: google_fact_check_claim_reviews
-          title: Method
           type: string
+          title: Method
+          default: google_fact_check_claim_reviews
         target_claim:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Target Claim
         claim_origin:
-          default: article_title_or_excerpt
-          title: Claim Origin
           type: string
+          title: Claim Origin
+          default: article_title_or_excerpt
         scope:
+          type: string
+          title: Scope
           default: Uma afirmação selecionada; não verifica todos os fatos da notícia
             nem a reputação da fonte.
-          title: Scope
-          type: string
         formula:
-          default: F = mean(publisher means of unique applicable mapped reviews)
-          title: Formula
           type: string
+          title: Formula
+          default: F = mean(publisher means of unique applicable mapped reviews)
         limitation:
+          type: string
+          title: Limitation
           default: Google retrieves published reviews; matching is lexical, the score
             is project-defined, and absence of a review is not a verdict.
-          title: Limitation
-          type: string
         scored_reviews_count:
-          default: 0
+          type: integer
           title: Scored Reviews Count
-          type: integer
-        publishers_count:
           default: 0
-          title: Publishers Count
+        publishers_count:
           type: integer
+          title: Publishers Count
+          default: 0
         publisher_scores:
           additionalProperties:
             type: number
-          title: Publisher Scores
           type: object
+          title: Publisher Scores
         conflicting_verdicts:
-          default: false
-          title: Conflicting Verdicts
           type: boolean
+          title: Conflicting Verdicts
+          default: false
         search_attempts:
           items:
             additionalProperties: true
             type: object
-          title: Search Attempts
           type: array
+          title: Search Attempts
         search_truncated:
-          default: false
-          title: Search Truncated
           type: boolean
+          title: Search Truncated
+          default: false
         query:
-          default: ''
-          title: Query
           type: string
+          title: Query
+          default: ''
         reviews_count:
-          minimum: 0
+          type: integer
+          minimum: 0.0
           title: Reviews Count
-          type: integer
         applicable_reviews_count:
-          minimum: 0
-          title: Applicable Reviews Count
           type: integer
+          minimum: 0.0
+          title: Applicable Reviews Count
         reviews:
           items:
             $ref: '#/components/schemas/FactCheckReview'
-          title: Reviews
           type: array
+          title: Reviews
         intended_weight:
-          default: 0.6
-          title: Intended Weight
           type: number
+          title: Intended Weight
+          default: 0.6
         effective_weight:
           anyOf:
           - type: number
           - type: 'null'
-          default: null
           title: Effective Weight
         contribution:
           anyOf:
           - type: number
           - type: 'null'
-          default: null
           title: Contribution
         error:
           anyOf:
           - $ref: '#/components/schemas/ErrorInfo'
           - type: 'null'
-          default: null
+      additionalProperties: false
+      type: object
       required:
       - available
       - status
@@ -326,307 +386,163 @@ components:
       - applicable_reviews_count
       - reviews
       title: FactCheckCriterionResult
-      type: object
     FactCheckReview:
-      additionalProperties: false
       properties:
         claim:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Claim
         publisher_name:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Publisher Name
         publisher_site:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Publisher Site
         review_url:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Review Url
         review_title:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Review Title
         review_date:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Review Date
         textual_rating:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Textual Rating
         language:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Language
         claimant:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Claimant
         claim_date:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Claim Date
         applicable:
+          type: boolean
           title: Applicable
-          type: boolean
         included_in_score:
-          default: false
-          title: Included In Score
           type: boolean
+          title: Included In Score
+          default: false
         exclusion_reason:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Exclusion Reason
         publisher_key:
           anyOf:
           - type: string
           - type: 'null'
-          default: null
           title: Publisher Key
         normalized_value:
           anyOf:
-          - maximum: 1
-            minimum: 0
-            type: number
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
           - type: 'null'
-          default: null
           title: Normalized Value
         raw:
           additionalProperties: true
-          title: Raw
           type: object
+          title: Raw
+      additionalProperties: false
+      type: object
       required:
       - applicable
       - raw
       title: FactCheckReview
-      type: object
-    WritingStyleCriterion:
-      type: object
-      required:
-      - available
-      - status
-      - score
-      - model
-      - model_version
-      - segments_analyzed
-      - segments
-      - qualitative_state
-      - limitation
-      - intended_weight
+    FinalScore:
       properties:
-        available:
-          type: boolean
-        status:
-          type: string
-          enum:
-          - EXECUTED
-          - UNAVAILABLE
-          - ERROR
         score:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 1
-        model:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: 'null'
+          title: Score
+        coverage:
+          type: number
+          title: Coverage
+        intended_weights:
+          additionalProperties:
+            type: number
+          type: object
+          title: Intended Weights
+        effective_weights:
+          additionalProperties:
+            type: number
+          type: object
+          title: Effective Weights
+        formula:
           type: string
-          const: vzani/portuguese-fake-news-classifier-bertimbau-combined
-        model_version:
-          type: string
-          description: Pinned BERTimbau weights revision used for inference.
-          const: 86971e56e7f5ad781cf56673df73a57375455793
-        prediction:
-          $ref: '#/components/schemas/WritingPrediction'
-        segments_analyzed:
-          type: integer
-          minimum: 0
-          description: Number of non-overlapping token windows classified; zero on
-            criterion error.
-        segments:
-          type: array
-          items:
-            $ref: '#/components/schemas/WritingSegment'
-        qualitative_state:
-          type:
-          - string
-          - 'null'
-          enum:
-          - Sinal de escrita suspeito
-          - null
+          title: Formula
         limitation:
           type: string
-        intended_weight:
-          type: number
-          const: 0.4
-        effective_weight:
-          type:
-          - number
-          - 'null'
-        contribution:
-          type:
-          - number
-          - 'null'
-        error:
-          $ref: '#/components/schemas/ErrorInfo'
+          title: Limitation
       additionalProperties: false
-    WritingPrediction:
-      type: object
-      description: Character-weighted aggregate; True for score >= 0.5, otherwise
-        Fake. Confidence is score for True or its complement for Fake, not factual
-        certainty.
-      required:
-      - label
-      - confidence
-      - writing_score
-      properties:
-        label:
-          type: string
-          enum:
-          - Fake
-          - true
-        confidence:
-          type: number
-          minimum: 0
-          maximum: 1
-        writing_score:
-          type: number
-          minimum: 0
-          maximum: 1
-      additionalProperties: false
-    WritingSegment:
-      type: object
-      description: One BERTimbau input window, without overlap or discarded overflow.
-        Writing score is softmax probability of class index 1 (True).
-      required:
-      - index
-      - character_count
-      - label
-      - confidence
-      - writing_score
-      properties:
-        index:
-          type: integer
-          minimum: 0
-        character_count:
-          type: integer
-          minimum: 1
-        token_count:
-          type: integer
-          minimum: 1
-          maximum: 512
-          description: Actual model input token count including special tokens; populated
-            on successful inference.
-        label:
-          type: string
-          enum:
-          - Fake
-          - true
-        confidence:
-          type: number
-          minimum: 0
-          maximum: 1
-        writing_score:
-          type: number
-          minimum: 0
-          maximum: 1
-      additionalProperties: false
-    ReservedCriterion:
       type: object
       required:
-      - available
-      - score
-      - status
-      - planned_model
-      - planned_flow
-      properties:
-        available:
-          type: boolean
-          const: false
-        score:
-          type: 'null'
-        status:
-          type: string
-          const: NOT_IMPLEMENTED
-        planned_model:
-          type: string
-          const: Ashg2099/xlm-roberta-factchecker
-        planned_flow:
-          type: array
-          items:
-            type: string
-      additionalProperties: false
-    FinalScore:
-      type: object
-      required:
-      - score
       - coverage
       - intended_weights
       - effective_weights
       - formula
       - limitation
+      title: FinalScore
+    HTTPValidationError:
       properties:
-        score:
-          type:
-          - number
-          - 'null'
-          minimum: 0
-          maximum: 100
-        coverage:
-          type: number
-          enum:
-          - 0
-          - 40
-          - 60
-          - 100
-        intended_weights:
-          type: object
-          required:
-          - verifiable_facts
-          - writing_style
-          properties:
-            verifiable_facts:
-              type: number
-              const: 0.6
-            writing_style:
-              type: number
-              const: 0.4
-          additionalProperties: false
-        effective_weights:
-          type: object
-          additionalProperties:
-            type: number
-        formula:
-          type: string
-        limitation:
-          type: string
-      additionalProperties: false
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
     PipelineVersion:
+      properties:
+        id:
+          type: string
+          title: Id
+        rules_version:
+          type: string
+          title: Rules Version
+        fact_check_mapping_version:
+          type: string
+          title: Fact Check Mapping Version
+        writing_model_name:
+          type: string
+          title: Writing Model Name
+        writing_model_revision:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Writing Model Revision
+        dependency_versions:
+          additionalProperties:
+            type: string
+          type: object
+          title: Dependency Versions
+      additionalProperties: false
       type: object
       required:
       - id
@@ -634,36 +550,164 @@ components:
       - fact_check_mapping_version
       - writing_model_name
       - dependency_versions
+      title: PipelineVersion
+    ValidationError:
       properties:
-        id:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
           type: string
-        rules_version:
+          title: Message
+        type:
           type: string
-        fact_check_mapping_version:
-          type: string
-        writing_model_name:
-          type: string
-        writing_model_revision:
-          type: string
-        dependency_versions:
+          title: Error Type
+        input:
+          title: Input
+        ctx:
           type: object
-      additionalProperties: false
-    ErrorInfo:
+          title: Context
       type: object
       required:
-      - code
-      - message
-      - retryable
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    WritingPrediction:
       properties:
-        code:
+        label:
           type: string
-        message:
-          type: string
-        retryable:
-          type: boolean
-        details:
-          type: object
+          title: Label
+        confidence:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Confidence
+        writing_score:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Writing Score
       additionalProperties: false
+      type: object
+      required:
+      - label
+      - confidence
+      - writing_score
+      title: WritingPrediction
+    WritingSegmentResult:
+      properties:
+        index:
+          type: integer
+          minimum: 0.0
+          title: Index
+        character_count:
+          type: integer
+          minimum: 1.0
+          title: Character Count
+        token_count:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Token Count
+        label:
+          type: string
+          title: Label
+        confidence:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Confidence
+        writing_score:
+          type: number
+          maximum: 1.0
+          minimum: 0.0
+          title: Writing Score
+      additionalProperties: false
+      type: object
+      required:
+      - index
+      - character_count
+      - label
+      - confidence
+      - writing_score
+      title: WritingSegmentResult
+    WritingStyleCriterionResult:
+      properties:
+        available:
+          type: boolean
+          title: Available
+        status:
+          $ref: '#/components/schemas/CriterionStatus'
+        score:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Score
+        model:
+          type: string
+          title: Model
+          default: vzani/portuguese-fake-news-classifier-bertimbau-combined
+        model_version:
+          type: string
+          title: Model Version
+        prediction:
+          anyOf:
+          - $ref: '#/components/schemas/WritingPrediction'
+          - type: 'null'
+        segments_analyzed:
+          type: integer
+          minimum: 0.0
+          title: Segments Analyzed
+        segments:
+          items:
+            $ref: '#/components/schemas/WritingSegmentResult'
+          type: array
+          title: Segments
+        qualitative_state:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Qualitative State
+        limitation:
+          type: string
+          title: Limitation
+        intended_weight:
+          type: number
+          title: Intended Weight
+          default: 0.4
+        effective_weight:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Effective Weight
+        contribution:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Contribution
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorInfo'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - available
+      - status
+      - model_version
+      - segments_analyzed
+      - segments
+      - limitation
+      title: WritingStyleCriterionResult
+    AnalysisResponse: *id001
     ErrorResponse:
       type: object
       required:
@@ -675,11 +719,3 @@ components:
         error:
           $ref: '#/components/schemas/ErrorInfo'
       additionalProperties: false
-    CriterionStatus:
-      enum:
-      - EXECUTED
-      - UNAVAILABLE
-      - ERROR
-      - NOT_IMPLEMENTED
-      title: CriterionStatus
-      type: string

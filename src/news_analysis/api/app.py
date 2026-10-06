@@ -6,7 +6,9 @@ from collections import defaultdict, deque
 from fastapi import Depends, FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from news_analysis.api.dependencies import get_analyzer, get_repository, get_settings
+from news_analysis.api.dependencies import get_analyzer, get_atlas_repository, get_repository, get_settings
+from news_analysis.atlas_sync import atlas_status
+from news_analysis.storage.atlas_repository import AtlasRepository
 from news_analysis.api.schemas import AnalysisRequest, AnalysisResponse
 from news_analysis.config import Settings
 from news_analysis.pipeline.analyzer import NewsAnalyzer
@@ -220,6 +222,7 @@ INDEX_HTML = """
         <h1>Analisador de confiabilidade de noticias</h1>
         <p class="muted">Cole um link de noticia para receber uma analise rastreavel dos criterios disponiveis.</p>
         <p id="config-status" class="status-line"><span class="dot"></span><span>Verificando chave de fact-check...</span></p>
+        <p id="atlas-status" class="muted">Verificando base do Atlas...</p>
       </div>
       <a class="api-link" href="/docs">API docs</a>
     </header>
@@ -289,6 +292,8 @@ INDEX_HTML = """
       try {
         const response = await fetch("/config");
         const config = await response.json();
+        const atlasStates = {disabled: 'desabilitado', missing: 'sem base local; execute a sincronização', fresh: 'base atualizada', stale: 'atualização pendente; base dentro da validade', expired: 'base expirada'};
+        document.querySelector('#atlas-status').textContent = `Atlas da Notícia: ${atlasStates[config.atlas_status] || 'estado indisponível'}${config.atlas_last_success_at ? ` · Última atualização: ${config.atlas_last_success_at}` : ''}`;
         const dot = configStatus.querySelector(".dot");
         const text = configStatus.querySelector("span:last-child");
         if (config.fact_check_api_key_configured) {
@@ -316,7 +321,7 @@ INDEX_HTML = """
           <span class="badge ${badgeClass}">${level}</span>
           <div class="score-number">${score === null || score === undefined ? "--" : Math.round(score)}</div>
           <p class="muted">Indice operacional de confiabilidade</p>
-          ${writingOnly ? `<p><strong>Sem checagem factual disponível.</strong> Esta nota usa apenas o estilo de escrita; não confirma os fatos da notícia.</p>` : ""}
+          ${writingOnly ? `<p><strong>Sem checagem factual disponível.</strong> A média usa o estilo de escrita e pode receber o teto por veto da fonte; não confirma os fatos da notícia.</p>` : ""}
           <dl>
             <dt>Cobertura</dt><dd>${data.final?.coverage ?? 0}%</dd>
             <dt>Fórmula</dt><dd>${escapeHtml(data.final?.formula || "Não informada")}</dd>
@@ -331,7 +336,7 @@ INDEX_HTML = """
         <section class="panel criteria">
           ${factCriterionCard(factCriterion, legacyFacts, data)}
           ${criterionCard("Estilo de escrita", data.criteria?.writing_style)}
-          ${reservedCard(data.criteria?.factual_claims)}
+          ${credibilityCard(data.criteria?.credibility, data.criteria?.credibility_evidence)}
         </section>
       `;
     }
@@ -344,6 +349,21 @@ INDEX_HTML = """
       };
       return criterionCard("Checagem de fatos verificáveis", criterion || fallback, true) +
         (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "");
+    }
+
+    function credibilityCard(source, evidence) {
+      if (!source) return "";
+      return `<article class="criterion"><h3>Credibilidade da fonte</h3>
+        <p>Score: ${escapeHtml(source.score_fonte)}/100 · Confiança: ${escapeHtml(source.confianca_fonte)}</p>
+        <p>Domínio: ${escapeHtml(source.dominio)}. Sinais da fonte não comprovam a veracidade da notícia.</p>
+        <ul>${(source.criterios || []).map(c => `<li>${escapeHtml(c.nome)}: ${escapeHtml(c.pontos)}/${escapeHtml(c.maximo)} — ${escapeHtml(c.status)}. ${escapeHtml(c.detalhe)}</li>`).join("")}</ul>
+        ${evidence ? `<details><summary>Origem do reconhecimento da fonte</summary>
+          <p>${escapeHtml(evidence.status)} · Consulta: ${escapeHtml(evidence.checked_at)}</p>
+          <ul>${(evidence.providers || []).map(p => `<li>${escapeHtml(p.source)}: ${escapeHtml(p.status)} · ${escapeHtml(p.reason_code)}${p.fetched_at ? ` · Base de ${escapeHtml(p.fetched_at)}` : ''}${p.freshness === 'stale' ? ' · Atualização pendente; cópia dentro da validade' : ''}</li>`).join('')}</ul>
+          <ul>${(evidence.evidence || []).map(e => `<li>${escapeHtml(e.source)}${e.atlas_id ? ` · Cadastro ${escapeHtml(e.atlas_id)}: ${escapeHtml(e.name)}` : ''}${e.resolved_url && /^https?:\\/\\//i.test(e.resolved_url) ? ` · <a href="${escapeHtml(e.resolved_url)}" target="_blank" rel="noopener noreferrer">Site registrado</a>` : ''}</li>`).join('')}</ul>
+        </details>` : ''}
+        ${source.veto_dominio_suspeito ? '<p>Teto de 35 aplicado à nota final. As contribuições acima mostram a média antes do teto.</p>' : ''}
+        <ul>${[...(source.flags || []), ...(source.erros || [])].map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>`;
     }
 
     function criterionCard(title, criterion, isFactCheck = false) {
@@ -406,21 +426,6 @@ INDEX_HTML = """
       }).join("")}</ul>`;
     }
 
-    function reservedCard(criterion) {
-      if (!criterion) return "";
-      return `
-        <article class="criterion">
-          <h3>Checagem factual por alegacoes</h3>
-          <div class="criterion-grid">
-            <div class="cell"><span>Status</span>${escapeHtml(criterion.status)}</div>
-            <div class="cell"><span>Modelo planejado</span>${escapeHtml(criterion.planned_model)}</div>
-            <div class="cell"><span>Entra no indice</span>Nao</div>
-            <div class="cell"><span>Score</span>--</div>
-          </div>
-        </article>
-      `;
-    }
-
     function scoreLabel(score) {
       if (score >= 70) return "Confiabilidade mais alta";
       if (score >= 40) return "Confiabilidade intermediaria";
@@ -477,8 +482,11 @@ def index():
 
 
 @app.get("/config")
-def config_status(settings: Settings = Depends(get_settings)):
-    return {"fact_check_api_key_configured": bool(settings.factcheck_api_key)}
+def config_status(settings: Settings = Depends(get_settings), atlas: AtlasRepository = Depends(get_atlas_repository)):
+    state = atlas_status(atlas, settings.credibility_config().atlas)
+    return {"fact_check_api_key_configured": bool(settings.factcheck_api_key),
+            'atlas_enabled': state['enabled'], 'atlas_status': state['status'],
+            'atlas_last_success_at': state['last_success_at']}
 
 
 @app.post("/analyses", response_model=AnalysisResponse)

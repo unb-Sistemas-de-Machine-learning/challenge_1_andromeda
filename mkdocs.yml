@@ -24,6 +24,8 @@ nav:
   - Home: index.md
   - Estilo de escrita: TipoDeEscrita.md
   - Checagem de fatos: ChecagemDeFatos.md
+  - Credibilidade da fonte: Credibilidade.md
+  - Atlas da Notícia: Atlas.md
   - Google Fact Check API: Manual_Google_Fact_Check_Tools_API.md
   - Interface e API: InterfaceEAPI.md
   - Canvas: 

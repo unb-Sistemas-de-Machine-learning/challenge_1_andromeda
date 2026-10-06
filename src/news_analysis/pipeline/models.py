@@ -110,18 +110,11 @@ class WritingStyleCriterionResult(StrictModel):
     error: ErrorInfo | None = None
 
 
-class ReservedCriterionResult(StrictModel):
-    available: bool = False
-    score: None = None
-    status: str = "NOT_IMPLEMENTED"
-    planned_model: str = "Ashg2099/xlm-roberta-factchecker"
-    planned_flow: list[str]
-
-
 class CriteriaSet(StrictModel):
     verifiable_facts: FactCheckCriterionResult
     writing_style: WritingStyleCriterionResult
-    factual_claims: ReservedCriterionResult
+    credibility: dict[str, Any] | None = None
+    credibility_evidence: dict[str, Any] | None = None
 
 
 class FinalScore(StrictModel):

@@ -27,6 +27,7 @@ def test_legacy_records_are_readable_without_rescoring(temp_settings, repository
     result = analyzer.analyze("https://93.184.216.34/article")
     payload = repository.get(result.id)
     payload["criteria"]["source_credibility"] = payload["criteria"].pop("verifiable_facts")
+    payload['criteria']['factual_claims'] = {'status': 'NOT_IMPLEMENTED'}
     payload["pipeline_version"]["rules_version"] = "legacy-rules"
     for key in ("intended_weights", "effective_weights"):
         weights = payload["final"][key]
@@ -36,6 +37,7 @@ def test_legacy_records_are_readable_without_rescoring(temp_settings, repository
         connection.execute("UPDATE analyses SET payload_json=? WHERE id=?", (json.dumps(payload), result.id))
         connection.commit()
     restored = repository.get(result.id)
+    assert 'factual_claims' not in restored['criteria']
     assert restored["final"]["score"] == payload["final"]["score"]
     assert restored["pipeline_version"]["rules_version"] == "legacy-rules"
     assert "not recalculated" in restored["criteria"]["verifiable_facts"]["scope"]

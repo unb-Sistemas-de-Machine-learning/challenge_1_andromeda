@@ -11,7 +11,6 @@
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel because it touches different files and does not depend on incomplete tasks.
-- **[Story]**: User story label from `spec.md` (`US1`, `US2`, `US3`, `US4`).
 - Every task includes exact file paths.
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -35,7 +34,7 @@
 
 - [X] T007 Define status/error enums in `src/news_analysis/pipeline/errors.py` for `SUCCESS`, `INVALID_URL`, `BLOCKED_INTERNAL_URL`, `NEWS_FETCH_FAILED`, `ARTICLE_EXTRACTION_FAILED`, `FACT_CHECK_API_ERROR`, `WRITING_MODEL_ERROR`, `CRITERION_UNAVAILABLE`, and `RATE_LIMITED`
 - [X] T008 [P] Define Pydantic API schemas matching `contracts/openapi.yaml` in `src/news_analysis/api/schemas.py`
-- [X] T009 [P] Define domain dataclasses or Pydantic models for `Analysis`, `Article`, `CriteriaSet`, `FactCheckCriterionResult`, `FactCheckReview`, `WritingStyleCriterionResult`, `WritingPrediction`, `WritingSegmentResult`, `ReservedCriterionResult`, `FinalScore`, `PipelineVersion`, and `ErrorInfo` in `src/news_analysis/pipeline/models.py`
+- [X] T009 [P] Define domain dataclasses or Pydantic models for `Analysis`, `Article`, `CriteriaSet`, `FactCheckCriterionResult`, `FactCheckReview`, `WritingStyleCriterionResult`, `WritingPrediction`, `WritingSegmentResult`, `FinalScore`, `PipelineVersion`, and `ErrorInfo` in `src/news_analysis/pipeline/models.py`
 - [X] T010 [P] Implement pipeline version constants in `src/news_analysis/pipeline/version.py` with `id`, `rules_version`, `fact_check_mapping_version`, `writing_model_name`, `writing_model_revision`, and `dependency_versions`
 - [X] T011 Implement SQLite schema creation in `src/news_analysis/storage/schema.py` for analysis records, criterion payloads, raw external responses, model outputs, final score, coverage, and pipeline version
 - [X] T012 Implement audit repository in `src/news_analysis/storage/audit_repository.py` that saves and retrieves analyses without retaining full extracted article text
@@ -143,27 +142,6 @@
 
 ---
 
-## Phase 6: User Story 4 - Reserve Future Factual-Claims Criterion (Priority: P4)
-
-**Goal**: Every result communicates the planned factual-claims criterion without affecting current scoring or coverage.
-
-**Independent Test**: Inspect any analysis result and verify `factual_claims.available = false`, `score = null`, `status = NOT_IMPLEMENTED`, planned model is `Ashg2099/xlm-roberta-factchecker`, and current score/coverage ignore it.
-
-### Tests for User Story 4
-
-- [X] T058 [P] [US4] Add unit tests for reserved factual-claims criterion payload in `tests/unit/test_reserved_factual_claims.py`
-- [X] T059 [P] [US4] Add integration test proving reserved factual-claims criterion does not affect final score or coverage in `tests/integration/test_reserved_criterion_exclusion.py`
-
-### Implementation for User Story 4
-
-- [X] T060 [US4] Implement reserved factual-claims criterion factory in `src/news_analysis/criteria/factual_claims.py` with `available=false`, `score=null`, `status=NOT_IMPLEMENTED`, planned flow, and planned model `Ashg2099/xlm-roberta-factchecker`
-- [X] T061 [US4] Integrate reserved factual-claims result into `CriteriaSet` assembly in `src/news_analysis/pipeline/analyzer.py`
-- [X] T062 [US4] Ensure `src/news_analysis/pipeline/aggregation.py` excludes reserved factual-claims criterion from effective weights, final score, and coverage calculations
-- [X] T063 [US4] Expose reserved criterion fields in `src/news_analysis/api/schemas.py` according to `specs/001-news-analysis/contracts/openapi.yaml`
-
-**Checkpoint**: All user stories are independently functional.
-
----
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
@@ -188,7 +166,6 @@
 - **Phase 3 US1 MVP**: Depends on Phase 2.
 - **Phase 4 US2**: Depends on Phase 2; can start after core models and analyzer interfaces are stable, but validates best after US1.
 - **Phase 5 US3**: Depends on Phase 2; can start after audit repository interfaces exist, but validates best after US1.
-- **Phase 6 US4**: Depends on Phase 2; can be implemented in parallel with US2/US3 once `CriteriaSet` exists.
 - **Phase 7 Polish**: Depends on selected user stories being complete.
 
 ### User Story Dependencies
@@ -196,7 +173,6 @@
 - **US1 Analyze a News URL**: MVP; no dependency on other user stories after foundation.
 - **US2 Understand Criterion Contributions**: Builds on the same criterion outputs as US1 but remains independently testable with mocked criteria.
 - **US3 Preserve Audit Trail**: Builds on Analysis and storage foundation; independently testable by saving/retrieving fixture analyses.
-- **US4 Reserve Future Factual-Claims Criterion**: Independent reserved payload and aggregation exclusion after shared models exist.
 
 ### Parallel Opportunities
 
@@ -206,7 +182,6 @@
 - US1 criterion tasks T029-T032 can run in parallel after foundational models exist.
 - US2 test tasks T038-T042 can run in parallel.
 - US3 test tasks T049-T052 and T073 can run in parallel.
-- US4 test tasks T058-T059 can run in parallel.
 - Polish documentation tasks T065-T066 can run in parallel with contract comparison T064.
 
 ---
@@ -244,7 +219,6 @@ Task: "T041 [P] [US2] Add unit tests for unmapped textual fact-check ratings rem
 1. Add US1 for end-to-end analysis.
 2. Add US2 to deepen score composition and explainability.
 3. Add US3 to make audit retrieval and persistence complete.
-4. Add US4 to expose the future factual-claims criterion without changing score semantics.
 5. Run Phase 7 validation before considering implementation complete.
 
 ### Quality Gates

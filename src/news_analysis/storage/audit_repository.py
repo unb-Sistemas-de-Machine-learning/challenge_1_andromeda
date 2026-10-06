@@ -57,6 +57,9 @@ class AuditRepository:
         # Project legacy records into the current output shape, preserving their
         # original score and pipeline version instead of silently rescoring them.
         criteria = payload.get("criteria", {})
+        # Removed placeholder is omitted when projecting old records; stored
+        # historical payloads and scores are preserved without recalculation.
+        criteria.pop("factual_claims", None)
         if "source_credibility" in criteria:
             criterion = criteria.pop("source_credibility")
             criterion["scope"] = "Historical analysis: original rating mapping and aggregation; not recalculated."

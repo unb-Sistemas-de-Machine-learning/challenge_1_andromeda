@@ -111,12 +111,10 @@ confiança e nota de cada janela. Segmentos são blocos do tokenizer, não frase
 Classe e confiança agregadas resumem as previsões dos segmentos. A confiança
 do modelo não comprova veracidade. Consulte [Estilo de escrita](TipoDeEscrita.md).
 
-## Critério reservado
+## Credibilidade da fonte
 
-`criteria.factual_claims` representa a verificação planejada com recuperação de
-evidências e `Ashg2099/xlm-roberta-factchecker`. Seu estado é `NOT_IMPLEMENTED`,
-não tem nota e não participa do índice ou da cobertura. Ele não substitui o
-critério atual de checagens publicadas pelo Google.
+`criteria.credibility` retorna o SCORE_FONTE. `criteria.credibility_evidence`
+registra a origem e a versão da base de reconhecimento. Consulte [Atlas](Atlas.md).
 
 ## Saídas e precisão
 

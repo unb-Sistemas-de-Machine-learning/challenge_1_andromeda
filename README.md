@@ -12,9 +12,9 @@ familiaridade com as ferramentas de checagem que já existem hoje.
 ## Status
 O projeto possui um MVP com interface web e API para analisar uma URL de notícia.
 O índice operacional combina checagens publicadas recuperadas pela Google Fact
-Check Tools API e classificação textual pelo BERTimbau. Os resultados incluem
-cobertura, contribuições, versões e registro de auditoria em SQLite. A checagem
-de alegações com XLM-RoBERTa permanece planejada e não participa da nota.
+Check Tools API e classificação textual pelo BERTimbau. Credibilidade da fonte
+usa cadastros do Atlas da Notícia e listas locais configuráveis. Os resultados incluem
+cobertura, contribuições, versões e registro de auditoria em SQLite.
 
 O critério **Checagem de fatos verificáveis** avalia uma afirmação selecionada,
 não a reputação da fonte. Consulte [a regra de cálculo e o escopo](docs/ChecagemDeFatos.md).
@@ -23,9 +23,16 @@ não a reputação da fonte. Consulte [a regra de cálculo e o escopo](docs/Chec
 1. Avaliar os sinais do BERTimbau em notícias reais, incluindo textos que desmentem boatos.
 2. Avaliar a recuperação e a correspondência de checagens publicadas.
 3. Validar a compreensão da nota e da cobertura com o público-alvo.
-4. Investigar extração de alegações e recuperação de evidências para o critério factual planejado.
 
 ## Documentação
+
+A [integração Atlas da Notícia](docs/Atlas.md) sincroniza cadastros em SQLite,
+inclui evidências de reconhecimento e permite consulta local durante a análise.
+
+O critério [Credibilidade da fonte](docs/Credibilidade.md) já está disponível na
+API e na interface, com SCORE_FONTE independente, bases locais configuráveis e
+teto na nota final quando houver veto da fonte.
+
 A documentação do projeto é publicada em:
 <https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/>
 

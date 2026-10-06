@@ -29,10 +29,22 @@ process.stdout.write(result.innerHTML);
 
 
 def payload(criterion=None, key="verifiable_facts"):
-    criteria = {"writing_style": {"available": True, "score": 1, "intended_weight": 0.4}, "factual_claims": {"status": "NOT_IMPLEMENTED"}}
+    criteria = {"writing_style": {"available": True, "score": 1, "intended_weight": 0.4}}
     if criterion is not None:
         criteria[key] = criterion
     return {"status": "SUCCESS", "final": {"score": 100, "coverage": 40, "formula": "1.00 * W * 100"}, "criteria": criteria}
+
+
+def test_credibility_details_and_veto_are_rendered_safely():
+    data = payload()
+    data['criteria']['credibility'] = dict(score_fonte=5, confianca_fonte='baixa', dominio='example.com',
+        criterios=[dict(nome='https', pontos=5, maximo=5, status='ok', detalhe='<script>injected</script>')],
+        flags=['dominio_recem_criado'], erros=[], veto_dominio_suspeito=True)
+    html = render(data)
+    assert 'Credibilidade da fonte' in html
+    assert 'Teto de 35' in html
+    assert 'dominio_recem_criado' in html
+    assert '<script>injected</script>' not in html
 
 
 def test_unavailable_fact_check_remains_visible_with_all_attempts():

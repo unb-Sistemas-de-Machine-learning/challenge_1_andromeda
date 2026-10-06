@@ -14,7 +14,7 @@ Represents one submitted URL analysis.
 | completed_at | datetime | no | Analysis completion timestamp. |
 | content_hash | string | no | Hash of extracted article text; full text is not retained. |
 | article | Article | no | Present when extraction succeeds. |
-| criteria | CriteriaSet | yes | Current and reserved criteria. |
+| criteria | CriteriaSet | yes | Implemented criteria. |
 | final | FinalScore | yes | Final score, coverage, and effective weights. |
 | pipeline_version | PipelineVersion | yes | Version of rules, models, and dependencies. |
 | limitations | string[] | yes | Human-readable limitations and non-verdict warnings. |
@@ -58,7 +58,6 @@ Prepared metadata and transient content identity for the analyzed news item.
 |-------|------|----------|-------|
 | verifiable_facts | FactCheckCriterionResult | yes | Current scoring criterion, intended weight 0.60. |
 | writing_style | WritingStyleCriterionResult | yes | Current scoring criterion, intended weight 0.40. |
-| factual_claims | ReservedCriterionResult | yes | Future criterion, `NOT_IMPLEMENTED`. |
 
 ## FactCheckCriterionResult
 
@@ -171,16 +170,6 @@ These per-segment values are accessible through the expandable UI section,
 the response JSON and the audit record. UI scores use two decimal places,
 contributions one, and displayed weights/confidence whole percentages; this
 presentation precision does not replace the stored numeric values.
-
-## ReservedCriterionResult
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| available | boolean | yes | Always false in current scope. |
-| score | null | yes | Always null in current scope. |
-| status | enum | yes | `NOT_IMPLEMENTED`. |
-| planned_model | string | yes | `Ashg2099/xlm-roberta-factchecker`. |
-| planned_flow | string[] | yes | Claim extraction, evidence retrieval, claim+evidence classification. |
 
 ## FinalScore
 

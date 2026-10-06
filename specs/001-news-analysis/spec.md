@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Sistema de análise de notícias por URL que produz um índice de confiabilidade transparente, rastreável e explicável, usando sinal de fact-checking publicado, classificador de características de escrita e reserva de um terceiro critério factual para implementação futura."
+**Input**: User description: "Sistema de análise de notícias por URL que produz um índice de confiabilidade transparente, rastreável e explicável, usando sinal de fact-checking publicado, classificador de características de escrita e credibilidade da fonte com reconhecimento por domínio."
 
 ## Clarifications
 
@@ -108,28 +108,6 @@ scores, weights, coverage, final score, and pipeline/model versions.
    reason and the remaining criteria remain auditable.
 
 ---
-
-### User Story 4 - Reserve Future Factual-Claims Criterion (Priority: P4)
-
-As a project team member, I want the future factual-claims criterion represented
-without affecting the current index, so that the system can communicate planned
-scope without changing current score semantics.
-
-**Why this priority**: The future criterion is important for roadmap clarity but
-must not reduce current coverage or alter current scoring before it is
-implemented.
-
-**Independent Test**: Can be tested by inspecting any current result and
-verifying that the factual-claims criterion is reported as not implemented,
-has no score, and is excluded from current scoring and coverage.
-
-**Acceptance Scenarios**:
-
-1. **Given** the third criterion is not implemented, **When** any analysis result
-   is produced, **Then** the factual-claims criterion is marked `NOT_IMPLEMENTED`
-   and does not participate in the final index.
-2. **Given** only the two current criteria are considered, **When** coverage is
-   calculated, **Then** the reserved criterion does not reduce coverage.
 
 ### Edge Cases
 
@@ -275,14 +253,6 @@ has no score, and is excluded from current scoring and coverage.
   responses without inventing missing details. Writing-only results MUST say
   "Somente estilo de escrita" rather than imply factual verification. Writing
   segment details MUST be accessible in the interface as well as in JSON.
-- **FR-030**: System MUST include the reserved factual-claims criterion in the
-  result as `NOT_IMPLEMENTED` while it remains outside current scope.
-- **FR-031**: System MUST document the reserved factual-claims criterion as a
-  future flow that extracts claims, retrieves evidence, and classifies
-  claim-evidence pairs with the planned `Ashg2099/xlm-roberta-factchecker`
-  model.
-- **FR-032**: System MUST exclude the reserved factual-claims criterion from the
-  current final index and coverage calculations.
 - **FR-033**: System MUST assign a unique identifier to each analysis.
 - **FR-034**: System MUST preserve enough information to reconstruct an analysis,
   including input URL, final URL, analysis time, content hash, metadata, raw
@@ -399,8 +369,7 @@ has no score, and is excluded from current scoring and coverage.
   and maintainers auditing the analysis process.
 - Version 1 scope includes only the fact-checking signal and writing-style
   signal for scoring.
-- The reserved factual-claims criterion is visible in output for roadmap
-  clarity but excluded from current score and coverage.
+
 - The specified fact-checking source is treated as a source of published
   fact-check reviews, not as a universal reputation or truth oracle.
 - The specified writing classifier is treated as a model for textual writing
