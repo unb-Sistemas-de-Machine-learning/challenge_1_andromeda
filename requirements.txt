@@ -9,8 +9,6 @@ trafilatura>=1.9
 transformers>=4.40
 torch>=2.0
 uvicorn>=0.29
-
-[dev]
 pytest>=8
 respx>=0.21
 PyYAML>=6
