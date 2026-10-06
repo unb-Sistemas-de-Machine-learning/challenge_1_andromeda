@@ -147,6 +147,21 @@ NEWS_ANALYSIS_SML_MAX_NEW_TOKENS=80
 NEWS_ANALYSIS_SML_TIMEOUT_SECONDS=8
 ```
 
+The timeout is an **inference budget**, not a download/startup deadline.
+Initialization happens once through `prepare()` before timing the summary;
+`generated_ms` measures inference, including the wait for the engine's generation
+lock. The first request can still take longer while model files are downloaded
+or loaded. Prepare the artifacts below before serving traffic to avoid a download
+in that request.
+
+Summary generation uses greedy decoding (`num_beams=1`), the decoder cache and
+`torch.inference_mode()`. The compact prompt keeps the score and factual state;
+if necessary, optional source/writing details are shortened instead of silently
+truncating the results. The existing 160 input / 80 output token defaults remain.
+The configured time limit is also passed to Transformers as `max_time`: this is
+a cooperative stop that finishes the current decoding step, not a hard process
+deadline. A timed-out draft is discarded and reported as `sml_timeout`.
+
 `NEWS_ANALYSIS_SML_MANIFEST` may point to a JSON SHA-256 manifest for the local
 model files. If the model is disabled, missing or rejected by validation, the API
 returns an explicit explanation state and keeps the original analysis unchanged.
@@ -159,6 +174,25 @@ The optional preparation command can warm the cache outside the request path:
   --model google/flan-t5-small `
   --revision <pinned-revision>
 ```
+
+To use those prepared files directly, set `NEWS_ANALYSIS_SML_MODEL` to the
+absolute output directory and `NEWS_ANALYSIS_SML_MANIFEST` to its `manifest.json`.
+The generation path does not require a GPU and does not change Torch's global
+CPU thread settings used by the other models.
+
+Regression checks for the summary path:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_explanation.py tests/unit/test_explanation_service.py tests/unit/test_explanation_engine.py
+```
+
+Local verification on a Ryzen 5 3600 CPU (Torch 2.14.0, Transformers 5.17.0):
+the previous cold load took 30.5 seconds and was charged against the 8-second
+summary budget. Its 402-token prompt was cut to 160 tokens before any results
+reached the model. With the corrected prompt, five factual states used 87–115
+input tokens and produced structurally valid summaries in 0.75–1.88 seconds
+(initialization excluded). These are local measurements, not a latency or
+semantic-quality guarantee; the existing output validator is still applied.
 
 The entire extracted text is processed in non-overlapping windows of at most
 512 tokens, including special tokens. Each segment reports the actual model

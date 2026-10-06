@@ -27,8 +27,14 @@ def build_explanation(
         model_id=settings.explanation_sml_model,
         revision=settings.explanation_sml_revision,
         manifest_path=settings.explanation_sml_manifest,
+        timeout_seconds=settings.explanation_timeout_seconds,
     )
+    started = time.perf_counter()
     try:
+        # Initialization (including downloads) is not token generation.
+        prepare = getattr(engine, "prepare", None)
+        if prepare is not None:
+            prepare()
         started = time.perf_counter()
         text = engine.generate(context)
         generated_ms = round((time.perf_counter() - started) * 1000)
@@ -60,6 +66,15 @@ def build_explanation(
                               evidence_example_rating=context.fact_check.example_rating,
                               evidence_example_url=context.fact_check.example_url,
                               validation="VALID")
+    except TimeoutError:
+        return SmlExplanation(status="ERROR", engine="sml", model_id=engine.model_id,
+                              model_revision=engine.model_revision,
+                              generated_ms=round((time.perf_counter() - started) * 1000),
+                              tokenizer_revision=getattr(engine, "tokenizer_revision", None),
+                              context_version=context.context_version,
+                              prompt_version=getattr(engine, "prompt_version", None),
+                              artifact_manifest_sha256=getattr(engine, "artifact_manifest_sha256", None),
+                              error_code="sml_timeout")
     except MemoryError:
         return SmlExplanation(status="UNAVAILABLE", engine="sml", model_id=engine.model_id,
                               model_revision=engine.model_revision, error_code="sml_out_of_memory")

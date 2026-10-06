@@ -58,6 +58,7 @@ class NewsAnalyzer:
             model_id=settings.explanation_sml_model,
             revision=settings.explanation_sml_revision,
             manifest_path=settings.explanation_sml_manifest,
+            timeout_seconds=settings.explanation_timeout_seconds,
         ) if settings.explanation_sml_enabled else None
         if source_credibility is None:
             from news_analysis.criteria.recognition import RecognitionProvider
