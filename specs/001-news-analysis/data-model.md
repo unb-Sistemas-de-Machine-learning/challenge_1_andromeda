@@ -73,13 +73,16 @@ Prepared metadata and transient content identity for the analyzed news item.
 | method | string | yes | `google_fact_check_claim_reviews`. |
 | target_claim / claim_origin | string | no / yes | Selected claim and user or article-title/excerpt origin. |
 | scope / limitation / formula | string | yes | Single-claim scope, lexical matching limits and publisher-balanced formula. |
-| query | string | yes | Selected search query, after combined/fallback construction. |
+| query | string | yes | Initial query for the selected claim; all queries are recorded in search_attempts. |
 | reviews_count | integer | yes | Count of returned reviews preserved for traceability. |
 | applicable_reviews_count | integer | yes | Matched reviews, including those excluded for other reasons. |
 | scored_reviews_count / publishers_count | integer | yes | Unique scored reviews and identified checking publishers. |
 | publisher_scores | object | yes | Mean claim-rating value per checking publisher; not publisher reputation. |
 | conflicting_verdicts | boolean | yes | Retained values occur both below and above 0.5. |
-| search_attempts / search_truncated | array / boolean | yes | Queries attempted and pagination boundary. |
+| search_attempts / search_truncated | array / boolean | yes | Queries, targets, counts, attempt statuses and pagination boundary. |
+| search_incomplete | boolean | yes | One or more requests failed; earlier evidence is retained. |
+| evidence_status | string or null | no | SUPPORTED, REFUTED, MIXED, MATCHED_UNSCORED, UNAVAILABLE; historical records may omit. |
+| additional_claims | FactCheckEvidence[] | no | Up to two supplemental candidates with independent evidence, no final-score weight. |
 | reviews | FactCheckReview[] | yes | Returned review evidence. |
 | error | ErrorInfo | no | Present when API call fails. |
 
@@ -204,7 +207,7 @@ presentation precision does not replace the stored numeric values.
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | string | yes | Human-readable version identifier. |
-| rules_version | string | yes | `analysis-rules-v3-verifiable-facts`. |
+| rules_version | string | yes | `analysis-rules-v8-explainable-claim-matching`. |
 | fact_check_mapping_version | string | yes | Rating mapping version. |
 | writing_model_name | string | yes | Hugging Face model name. |
 | writing_model_revision | string | yes | `86971e56e7f5ad781cf56673df73a57375455793`. |

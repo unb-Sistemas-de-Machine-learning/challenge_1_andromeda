@@ -33,7 +33,7 @@ accepts legacy `source_credibility` payloads with explicit compatibility feedbac
 The summary identifies writing-only results and exposes formula and analysis ID.
 Node-executed rendering regression tests cover current/legacy/missing payloads,
 all recorded queries, escaped evidence and per-segment details.
-`analysis-rules-v6-source-abstention-history` identifies the current rules.
+`analysis-rules-v8-explainable-claim-matching` identifies the current rules.
 The independent Atlas source score can cap the 60/40 averaging result at 35;
 complete source unavailability abstains. Store the pre-veto mean, whether a cap
 was applied, effective source policy/hash, blocklist state/hash and veto reason.
@@ -44,7 +44,11 @@ discarded branch's scoring policy for new analyses.
 
 Criterion 1 is `verifiable_facts`, named "Checagem de fatos verificáveis".
 Optional `claim` selects one statement; without it the cleaned title or first
-sentence is a candidate. Google retrieves reviews of claims, not source ratings.
+sentence is the primary candidate; up to two additional verbatim sentences
+provide non-scoring evidence. Each candidate uses at most two distinct queries;
+results are combined and deduplicated, retaining evidence after partial failures.
+Evidence states describe retrieved verdicts, not whole-article truth.
+Google retrieves reviews of claims, not source ratings.
 At most three pages are fetched per query. Lexical matching uses `Claim.text`,
 numeric/negation/debunking guards and 80% bidirectional token overlap or exact
 equality. Whole-label mapping, deduplication and equal-weight publisher means

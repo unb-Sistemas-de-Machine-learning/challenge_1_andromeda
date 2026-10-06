@@ -18,7 +18,7 @@
 - Q: Quais limites mínimos de busca de notícia devem ser aceitos como regra de produto para evitar análises travadas ou abusivas? → A: Timeout de 10 segundos, máximo de 5 MB baixados e máximo de 5 redirecionamentos.
 - Q: Por quanto tempo o sistema deve preservar o texto extraído da notícia no registro de auditoria? → A: Não preservar texto completo; guardar apenas hash, metadados e resultados.
 - Q: Qual deve ser o mínimo de texto extraído para considerar que a notícia foi preparada com sucesso? → A: Pelo menos 1.000 caracteres de texto principal extraído.
-- Q: Qual consulta deve ser usada primeiro no fact-checking quando houver título e texto principal disponíveis? → A: Sempre combinar título e trecho representativo em uma única consulta.
+- Q: Qual consulta deve ser usada primeiro no fact-checking quando houver título e texto principal disponíveis? → A: Atualizado em 2026-10-06: consultar a afirmação selecionada, sem concatenar título e corpo. A regra anterior de consulta combinada foi substituída após revisão da estratégia de recuperação.
 - Q: Quando a Google Fact Check Tools API encontrar resultados, como o sistema deve decidir quais verificações são aplicáveis à notícia analisada? → A: Aplicar apenas verificações cuja alegação ou título tenha correspondência clara com o título ou alegação principal da notícia.
 - Q: Quando a escrita for classificada como `Fake`, qual estado qualitativo deve aparecer junto do índice para evitar que o usuário confunda o score com veredito factual? → A: "Sinal de escrita suspeito", deixando claro que não é veredito factual.
 - Q: Qual limite inicial de requisições por usuário deve ser adotado para evitar uso abusivo da análise? → A: 10 análises por minuto por usuário.
@@ -173,11 +173,15 @@ scores, weights, coverage, final score, and pipeline/model versions.
   checked claim, checking organization, organization site, review URL, review
   title, review date, textual rating, language, and other relevant returned
   fields when available.
-- **FR-011**: System MUST start with a combined query for the selected claim
-  and representative text, then try ordered fallback queries until an available
-  result is found. `claims.search` MUST keep query and filters fixed across
-  pagination, retrieve at most three pages per query, and expose truncated
-  search and attempts. The first usable query's retrieved reviews define scope.
+- **FR-011**: System MUST search the selected claim directly, without concatenating
+  headline and body, and optionally one distinct keyword query. Combine retrieved
+  reviews across both queries before deduplication and scoring. Without explicit
+  `claim`, select at most three verbatim candidates from the cleaned title and
+  opening sentences; only the primary contributes to the score. Other candidates
+  MUST appear as separate non-scoring evidence. Explicit `claim` disables extras.
+  `claims.search` MUST preserve pagination parameters, fetch at most three pages
+  per query, and expose attempts, truncation and partial failures. Successful
+  evidence MUST survive later failures. Missing key or 401/403/429 stops requests.
 - **FR-012**: System MUST match the returned `Claim.text` against the selected
   claim. A review headline MUST NOT establish applicability by itself.
 - **FR-012A**: System MUST determine fact-check applicability using a documented
@@ -185,6 +189,17 @@ scores, weights, coverage, final score, and pipeline/model versions.
   negation, or debunking markers; otherwise accept normalized exact equality,
   or at least three shared meaningful tokens with at least 80% overlap in
   both directions. This matcher MUST NOT be described as semantic entailment.
+  Explicit state abbreviations and increase/decrease or resume/suspend markers
+  MUST be protected. DF and Distrito Federal MAY normalize to the same locality.
+  `evidence_status` MUST summarize usable reviews as SUPPORTED (all >0.5), REFUTED
+  (all <0.5), MIXED (otherwise), MATCHED_UNSCORED (claim matched but ratings
+  unusable), or UNAVAILABLE (no matching evidence), separately from execution
+  status and without claiming a verdict about the entire article. Each review MUST
+  retain classification SAME_CLAIM/RELATED/DIFFERENT, explainable similarity and
+  reason, normalized texts and matcher version. RELATED evidence is retained but
+  excluded from scoring. Controlled equivalents MAY include gari/lixeiro and
+  Distrito Federal/DF; numbers, attribution, negation, locality and action polarity
+  MUST remain guarded.
 - **FR-013**: System MUST normalize recognized fact-check ratings into values
   between 0 and 1 using a project-defined exact-label mapping: true 1,
   mostly true 0.75, mixed/partly true 0.5, misleading/mostly false 0.25,
@@ -341,8 +356,8 @@ scores, weights, coverage, final score, and pipeline/model versions.
   writing-only, and no-criteria cases, 100% of final score calculations follow
   the documented weighting and renormalization rules.
 - **SC-008**: For 100% of fact-checking lookups where both title and main text
-  are available and no explicit claim is supplied, the initial lookup combines
-  the cleaned title and a representative excerpt. With explicit `claim`, lookup
+  are available and no explicit claim is supplied, the initial lookup uses
+  the selected candidate alone, without concatenating title and article body. With explicit `claim`, lookup
   and applicability target that assertion, and the result identifies its origin.
 - **SC-009**: For 100% of fact-check results that do not clearly match the
   selected claim, the result is preserved for traceability but

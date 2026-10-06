@@ -9,8 +9,8 @@ from news_analysis.pipeline.models import PipelineVersion
 from news_analysis.criteria.credibility_config import CONFIG, CredibilityConfig
 from news_analysis.criteria.credibility_policy import policy_hash, scoring_policy
 
-RULES_VERSION = "analysis-rules-v6-source-abstention-history"
-FACT_CHECK_MAPPING_VERSION = "fact-check-exact-labels-publisher-mean-v2"
+RULES_VERSION = "analysis-rules-v8-explainable-claim-matching"
+FACT_CHECK_MAPPING_VERSION = "fact-check-exact-labels-context-v3"
 WRITING_MODEL_NAME = "vzani/portuguese-fake-news-classifier-bertimbau-combined"
 WRITING_MODEL_REVISION = "86971e56e7f5ad781cf56673df73a57375455793"
 

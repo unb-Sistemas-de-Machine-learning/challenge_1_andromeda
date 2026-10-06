@@ -114,3 +114,19 @@ def test_unavailable_source_and_pre_veto_score_are_explicit():
     assert 'indisponibilidade não aplica veto' in html
     assert 'Média antes do veto' in html
     assert 'Teto de 35 aplicado' not in html
+
+
+def test_fact_evidence_states_and_supplemental_claims_are_distinct_and_escaped():
+    data = payload({'available': True, 'score': .5, 'evidence_status': 'MIXED', 'search_incomplete': True,
+        'additional_claims': [{'target_claim': '<script>extra</script>', 'evidence_status': 'REFUTED',
+            'reviews': [{'claim': 'Outra afirmação', 'textual_rating': 'Falso', 'included_in_score': True,
+                         'normalized_value': 0, 'review_url': 'javascript:alert(1)'}]}]})
+    html = render(data)
+    assert 'Evidências mistas ou parciais' in html
+    assert 'Evidências contrárias' in html
+    assert 'Busca incompleta' in html
+    assert 'não entram na nota' in html
+    assert 'fora da nota final' in html
+    assert '<script>extra</script>' not in html
+    assert '&lt;script&gt;extra&lt;/script&gt;' in html
+    assert 'href="javascript:' not in html

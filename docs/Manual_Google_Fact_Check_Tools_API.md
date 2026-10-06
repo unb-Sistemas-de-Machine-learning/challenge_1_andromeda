@@ -73,8 +73,10 @@ checagens, que a chave tenha autorização ou que a cota esteja disponível.
 
 `claim` aceita de 3 a 500 caracteres. Uma afirmação informada tem prioridade;
 espaços nas extremidades são removidos antes da análise. Sem afirmação explícita,
-o título limpo ou a primeira frase extraída é usado como candidato. Não há
-extração semântica automática de todos os fatos da notícia.
+o título limpo e frases iniciais fornecem até três candidatos. O primeiro
+determina a nota; os demais são evidências complementares, sem peso no índice.
+A seleção preserva as frases originais, remove duplicatas e ignora perguntas.
+Não há extração semântica automática de todos os fatos da notícia.
 
 Em matérias que citam ou desmentem um boato, a nota factual refere-se à afirmação
 selecionada e não implica que o artigo a endosse. O BERTimbau continua analisando
@@ -82,25 +84,20 @@ o texto principal extraído, independentemente dessa seleção.
 
 ## Construção das consultas
 
-O construtor produz, nessa ordem, candidatos de consulta:
+Cada candidato produz sua própria consulta, sem título concatenado com corpo,
+e uma alternativa de até dez palavras significativas. Consultas vazias ou
+repetidas após normalização são removidas. Cada consulta é limitada a 300
+caracteres. A correspondência usa a afirmação original, não as palavras-chave.
+Com `claim` explícito, não se selecionam candidatos adicionais do artigo.
 
-1. Título ou afirmação limpa combinado com até 240 caracteres de texto de apoio.
-2. Título ou afirmação original.
-3. Título ou afirmação limpa.
-4. Primeira frase do texto de apoio.
-5. Até 180 caracteres do texto de apoio.
-6. Até dez palavras significativas do título/afirmação e do início do texto.
+As respostas das consultas são reunidas, com deduplicação das revisões no cálculo,
+em vez de encerrar na primeira resposta utilizável. Evidências contraditórias
+continuam visíveis. Consultas iguais entre candidatos usam cache durante aquela
+análise, mantendo a comparação independente para cada afirmação.
 
-Com `claim` explícito, a própria afirmação fornece o título e o texto de apoio
-ao construtor. Sem `claim`, esses campos vêm do título e do texto do artigo.
-Consultas vazias ou repetidas são removidas. Cada consulta é limitada a 300
-caracteres. As palavras-chave desta etapa servem à recuperação de checagens;
-não são regras de classificação da escrita.
-
-A execução termina na primeira consulta com revisões utilizáveis ou quando a
-chave está ausente. Se nenhuma consulta fornecer nota, o resultado preserva a
-tentativa com mais revisões correspondentes, ou mais revisões recuperadas em
-caso de empate. As consultas ficam registradas nos diagnósticos e no resultado.
+São no máximo três candidatos e duas consultas por candidato. Sem chave ou em
+401/403/429, novas consultas param. Falhas posteriores preservam páginas e
+consultas anteriores e são registradas sem mensagens que possam expor a chave.
 
 ## Paginação e limites
 
@@ -111,7 +108,10 @@ Token repetido ou limite atingido com resultados pendentes produz
 
 Esses limites restringem o custo da busca síncrona; não garantem recuperação
 de todas as checagens existentes. O conjunto avaliado corresponde às páginas
-recuperadas da consulta selecionada, não ao acervo completo do Google.
+recuperadas nas consultas realizadas, não ao acervo completo do Google.
+No máximo dezoito requisições HTTP são feitas por análise, sem retries.
+`search_incomplete` distingue falhas de `search_truncated`, que indica paginação
+limitada. Resultados utilizáveis parciais podem fornecer nota, acompanhada do aviso.
 
 ## Estrutura dos dados
 
@@ -135,6 +135,8 @@ não determina a correspondência factual no projeto.
 
 O filtro compara a seleção com `Claim.text`. Primeiro rejeita diferenças nas
 sequências numéricas e na presença de negações ou marcadores de desmentido.
+Siglas estaduais explícitas são protegidas, DF/Distrito Federal são equivalentes
+e formas de aumentar/reduzir ou retomar/suspender não são intercambiadas.
 Depois aceita igualdade normalizada ou pelo menos três palavras significativas
 em comum, com sobreposição de 80% em ambas as direções.
 
@@ -183,6 +185,10 @@ Valores retidos abaixo e acima de 0,5 ativam `conflicting_verdicts`.
 O resultado está em `criteria.verifiable_facts`. Inclui afirmação e origem,
 status, score, pesos, contribuição, revisões originais, motivos de exclusão,
 contagens, médias por agência, divergência e limites da busca.
+`evidence_status` resume vereditos utilizáveis: todos acima de 0,5 são `SUPPORTED`,
+todos abaixo são `REFUTED`, intermediários/divergentes são `MIXED` e ausência
+é `UNAVAILABLE`. `additional_claims` contém as evidências complementares, sem
+contribuição ao índice. Esses estados não são vereditos sobre a notícia inteira.
 
 A interface mantém o cartão do critério visível mesmo sem evidências.
 Mostra a afirmação avaliada, contagens, motivos e consultas registradas; quando

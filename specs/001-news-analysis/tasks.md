@@ -236,3 +236,11 @@ Task: "T041 [P] [US2] Add unit tests for unmapped textual fact-check ratings rem
 - [X] Version the effective source policy and audit blocklist hashes, matched domains and veto reasons without secrets.
 - [X] Align documentation, OpenAPI models and frontend with the scoring and historical compatibility rules.
 - [X] Validate regression coverage for API history, source failures, blocklists, policy changes and frontend rendering.
+
+### Focused Fact Check retrieval — 2026-10-06
+
+- [X] Replace concatenated title/body queries with the selected claim and one distinct keyword alternative.
+- [X] Select up to three verbatim candidates; keep supplementary evidence outside the primary score and honor explicit claim selection.
+- [X] Merge evidence across queries, deduplicate scores, preserve partial results and stop on missing key or authorization/quota errors.
+- [X] Expose evidence states and incomplete searches; protect locality, numbers, negation and direction in lexical matching.
+- [X] Update UI, OpenAPI, scoring documentation and pipeline version; validate regression tests and strict documentation build.

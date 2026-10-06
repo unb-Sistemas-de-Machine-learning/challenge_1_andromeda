@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
@@ -48,10 +48,17 @@ class FactCheckReview(StrictModel):
     exclusion_reason: str | None = None
     publisher_key: str | None = None
     normalized_value: float | None = Field(default=None, ge=0, le=1)
+    match_classification: Literal['SAME_CLAIM', 'RELATED', 'DIFFERENT'] | None = None
+    match_similarity: float | None = Field(default=None, ge=0, le=1)
+    match_reason: str | None = None
+    matcher_version: str | None = None
+    normalized_target: str | None = None
+    normalized_claim: str | None = None
+    rating_interpretation: Literal['CONTEXT', 'CLAIM_VERDICT', 'UNMAPPED'] | None = None
     raw: dict[str, Any]
 
 
-class FactCheckCriterionResult(StrictModel):
+class FactCheckEvidence(StrictModel):
     available: bool
     status: CriterionStatus
     score: float | None = Field(default=None, ge=0, le=1)
@@ -68,10 +75,18 @@ class FactCheckCriterionResult(StrictModel):
     conflicting_verdicts: bool = False
     search_attempts: list[dict[str, Any]] = Field(default_factory=list)
     search_truncated: bool = False
+    search_incomplete: bool = False
+    evidence_status: Literal['SUPPORTED', 'REFUTED', 'MIXED', 'MATCHED_UNSCORED', 'UNAVAILABLE'] | None = None
     query: str = ""
     reviews_count: int = Field(ge=0)
     applicable_reviews_count: int = Field(ge=0)
+    related_reviews_count: int = Field(default=0, ge=0)
     reviews: list[FactCheckReview]
+    error: ErrorInfo | None = None
+
+
+class FactCheckCriterionResult(FactCheckEvidence):
+    additional_claims: list[FactCheckEvidence] = Field(default_factory=list)
     intended_weight: float = 0.6
     effective_weight: float | None = None
     contribution: float | None = None
@@ -132,7 +147,6 @@ class HistoricalSourceCredibility(StrictModel):
     intended_weight: float
     effective_weight: float | None = None
     contribution: float | None = None
-    error: ErrorInfo | None = None
 
 
 class CriteriaSet(StrictModel):

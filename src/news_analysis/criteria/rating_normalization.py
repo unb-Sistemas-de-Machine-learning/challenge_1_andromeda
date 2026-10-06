@@ -18,6 +18,9 @@ RATING_MAP = {
     "majoritariamente falso": 0.25,
     "misleading": 0.25,
     "enganoso": 0.25,
+    "fora de contexto": 0.25,
+    "descontextualizado": 0.25,
+    "out of context": 0.25,
     "false": 0.0,
     "falso": 0.0,
     "fake": 0.0,
@@ -26,6 +29,8 @@ RATING_MAP = {
     "e falso": 0.0,
     "e verdadeiro": 1.0,
 }
+
+CONTEXT_RATINGS = {'fora de contexto', 'descontextualizado', 'out of context'}
 
 
 def normalize_rating(textual_rating: str | None) -> float | None:

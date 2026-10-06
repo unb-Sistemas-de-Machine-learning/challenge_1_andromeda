@@ -296,6 +296,21 @@ components:
           type: boolean
           title: Search Truncated
           default: false
+        search_incomplete:
+          type: boolean
+          title: Search Incomplete
+          default: false
+        evidence_status:
+          anyOf:
+          - type: string
+            enum:
+            - SUPPORTED
+            - REFUTED
+            - MIXED
+            - MATCHED_UNSCORED
+            - UNAVAILABLE
+          - type: 'null'
+          title: Evidence Status
         query:
           type: string
           title: Query
@@ -308,11 +323,25 @@ components:
           type: integer
           minimum: 0.0
           title: Applicable Reviews Count
+        related_reviews_count:
+          type: integer
+          minimum: 0.0
+          title: Related Reviews Count
+          default: 0
         reviews:
           items:
             $ref: '#/components/schemas/FactCheckReview'
           type: array
           title: Reviews
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorInfo'
+          - type: 'null'
+        additional_claims:
+          items:
+            $ref: '#/components/schemas/FactCheckEvidence'
+          type: array
+          title: Additional Claims
         intended_weight:
           type: number
           title: Intended Weight
@@ -327,6 +356,124 @@ components:
           - type: number
           - type: 'null'
           title: Contribution
+      additionalProperties: false
+      type: object
+      required:
+      - available
+      - status
+      - reviews_count
+      - applicable_reviews_count
+      - reviews
+      title: FactCheckCriterionResult
+    FactCheckEvidence:
+      properties:
+        available:
+          type: boolean
+          title: Available
+        status:
+          $ref: '#/components/schemas/CriterionStatus'
+        score:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Score
+        name:
+          type: string
+          title: Name
+          default: Checagem de fatos verificáveis
+        method:
+          type: string
+          title: Method
+          default: google_fact_check_claim_reviews
+        target_claim:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Claim
+        claim_origin:
+          type: string
+          title: Claim Origin
+          default: article_title_or_excerpt
+        scope:
+          type: string
+          title: Scope
+          default: Uma afirmação selecionada; não verifica todos os fatos da notícia
+            nem a reputação da fonte.
+        formula:
+          type: string
+          title: Formula
+          default: F = mean(publisher means of unique applicable mapped reviews)
+        limitation:
+          type: string
+          title: Limitation
+          default: Google retrieves published reviews; matching is lexical, the score
+            is project-defined, and absence of a review is not a verdict.
+        scored_reviews_count:
+          type: integer
+          title: Scored Reviews Count
+          default: 0
+        publishers_count:
+          type: integer
+          title: Publishers Count
+          default: 0
+        publisher_scores:
+          additionalProperties:
+            type: number
+          type: object
+          title: Publisher Scores
+        conflicting_verdicts:
+          type: boolean
+          title: Conflicting Verdicts
+          default: false
+        search_attempts:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Search Attempts
+        search_truncated:
+          type: boolean
+          title: Search Truncated
+          default: false
+        search_incomplete:
+          type: boolean
+          title: Search Incomplete
+          default: false
+        evidence_status:
+          anyOf:
+          - type: string
+            enum:
+            - SUPPORTED
+            - REFUTED
+            - MIXED
+            - MATCHED_UNSCORED
+            - UNAVAILABLE
+          - type: 'null'
+          title: Evidence Status
+        query:
+          type: string
+          title: Query
+          default: ''
+        reviews_count:
+          type: integer
+          minimum: 0.0
+          title: Reviews Count
+        applicable_reviews_count:
+          type: integer
+          minimum: 0.0
+          title: Applicable Reviews Count
+        related_reviews_count:
+          type: integer
+          minimum: 0.0
+          title: Related Reviews Count
+          default: 0
+        reviews:
+          items:
+            $ref: '#/components/schemas/FactCheckReview'
+          type: array
+          title: Reviews
         error:
           anyOf:
           - $ref: '#/components/schemas/ErrorInfo'
@@ -339,7 +486,7 @@ components:
       - reviews_count
       - applicable_reviews_count
       - reviews
-      title: FactCheckCriterionResult
+      title: FactCheckEvidence
     FactCheckReview:
       properties:
         claim:
@@ -416,6 +563,51 @@ components:
             minimum: 0.0
           - type: 'null'
           title: Normalized Value
+        match_classification:
+          anyOf:
+          - type: string
+            enum:
+            - SAME_CLAIM
+            - RELATED
+            - DIFFERENT
+          - type: 'null'
+          title: Match Classification
+        match_similarity:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Match Similarity
+        match_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Match Reason
+        matcher_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Matcher Version
+        normalized_target:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Normalized Target
+        normalized_claim:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Normalized Claim
+        rating_interpretation:
+          anyOf:
+          - type: string
+            enum:
+            - CONTEXT
+            - CLAIM_VERDICT
+            - UNMAPPED
+          - type: 'null'
+          title: Rating Interpretation
         raw:
           additionalProperties: true
           type: object
@@ -541,10 +733,6 @@ components:
           - type: number
           - type: 'null'
           title: Contribution
-        error:
-          anyOf:
-          - $ref: '#/components/schemas/ErrorInfo'
-          - type: 'null'
       additionalProperties: false
       type: object
       required:

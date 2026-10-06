@@ -8,16 +8,10 @@ import re
 import httpx
 
 from news_analysis.config import Settings
-from news_analysis.criteria.rating_normalization import normalize_rating, normalize_text
+from news_analysis.criteria.rating_normalization import CONTEXT_RATINGS, normalize_rating, normalize_text
+from news_analysis.criteria.claim_matching import MATCHER_VERSION, STOPWORDS, canonical_claim, match_claims
 from news_analysis.pipeline.errors import CriterionStatus
 from news_analysis.pipeline.models import ErrorInfo, FactCheckCriterionResult, FactCheckReview
-
-STOPWORDS = {
-    "a", "o", "os", "as", "um", "uma", "de", "da", "do", "das", "dos", "em",
-    "no", "na", "nos", "nas", "para", "por", "com", "que", "e", "ou", "the",
-    "of", "to", "in", "on", "for", "and", "or", "is", "are",
-}
-
 
 class FactCheckClient:
     def __init__(self, settings: Settings, client: httpx.Client | None = None):
@@ -34,11 +28,19 @@ class FactCheckClient:
             claims = []
             seen_tokens = set()
             for _ in range(3):
-                response = client.get(
-                    "https://factchecktools.googleapis.com/v1alpha1/claims:search", params=params,
-                )
-                response.raise_for_status()
-                page = response.json()
+                try:
+                    response = client.get(
+                        "https://factchecktools.googleapis.com/v1alpha1/claims:search", params=params,
+                    )
+                    response.raise_for_status()
+                    page = response.json()
+                    if not isinstance(page, dict) or not isinstance(page.get('claims', []), list):
+                        raise ValueError('invalid_fact_check_response')
+                except (httpx.HTTPError, ValueError) as exc:
+                    if not claims:
+                        raise
+                    # Retain successful pages; never persist exception messages/API keys.
+                    return {'claims': claims, 'search_incomplete': True, 'search_errors': [safe_search_error(exc)]}
                 claims.extend(page.get("claims", []))
                 token = page.get("nextPageToken")
                 if not token:
@@ -54,31 +56,22 @@ class FactCheckClient:
 
 
 def build_fact_check_query(title: str | None, main_text: str) -> str:
-    excerpt = " ".join(main_text.split())[:240]
-    if title and excerpt:
-        return f"{title} {excerpt}"
-    return title or excerpt
+    """Search one candidate, never concatenate a headline with article body."""
+    return ' '.join((title or _first_sentence(main_text)).split())
 
 
 def build_fact_check_queries(title: str | None, main_text: str) -> list[str]:
-    text = " ".join(main_text.split())
-    clean_title = _clean_title(title or "")
-    candidates = [
-        build_fact_check_query(clean_title or title, text),
-        title or "",
-        clean_title,
-        _first_sentence(text),
-        text[:180],
-        _keyword_query(clean_title or title, text),
-    ]
+    target = build_fact_check_query(title, main_text)
+    candidates = [target, _keyword_query(target, '')]
     queries: list[str] = []
     seen: set[str] = set()
     for candidate in candidates:
         query = " ".join(candidate.split()).strip()
         if len(query) > 300:
             query = query[:300].rsplit(" ", 1)[0]
-        if query and query not in seen:
-            seen.add(query)
+        identity = normalize_text(query)
+        if query and identity not in seen:
+            seen.add(identity)
             queries.append(query)
     return queries
 
@@ -93,18 +86,15 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
     for review in reviews:
         textual_rating = review.get("textual_rating")
         normalized_value = normalize_rating(textual_rating)
-        applicable = is_applicable_fact_check(
-            main_claim=main_claim,
-            checked_claim=review.get("claim"),
-            review_title=review.get("review_title"),
-        )
+        match = match_claims(main_claim, review.get("claim"))
+        applicable = match.applicable
         publisher_key = _publisher_key(review)
         identity = (review.get("review_url"), normalize_text(review.get("claim") or "")) if review.get("review_url") else (
             publisher_key, normalize_text(review.get("claim") or ""), review.get("review_date"), textual_rating,
         )
         reason = None
         if not applicable:
-            reason = "claim_mismatch"
+            reason = "claim_related" if match.classification == "RELATED" else "claim_mismatch"
         elif normalized_value is None:
             reason = "unmapped_rating"
         elif publisher_key is None:
@@ -132,6 +122,14 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
                 exclusion_reason=reason,
                 publisher_key=publisher_key,
                 normalized_value=normalized_value,
+                match_classification=match.classification,
+                match_similarity=match.similarity,
+                match_reason=match.reason,
+                matcher_version=MATCHER_VERSION,
+                normalized_target=match.normalized_target,
+                normalized_claim=match.normalized_claim,
+                rating_interpretation=('CONTEXT' if normalize_text(textual_rating or '') in CONTEXT_RATINGS else
+                                       'CLAIM_VERDICT' if normalized_value is not None else 'UNMAPPED'),
                 raw=review.get("raw", review),
             )
         )
@@ -140,6 +138,8 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
         target_claim=main_claim, claim_origin=claim_origin,
         search_attempts=raw.get("search_attempts", []),
         search_truncated=bool(raw.get("search_truncated")),
+        search_incomplete=bool(raw.get('search_incomplete')),
+        related_reviews_count=sum(review.match_classification == "RELATED" for review in processed),
     )
     if not by_publisher:
         message, details = _unavailable_message(raw, processed)
@@ -151,6 +151,7 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
             reviews_count=len(processed),
             applicable_reviews_count=sum(1 for review in processed if review.applicable),
             reviews=processed,
+            evidence_status='MATCHED_UNSCORED' if any(review.applicable for review in processed) else 'UNAVAILABLE',
             **metadata,
             error=ErrorInfo(
                 code="CRITERION_UNAVAILABLE",
@@ -174,6 +175,8 @@ def evaluate_fact_checks(raw: dict[str, Any], article_title: str | None, main_te
         publishers_count=len(publisher_scores),
         publisher_scores=publisher_scores,
         conflicting_verdicts=min(included_values) < 0.5 < max(included_values),
+        evidence_status=('SUPPORTED' if all(value > .5 for value in included_values) else
+                         'REFUTED' if all(value < .5 for value in included_values) else 'MIXED'),
         **metadata,
     )
 
@@ -187,6 +190,7 @@ def unavailable_fact_check(query: str, message: str = "Fact-check criterion unav
         reviews_count=0,
         applicable_reviews_count=0,
         reviews=[],
+        evidence_status='UNAVAILABLE',
         error=ErrorInfo(code="CRITERION_UNAVAILABLE", message=message, retryable=False),
     )
 
@@ -200,50 +204,22 @@ def error_fact_check(query: str, exc: Exception) -> FactCheckCriterionResult:
         reviews_count=0,
         applicable_reviews_count=0,
         reviews=[],
+        evidence_status='UNAVAILABLE',
         error=ErrorInfo(code="FACT_CHECK_API_ERROR", message="Fact Check Tools API failed.", retryable=True, details={"reason": exc.__class__.__name__}),
     )
 
 
 def is_applicable_fact_check(main_claim: str | None, checked_claim: str | None, review_title: str | None) -> bool:
-    # Match the reviewed claim, never the fact-check headline (which may deny it).
-    source = normalize_text(main_claim or "")
-    checked = normalize_text(checked_claim or "")
-    if not source or not checked:
-        return False
-    negations = {"nao", "nunca", "jamais", "not", "never", "sem"}
-    if bool(set(source.split()) & negations) != bool(set(checked.split()) & negations):
-        return False
-    debunking = {"falso", "fake", "boato", "mentira", "desmente", "desmentido", "enganoso"}
-    if bool(set(source.split()) & debunking) != bool(set(checked.split()) & debunking):
-        return False
-    if re.findall(r"\d+(?:[.,]\d+)*", main_claim or "") != re.findall(r"\d+(?:[.,]\d+)*", checked_claim or ""):
-        return False
-    if source == checked:
-        return True
-    source_tokens = _meaningful_tokens(main_claim or "")
-    if not source_tokens:
-        return False
-    candidates = [_meaningful_tokens(checked_claim or "")]
-    for candidate in candidates:
-        if not candidate:
-            continue
-        overlap = source_tokens & candidate
-        if len(overlap) >= 3 and len(overlap) / len(source_tokens) >= 0.8 and len(overlap) / len(candidate) >= 0.8:
-            return True
-    return False
-
-
-def _meaningful_tokens(value: str) -> set[str]:
-    tokens = normalize_text(value).split()
-    return {token for token in tokens if len(token) > 2 and token not in STOPWORDS}
+    # ClaimReview.title is deliberately not used to establish equivalence.
+    return match_claims(main_claim, checked_claim).applicable
 
 
 def _meaningful_tokens_ordered(value: str) -> list[str]:
-    tokens = normalize_text(value).split()
+    tokens = canonical_claim(value).split()
     ordered: list[str] = []
     seen: set[str] = set()
     for token in tokens:
-        if len(token) <= 2 or token in STOPWORDS or token in seen:
+        if len(token) < 2 or token in STOPWORDS or token in seen:
             continue
         seen.add(token)
         ordered.append(token)
@@ -258,10 +234,14 @@ def _clean_title(title: str) -> str:
 
 
 def _first_sentence(text: str) -> str:
-    for separator in [". ", "! ", "? ", "\n"]:
-        if separator in text:
-            return text.split(separator, 1)[0]
-    return text[:180]
+    return re.split(r'(?<=[.!?])\s+|\n+', text.strip(), maxsplit=1)[0]
+
+
+def safe_search_error(exc: Exception) -> dict[str, Any]:
+    detail: dict[str, Any] = {'reason': type(exc).__name__}
+    if isinstance(exc, httpx.HTTPStatusError):
+        detail['http_status'] = exc.response.status_code
+    return detail
 
 
 def _keyword_query(title: str | None, text: str) -> str:
@@ -309,6 +289,10 @@ def _unavailable_message(raw: dict[str, Any], processed: list[FactCheckReview]) 
         )
     applicable_count = sum(1 for review in processed if review.applicable)
     if applicable_count == 0:
+        related_count = sum(review.match_classification == 'RELATED' for review in processed)
+        if related_count:
+            return ('Related reviews were retrieved, but equivalence to the selected claim was not established.',
+                    {'reason': 'related_reviews_only', 'related_reviews_count': related_count})
         return (
             "Fact-check reviews were found, but none clearly matched the article title or main claim.",
             {"reason": "no_applicable_reviews", "reviews_count": len(processed)},

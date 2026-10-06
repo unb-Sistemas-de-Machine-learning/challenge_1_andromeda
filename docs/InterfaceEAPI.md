@@ -33,7 +33,9 @@ a URL é usada como chave do contador em memória.
 A URL deve ser HTTP/HTTPS. `claim` é opcional e aceita de 3 a 500 caracteres.
 A análise exige pelo menos 1.000 caracteres extraídos da notícia. A afirmação
 informada é usada na checagem factual, enquanto o BERTimbau recebe o texto
-principal extraído. Sem afirmação, o título limpo ou primeira frase é um candidato.
+principal extraído. Sem afirmação, o título limpo e frases iniciais fornecem até
+três candidatos. Somente o primeiro determina a nota; os outros aparecem como
+evidências complementares. Com `claim`, somente a afirmação informada é consultada.
 
 ## Fluxo de análise
 
@@ -109,6 +111,12 @@ também são reconhecidas: `reviews_count` identifica o formato factual antigo;
 separado com pesos e nota preservados. Dados ausentes aparecem como não informados.
 Links de evidências são exibidos somente com HTTP/HTTPS, e
 conteúdo recebido é escapado antes de sua inserção na página.
+
+O cartão factual também distingue evidências favoráveis, contrárias, mistas ou
+indisponíveis (`evidence_status`). São sínteses de checagens recuperadas, não
+vereditos sobre a notícia inteira. Consultas parcialmente falhas mantêm os
+resultados anteriores e exibem um aviso. A seção de afirmações complementares
+expõe evidências e consultas separadas, sem contribuição à nota final.
 
 ## Cartão de estilo de escrita
 

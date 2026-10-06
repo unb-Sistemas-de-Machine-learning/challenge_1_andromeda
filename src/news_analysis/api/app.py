@@ -352,7 +352,22 @@ INDEX_HTML = """
         error: { message: "A resposta da API não contém o critério de checagem de fatos. Reinicie o servidor e faça uma nova análise." }
       };
       return criterionCard("Checagem de fatos verificáveis", criterion || fallback, true) +
-        (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "");
+        (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "") +
+        additionalClaimEvidence(criterion);
+    }
+
+    function evidenceState(criterion) {
+      const labels = {SUPPORTED: 'Evidências favoráveis', REFUTED: 'Evidências contrárias', MIXED: 'Evidências mistas ou parciais', MATCHED_UNSCORED: 'Checagem correspondente, sem nota utilizável', UNAVAILABLE: 'Sem evidência utilizável'};
+      return criterion?.evidence_status ? `<p><strong>${escapeHtml(labels[criterion.evidence_status] || criterion.evidence_status)}</strong>. Síntese das checagens recuperadas para esta afirmação; não é um veredito sobre a notícia inteira.</p>` : '';
+    }
+
+    function additionalClaimEvidence(criterion) {
+      if (!criterion?.additional_claims?.length) return '';
+      return `<details><summary>Afirmações complementares (${criterion.additional_claims.length}) — não entram na nota</summary>
+        <p>Frases candidatas selecionadas do texto, sem extração semântica. Não representam todos os fatos da notícia.</p>
+        ${criterion.additional_claims.map(claim => `<section><h4>${escapeHtml(claim.target_claim)}</h4>
+          ${evidenceState(claim)}${claim.search_incomplete ? '<p>Busca incompleta; as evidências obtidas foram preservadas.</p>' : ''}
+          ${factCheckEvidence(claim, true)}${claim.error ? `<p>${escapeHtml(factCheckErrorMessage(claim.error))}</p>` : ''}${attemptsList(claim)}</section>`).join('')}</details>`;
     }
 
     function historicalCredibilityCard(source) {
@@ -390,8 +405,10 @@ INDEX_HTML = """
             <div class="cell"><span>Peso efetivo</span>${formatWeight(criterion.effective_weight)}</div>
             <div class="cell"><span>Contribuicao</span>${formatScore100(criterion.contribution)}</div>
           </div>
-          ${isFactCheck ? `<p><strong>Afirmação avaliada:</strong> ${escapeHtml(criterion.target_claim || "Não informada nesta resposta")}</p><p>Checagens recuperadas: ${escapeHtml(criterion.reviews_count ?? "Não informado")} · Correspondentes: ${escapeHtml(criterion.applicable_reviews_count ?? "Não informado")} · Usadas na nota: ${escapeHtml(criterion.scored_reviews_count ?? "Não informado")} · Agências: ${escapeHtml(criterion.publishers_count ?? "Não informado")}</p><p>Nota da afirmação selecionada; não avalia a reputação da fonte nem todos os fatos da notícia.</p>${!criterion.available ? `<p>Este critério não contribuiu para a nota. Ausência de checagens não significa verdadeiro ou falso.</p>` : ""}` : ""}
+          ${isFactCheck ? `<p><strong>Afirmação avaliada:</strong> ${escapeHtml(criterion.target_claim || "Não informada nesta resposta")}</p><p>Checagens recuperadas: ${escapeHtml(criterion.reviews_count ?? "Não informado")} · Correspondentes: ${escapeHtml(criterion.applicable_reviews_count ?? "Não informado")} · Relacionadas: ${escapeHtml(criterion.related_reviews_count ?? "Não informado")} · Usadas na nota: ${escapeHtml(criterion.scored_reviews_count ?? "Não informado")} · Agências: ${escapeHtml(criterion.publishers_count ?? "Não informado")}</p><p>Nota da afirmação selecionada; não avalia a reputação da fonte nem todos os fatos da notícia.</p>${!criterion.available ? `<p>Este critério não contribuiu para a nota. Ausência de checagens não significa verdadeiro ou falso.</p>` : ""}` : ""}
           ${criterion.qualitative_state ? `<ul><li>${escapeHtml(criterion.qualitative_state)}: sinal de escrita, nao veredito factual.</li></ul>` : ""}
+          ${isFactCheck ? evidenceState(criterion) : ''}
+          ${criterion.search_incomplete ? '<p>Busca incompleta: houve falha em uma ou mais tentativas. Evidências já obtidas foram preservadas.</p>' : ''}
           ${criterion.model ? `<ul><li>Modelo: ${escapeHtml(criterion.model)}</li><li>Revisao: ${escapeHtml(criterion.model_version)}</li><li>Segmentos analisados: ${escapeHtml(criterion.segments_analyzed)}</li></ul>` : ""}
           ${criterion.prediction ? `<ul><li>Classe prevista: ${escapeHtml(criterion.prediction.label)}</li><li>Confianca do classificador: ${formatWeight(criterion.prediction.confidence)} (nao comprova veracidade)</li></ul>` : ""}
           ${criterion.segments?.length ? `<details><summary>Resultados por segmento (${criterion.segments.length})</summary><ul>${criterion.segments.map(segment => `<li>Segmento ${escapeHtml(segment.index + 1)}: ${escapeHtml(segment.character_count)} caracteres · ${escapeHtml(segment.token_count ?? "Não informado")} tokens · Classe ${escapeHtml(segment.label)} · Confiança ${formatWeight(segment.confidence)} · Nota ${formatScore(segment.writing_score)}</li>`).join("")}</ul></details>` : ""}
@@ -412,28 +429,35 @@ INDEX_HTML = """
       const recorded = criterion?.search_attempts || [];
       const attempts = recorded.length ? recorded : (criterion?.error?.details?.attempted_queries || []).map(query => ({query}));
       if (!attempts.length) return "";
-      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}</li>`).join("")}</ul></details>`;
+      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}${attempt.status ? ` · ${escapeHtml(attempt.status)}` : ''}</li>`).join("")}</ul></details>`;
     }
 
     function factCheckErrorMessage(error) {
       const messages = {
         missing_api_key: "A chave do Google Fact Check não está configurada.",
         no_reviews_returned: "O Google Fact Check não retornou checagens publicadas para as consultas realizadas.",
+        related_reviews_only: "Foram encontradas checagens relacionadas, mas a equivalência da afirmação não foi confirmada. Consulte as evidências.",
         no_applicable_reviews: "Foram encontradas checagens, mas nenhuma correspondeu à afirmação selecionada.",
         no_normalizable_ratings: "As checagens correspondentes têm vereditos sem conversão na escala do projeto.",
-        missing_publisher_identity: "As checagens correspondentes não identificam a agência responsável."
+        missing_publisher_identity: "As checagens correspondentes não identificam a agência responsável.",
+        no_claim_candidate: "Não foi possível selecionar uma afirmação candidata. Informe a afirmação que deseja consultar.",
+        partial_search_failure: "Parte da busca falhou. As evidências já obtidas foram preservadas."
       };
       return messages[error.details?.reason] || error.message;
     }
 
-    function factCheckEvidence(criterion) {
+    function factCheckEvidence(criterion, supplemental = false) {
       if (!criterion.reviews?.length) return "";
       return `<ul>${criterion.reviews.map(review => {
         const url = review.review_url || "";
-        const safeLink = /^https?:\/\//i.test(url) ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir checagem</a>` : "";
-        const reasons = {claim_mismatch: "afirmação diferente", unmapped_rating: "veredito não mapeado", missing_publisher_identity: "agência não identificada", duplicate_review: "checagem duplicada"};
-        const inclusion = review.included_in_score === undefined ? "Inclusão na nota não informada neste resultado" : review.included_in_score ? "Incluída na nota" : `Excluída: ${escapeHtml(reasons[review.exclusion_reason] || review.exclusion_reason || "Não aplicável")}`;
-        return `<li><strong>${escapeHtml(review.claim || "Afirmação ausente")}</strong><br>Agência: ${escapeHtml(review.publisher_name || review.publisher_key || "Não informada")} · Veredito: ${escapeHtml(review.textual_rating || "Não informado")} · Nota: ${formatScore(review.normalized_value)}<br>Data: ${escapeHtml(review.review_date || "Não informada")} · ${inclusion} ${safeLink}</li>`;
+        const safeLink = /^https?:\\/\\//i.test(url) ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir checagem</a>` : "";
+        const reasons = {claim_mismatch: "correspondência não estabelecida", claim_related: "conteúdo relacionado, insuficiente para pontuar", unmapped_rating: "veredito não mapeado", missing_publisher_identity: "agência não identificada", duplicate_review: "checagem duplicada"};
+        const matches = {SAME_CLAIM: 'Forte — mesma afirmação pelas regras do projeto', RELATED: 'Relacionada — requer conferência, fora da nota', DIFFERENT: 'Correspondência não estabelecida'};
+        const matchReasons = {missing_claim_text: 'Texto da afirmação ausente', numeric_mismatch: 'Números ou datas diferentes', location_mismatch: 'Localidades diferentes', polarity_or_action_mismatch: 'Negação, ação ou desmentido não correspondem', attribution_missing: 'Autoria da fala não confirmada nos dois textos', attribution_mismatch: 'Autoria da fala diferente', negation_scope_mismatch: 'A negação se refere a partes diferentes da fala', exact_normalized: 'Textos equivalentes após normalização controlada', controlled_lexical_match: 'Sobreposição após equivalências controladas e filtros', insufficient_proposition_overlap: 'Sobreposição insuficiente para confirmar a mesma afirmação'};
+        const matching = review.match_classification ? `<p>Correspondência: ${escapeHtml(matches[review.match_classification])}. ${escapeHtml(matchReasons[review.match_reason] || review.match_reason || '')}${review.match_similarity != null ? ` · Sobreposição lexical: ${formatWeight(review.match_similarity)} (não é probabilidade nem confiança calibrada)` : ''}</p>` : '';
+        const context = review.rating_interpretation === 'CONTEXT' ? '<p>Avaliação de contexto: não significa que a fala nunca ocorreu. A nota 0,25 é uma convenção do projeto para esse rótulo.</p>' : '';
+        const inclusion = review.included_in_score === undefined ? "Inclusão na nota não informada neste resultado" : review.included_in_score ? (supplemental ? "Usada na síntese complementar, fora da nota final" : "Incluída na nota") : `Excluída: ${escapeHtml(reasons[review.exclusion_reason] || review.exclusion_reason || "Não aplicável")}`;
+        return `<li><strong>${escapeHtml(review.claim || "Afirmação ausente")}</strong><br>Agência: ${escapeHtml(review.publisher_name || review.publisher_key || "Não informada")} · Veredito: ${escapeHtml(review.textual_rating || "Não informado")} · Nota: ${formatScore(review.normalized_value)}<br>Data: ${escapeHtml(review.review_date || "Não informada")} · ${inclusion} ${safeLink}${matching}${context}</li>`;
       }).join("")}</ul>`;
     }
 

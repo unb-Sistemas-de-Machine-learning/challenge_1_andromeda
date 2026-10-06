@@ -7,12 +7,8 @@ from news_analysis.article.extractor import ArticleExtractor
 from news_analysis.article.fetcher import ArticleFetcher
 from news_analysis.article.safety import assert_url_is_safe, validate_http_url
 from news_analysis.config import Settings
-from news_analysis.criteria.fact_check import (
-    FactCheckClient,
-    build_fact_check_queries,
-    error_fact_check,
-    evaluate_fact_checks,
-)
+from news_analysis.criteria.fact_check import FactCheckClient
+from news_analysis.criteria.fact_check_search import run_fact_check_search
 from news_analysis.criteria.writing_style import WritingStyleClassifier
 from news_analysis.criteria.source_credibility import SourceCredibility
 from news_analysis.criteria.credibility_policy import SOURCE_SCORE_CAP
@@ -110,44 +106,13 @@ class NewsAnalyzer:
         return analysis
 
     def _run_fact_check(self, title: str | None, text: str, claim: str | None = None) -> FactCheckCriterionResult:
-        explicit_claim = claim.strip() if claim and claim.strip() else None
-        target_claim = explicit_claim or title
-        claim_origin = "user" if explicit_claim else "article_title_or_excerpt"
-        queries = build_fact_check_queries(target_claim, explicit_claim or text)
-        search_attempts: list[dict[str, object]] = []
-        best_result: FactCheckCriterionResult | None = None
-        try:
-            for query in queries:
-                raw = self.fact_check_client.search(query)
-                claims_count = len(raw.get("claims", []))
-                search_attempts.append({"query": query, "claims_count": claims_count})
-                raw = {**raw, "search_attempts": search_attempts}
-                result = evaluate_fact_checks(raw, title, text, query, target_claim=explicit_claim, claim_origin=claim_origin)
-                if result.available:
-                    return result
-                if raw.get("unavailable_reason") == "missing_api_key":
-                    return result
-                if best_result is None or _is_better_fact_check_result(result, best_result):
-                    best_result = result
-            if best_result is not None:
-                if best_result.error:
-                    best_result.error.details = {
-                        **(best_result.error.details or {}),
-                        "attempted_queries": [attempt["query"] for attempt in search_attempts],
-                    }
-                return best_result
-            return evaluate_fact_checks({"claims": [], "search_attempts": search_attempts}, title, text, "", target_claim=explicit_claim, claim_origin=claim_origin)
-        except Exception as exc:
-            result = error_fact_check(queries[0] if queries else "", exc)
-            result.target_claim = explicit_claim or title or text[:240]
-            result.claim_origin = claim_origin
-            result.search_attempts = search_attempts
-            return result
+        return run_fact_check_search(self.fact_check_client, title, text, claim)
 
     def _terminal_analysis(self, analysis_id: str, url: str, created_at: datetime, exc: AnalysisError) -> Analysis:
         final = aggregate_final_score(None, None)
         criteria = CriteriaSet(
             verifiable_facts=FactCheckCriterionResult(
+                evidence_status="UNAVAILABLE",
                 available=False,
                 status="UNAVAILABLE",
                 score=None,
@@ -202,9 +167,3 @@ class NewsAnalyzer:
             0: "No current criteria contributed to the final index.",
         }.get(coverage, "Criterion coverage was calculated from available current criteria.")
         return [*LIMITATIONS, coverage_message]
-
-
-def _is_better_fact_check_result(candidate: FactCheckCriterionResult, current: FactCheckCriterionResult) -> bool:
-    if candidate.applicable_reviews_count != current.applicable_reviews_count:
-        return candidate.applicable_reviews_count > current.applicable_reviews_count
-    return candidate.reviews_count > current.reviews_count

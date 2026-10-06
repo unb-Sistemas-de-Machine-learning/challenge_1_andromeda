@@ -146,7 +146,11 @@ Class probabilities describe the model output, not factual verification.
 ### Analyze A URL
 
 Optional `claim` (3 to 500 characters) selects an assertion to check; otherwise
-the cleaned title or first sentence is a candidate. Outputs use
+the cleaned title or an opening sentence is the primary candidate. Up to two
+additional sentences provide separate evidence without affecting the score.
+Each candidate uses its own query plus at most one keyword alternative; results
+are combined, and partial failures retain earlier evidence.
+`evidence_status` summarizes retrieved verdicts, not the whole article. Outputs use
 `criteria.verifiable_facts` and include the selected claim, original verdicts,
 evidence URLs, exclusions, publisher means and search limits. Only whole mapped
 labels and unique applicable reviews contribute. Values are averaged per checking

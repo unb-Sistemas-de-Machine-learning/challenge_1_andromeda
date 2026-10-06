@@ -1,11 +1,10 @@
 from news_analysis.criteria.fact_check import build_fact_check_queries, evaluate_fact_checks, is_applicable_fact_check
 
 
-def test_build_fact_check_queries_starts_with_combined_query(long_article_text):
-    queries = build_fact_check_queries("Vacina reduz casos graves", long_article_text)
-    assert queries[0].startswith("Vacina reduz casos graves Texto principal")
-    assert queries[1] == "Vacina reduz casos graves"
-    assert len(queries) >= 3
+def test_build_fact_check_queries_starts_with_claim_without_article_body(long_article_text):
+    queries = build_fact_check_queries("Vacina reduz os casos graves", long_article_text)
+    assert queries == ["Vacina reduz os casos graves", "vacina reduz casos graves"]
+    assert all('Texto principal' not in query for query in queries)
 
 
 def test_missing_fact_check_api_key_gets_specific_unavailable_message(long_article_text):
