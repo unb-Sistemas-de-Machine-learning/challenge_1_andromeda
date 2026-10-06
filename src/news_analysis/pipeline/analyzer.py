@@ -11,6 +11,8 @@ from news_analysis.criteria.fact_check import FactCheckClient
 from news_analysis.criteria.fact_check_search import run_fact_check_search
 from news_analysis.criteria.writing_style import WritingStyleClassifier
 from news_analysis.criteria.source_credibility import SourceCredibility
+from news_analysis.explanation.service import build_explanation
+from news_analysis.explanation.engine import FlanT5SmallEngine
 from news_analysis.criteria.credibility_policy import SOURCE_SCORE_CAP
 from news_analysis.pipeline.aggregation import aggregate_final_score, contribution
 from news_analysis.pipeline.errors import AnalysisError, AnalysisStatus
@@ -49,6 +51,14 @@ class NewsAnalyzer:
         self.extractor = extractor or ArticleExtractor(settings.min_extracted_characters)
         self.fact_check_client = fact_check_client or FactCheckClient(settings)
         self.writing_classifier = writing_classifier or WritingStyleClassifier(cache_dir=settings.model_cache)
+        self.explanation_engine = FlanT5SmallEngine(
+            cache_dir=settings.model_cache,
+            max_new_tokens=settings.explanation_max_new_tokens,
+            max_input_tokens=settings.explanation_max_input_tokens,
+            model_id=settings.explanation_sml_model,
+            revision=settings.explanation_sml_revision,
+            manifest_path=settings.explanation_sml_manifest,
+        ) if settings.explanation_sml_enabled else None
         if source_credibility is None:
             from news_analysis.criteria.recognition import RecognitionProvider
             from news_analysis.storage.atlas_repository import AtlasRepository
@@ -103,6 +113,10 @@ class NewsAnalyzer:
             completed_at=datetime.now(timezone.utc),
         )
         self.repository.save(analysis)
+        # Persist the authoritative analysis before optional SML work. A slow
+        # or unavailable explainer cannot prevent the primary audit record.
+        analysis.explanation = build_explanation(analysis, self.settings, self.explanation_engine)
+        self.repository.save(analysis)
         return analysis
 
     def _run_fact_check(self, title: str | None, text: str, claim: str | None = None) -> FactCheckCriterionResult:
@@ -135,7 +149,7 @@ class NewsAnalyzer:
                 error=ErrorInfo(code="CRITERION_UNAVAILABLE", message="Analysis did not reach writing-style classification.", retryable=False),
             ),
         )
-        return Analysis(
+        analysis = Analysis(
             id=analysis_id,
             status=exc.status,
             input={"url": url},
@@ -147,6 +161,8 @@ class NewsAnalyzer:
             created_at=created_at,
             completed_at=datetime.now(timezone.utc),
         )
+        analysis.explanation = build_explanation(analysis, self.settings, self.explanation_engine)
+        return analysis
 
     def _attach_contributions(
         self,

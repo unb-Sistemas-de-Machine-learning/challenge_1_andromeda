@@ -34,5 +34,6 @@ def get_source_credibility() -> SourceCredibility:
     return SourceCredibility(config, recognition=recognition)
 
 
+@lru_cache
 def get_analyzer() -> NewsAnalyzer:
     return NewsAnalyzer(get_settings(), get_repository(), source_credibility=get_source_credibility())

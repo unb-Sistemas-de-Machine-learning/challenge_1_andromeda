@@ -169,9 +169,10 @@ INDEX_HTML = """
     dd { margin: 0; overflow-wrap: anywhere; }
     .criteria {
       display: grid;
+      grid-template-columns: 1fr;
       gap: 12px;
     }
-    .criterion {
+    .criterion, .analysis-card {
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 14px;
@@ -209,7 +210,7 @@ INDEX_HTML = """
       padding: 42px 20px;
     }
     @media (max-width: 820px) {
-      header, form, .grid, .criterion-grid { grid-template-columns: 1fr; }
+      header, form, .grid, .criteria, .criterion-grid { grid-template-columns: 1fr; }
       header { display: grid; }
       .api-link { white-space: normal; }
     }
@@ -337,12 +338,25 @@ INDEX_HTML = """
           <ul>${(data.limitations || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
         </aside>
         <section class="panel criteria">
+          ${explanationCard(data.explanation)}
           ${factCriterionCard(factCriterion, legacyFacts, data)}
           ${criterionCard("Estilo de escrita", data.criteria?.writing_style)}
-          ${credibilityCard(data.criteria?.credibility, data.criteria?.credibility_evidence, data.final)}
-          ${historicalCredibilityCard(metadataSource)}
+          ${sourceAnalysisCard(data.criteria?.credibility, data.criteria?.credibility_evidence, metadataSource, data.final)}
         </section>
       `;
+    }
+
+    function explanationCard(explanation) {
+      if (!explanation) return '';
+      const title = 'Por que esta noticia recebeu esta avaliacao?';
+      if (explanation.status !== 'SUCCESS' || !explanation.text) {
+        const messages = {sml_disabled: 'O SML local está desativado.', sml_revision_unpinned: 'O SML exige uma revisão fixada ou manifesto de integridade.', sml_artifact_missing: 'Os pesos locais do SML não foram preparados. Execute o script de preparação do modelo.', sml_unavailable: 'O modelo local não pôde ser carregado.', sml_out_of_memory: 'Memória insuficiente para executar o modelo local.', sml_timeout: 'A geração excedeu o limite de tempo.', sml_unsafe_content: 'A resposta foi rejeitada por conteúdo inseguro.'};
+        return `<article class="analysis-card explanation"><h3>${title}</h3><p>Explicacao SML indisponivel: ${escapeHtml(messages[explanation.error_code] || explanation.error_code || 'estado não informado')}</p></article>`;
+      }
+      const evidence = explanation.evidence_example_url && /^https?:\\/\\//i.test(explanation.evidence_example_url)
+        ? `<p><strong>Exemplo de checagem:</strong> ${escapeHtml(explanation.evidence_example_publisher || 'Fonte não informada')} · ${escapeHtml(explanation.evidence_example_rating || 'avaliação não informada')} · <a href="${escapeHtml(explanation.evidence_example_url)}" target="_blank" rel="noopener noreferrer">abrir evidência</a></p>`
+        : '';
+      return `<article class="analysis-card explanation"><h3>${title}</h3><p>${escapeHtml(explanation.text)}</p>${evidence}<small>Gerada pelo SML local: ${escapeHtml(explanation.model_id || 'modelo configurado')}</small></article>`;
     }
 
     function factCriterionCard(criterion, legacy, data) {
@@ -352,8 +366,7 @@ INDEX_HTML = """
         error: { message: "A resposta da API não contém o critério de checagem de fatos. Reinicie o servidor e faça uma nova análise." }
       };
       return criterionCard("Checagem de fatos verificáveis", criterion || fallback, true) +
-        (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "") +
-        additionalClaimEvidence(criterion);
+        (legacy ? `<p>Resposta no formato anterior da API. Os dados disponíveis são exibidos; reinicie o servidor para obter a afirmação selecionada e os detalhes do cálculo atual.</p>` : "");
     }
 
     function evidenceState(criterion) {
@@ -370,16 +383,10 @@ INDEX_HTML = """
           ${factCheckEvidence(claim, true)}${claim.error ? `<p>${escapeHtml(factCheckErrorMessage(claim.error))}</p>` : ''}${attemptsList(claim)}</section>`).join('')}</details>`;
     }
 
-    function historicalCredibilityCard(source) {
-      if (!source) return "";
-      return criterionCard("Credibilidade da fonte — análise histórica", source) +
-        `<p>Critério de metadados da versão anterior. Pesos, contribuições e nota preservados, sem recálculo.</p><ul>${source.signals.map(s => `<li>${escapeHtml(s.label)}: ${s.passed ? 'Sim' : 'Não'} — ${escapeHtml(s.evidence)}</li>`).join('')}</ul>`;
-    }
-
-    function credibilityCard(source, evidence, final) {
-      if (!source) return "";
-      return `<article class="criterion"><h3>Credibilidade da fonte</h3>
-        <p>Score: ${source.score_fonte == null ? 'Indisponível' : `${escapeHtml(source.score_fonte)}/100`} · Confiança: ${escapeHtml(source.confianca_fonte)}</p>
+    function sourceAnalysisCard(source, evidence, historical, final) {
+      if (!source && !historical) return `<article class="analysis-card"><h3>Credibilidade da fonte</h3><p>Sem dados de credibilidade disponíveis nesta análise.</p></article>`;
+      return `<article class="analysis-card"><h3>Credibilidade da fonte</h3>
+        ${source ? `<p>Score: ${source.score_fonte == null ? 'Indisponível' : `${escapeHtml(source.score_fonte)}/100`} · Confiança: ${escapeHtml(source.confianca_fonte)}</p>
         ${source.score_fonte == null ? '<p>Sem sinais suficientes para avaliar a fonte; a indisponibilidade não aplica veto.</p>' : ''}
         <p>Domínio: ${escapeHtml(source.dominio)}. Sinais da fonte não comprovam a veracidade da notícia.</p>
         <ul>${(source.criterios || []).map(c => `<li>${escapeHtml(c.nome)}: ${escapeHtml(c.pontos)}/${escapeHtml(c.maximo)} — ${escapeHtml(c.status)}. ${escapeHtml(c.detalhe)}</li>`).join("")}</ul>
@@ -389,13 +396,15 @@ INDEX_HTML = """
           <ul>${(evidence.evidence || []).map(e => `<li>${escapeHtml(e.source)}${e.atlas_id ? ` · Cadastro ${escapeHtml(e.atlas_id)}: ${escapeHtml(e.name)}` : ''}${e.resolved_url && /^https?:\\/\\//i.test(e.resolved_url) ? ` · <a href="${escapeHtml(e.resolved_url)}" target="_blank" rel="noopener noreferrer">Site registrado</a>` : ''}</li>`).join('')}</ul>
         </details>` : ''}
         ${source.veto_dominio_suspeito ? (final?.score != null ? '<p>Teto de 35 aplicado à nota final. As contribuições acima mostram a média antes do teto.</p>' : '<p>Veto da fonte identificado; não há nota final à qual aplicar o teto.</p>') : ''}
-        <ul>${[...(source.flags || []), ...(source.erros || [])].map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>`;
+        <ul>${[...(source.flags || []), ...(source.erros || [])].map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ''}
+        ${historical ? `<details><summary>Credibilidade da fonte — análise histórica</summary><p>Critério de metadados da versão anterior. Pesos, contribuições e nota foram preservados, sem recálculo.</p><ul>${historical.signals.map(s => `<li>${escapeHtml(s.label)}: ${s.passed ? 'Sim' : 'Não'} — ${escapeHtml(s.evidence)}</li>`).join('')}</ul></details>` : ''}
+      </article>`;
     }
 
     function criterionCard(title, criterion, isFactCheck = false) {
       if (!criterion) return "";
       return `
-        <article class="criterion">
+        <article class="analysis-card criterion">
           <h3>${escapeHtml(title)}</h3>
           <div class="criterion-grid">
             <div class="cell"><span>Disponivel</span>${criterion.available ? "Sim" : "Nao"}</div>
@@ -421,6 +430,7 @@ INDEX_HTML = """
           ${factCheckEvidence(criterion)}
           ${criterion.error ? `<ul><li>Motivo: ${escapeHtml(factCheckErrorMessage(criterion.error))}</li><li>Código: ${escapeHtml(criterion.error.code || "Não informado")}</li></ul>` : ""}
           ${attemptsList(criterion)}
+          ${isFactCheck ? additionalClaimEvidence(criterion) : ""}
         </article>
       `;
     }

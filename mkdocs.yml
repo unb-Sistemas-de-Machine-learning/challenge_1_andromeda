@@ -29,6 +29,7 @@ nav:
   - Atlas da Notícia: Atlas.md
   - Google Fact Check API: Manual_Google_Fact_Check_Tools_API.md
   - Interface e API: InterfaceEAPI.md
+  - Plano SML e explicabilidade: PlanoSMLExplicabilidade.md
   - Canvas: 
     - Guiding Questions: 01_Canvas/01_guidingQuestions.md
     - Objetivos: 01_Canvas/02_objetivos.md

@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
+from news_analysis.explanation.models import SmlExplanation
 from news_analysis.pipeline.errors import AnalysisStatus, CriterionStatus
 
 
@@ -196,6 +197,7 @@ class Analysis(StrictModel):
     pipeline_version: PipelineVersion
     limitations: list[str]
     error: ErrorInfo | None = None
+    explanation: SmlExplanation | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: datetime | None = None
 

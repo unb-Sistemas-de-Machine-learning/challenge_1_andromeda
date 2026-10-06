@@ -134,6 +134,32 @@ weights are loaded lazily and reused within each server process. The first
 analysis downloads the pinned revision if it is not already cached. Optionally,
 set `NEWS_ANALYSIS_MODEL_CACHE` to choose a Hugging Face cache directory.
 
+The local explanation model is opt-in. On first use, Transformers downloads
+`google/flan-t5-small` into the configured local cache; subsequent requests reuse
+the cache and the in-memory model. Enable it with:
+
+```env
+NEWS_ANALYSIS_SML_ENABLED=true
+NEWS_ANALYSIS_SML_MODEL=google/flan-t5-small
+NEWS_ANALYSIS_SML_REVISION=<pinned-revision>
+NEWS_ANALYSIS_SML_MAX_INPUT_TOKENS=160
+NEWS_ANALYSIS_SML_MAX_NEW_TOKENS=80
+NEWS_ANALYSIS_SML_TIMEOUT_SECONDS=8
+```
+
+`NEWS_ANALYSIS_SML_MANIFEST` may point to a JSON SHA-256 manifest for the local
+model files. If the model is disabled, missing or rejected by validation, the API
+returns an explicit explanation state and keeps the original analysis unchanged.
+
+The optional preparation command can warm the cache outside the request path:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\prepare_sml_model.py `
+  --output .data\models\flan-t5-small `
+  --model google/flan-t5-small `
+  --revision <pinned-revision>
+```
+
 The entire extracted text is processed in non-overlapping windows of at most
 512 tokens, including special tokens. Each segment reports the actual model
 label, confidence, token count, and probability of class `True` (`LABEL_1`;
