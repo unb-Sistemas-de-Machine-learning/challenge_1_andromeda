@@ -1,23 +1,36 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BookOpen } from "lucide-react";
 import type { Source } from "./analysis";
 
 export function SourceList({ sources }: { sources: Source[] }) {
   if (!sources.length) {
-    return <p className="no-source">Não há fonte para mostrar neste exemplo.</p>;
+    return (
+      <p>
+        Nenhuma fonte disponível no acervo demonstrativo para essa afirmação.
+        Não houve pesquisa na internet.
+      </p>
+    );
   }
   return (
-    <ul className="sources">
-      {sources.map((s) => (
-        <li key={s.href}>
-          <a href={s.href} target="_blank" rel="noreferrer">
-            <span>
-              <strong>{s.title}</strong>
-              <span>Abre em nova aba</span>
-            </span>
-            <ArrowUpRight size={24} aria-hidden="true" />
-          </a>
-        </li>
-      ))}
-    </ul>
+    <>
+     
+      <ul className="sources">
+        {sources.map((source) => (
+          <li key={source.href}>
+            <a href={source.href} target="_blank" rel="noreferrer">
+              <BookOpen size={23} aria-hidden="true" />
+              <span>
+                <strong>{source.title}</strong>
+                <span>{source.institution}</span>
+                <span>{source.date} · Abre em nova aba</span>
+              </span>
+              <ArrowUpRight size={20} aria-hidden="true" />
+            </a>
+          </li>
+        ))}
+      </ul>
+       <p className="source-note">
+        Materiais fictícios criados para este protótipo.
+      </p>
+    </>
   );
 }

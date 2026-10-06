@@ -25,7 +25,7 @@ export const examples: Record<Outcome, string> = {
 
 const consultation: Source = {
   title: "Aviso de consulta pública sobre o orçamento",
-  institution: "Câmara de Vila Serena (fictícia)",
+  institution: "Câmara de Vila Serena · instituição fictícia",
   date: "1 de outubro de 2026",
   href: "/fontes/consulta.html",
 };
@@ -39,30 +39,33 @@ const minutes: Source = {
 const results: Record<Outcome, Omit<Analysis, "claim">> = {
   supported: {
     outcome: "supported",
-    title: "O material do exemplo confirma essa informação.",
+    title: "O material do exemplo sustenta essa informação.",
     explanation: [
-      "O aviso diz que a consulta está aberta até 30 de novembro de 2026, como a mensagem afirma.",
+      "No cenário fictício, o aviso informa que a consulta sobre o orçamento está aberta até 30 de novembro de 2026. Isso corresponde à afirmação analisada.",
+      "Este resultado se limita a essa afirmação. Não avalia todas as informações que uma notícia poderia conter.",
     ],
     sources: [consultation],
-    next: "Leia o aviso e compare a data com a mensagem antes de compartilhar.",
+    next: "Leia o aviso e compare a data e o assunto com a mensagem recebida. Em uma notícia real, confira também a origem antes de compartilhar.",
   },
   context: {
     outcome: "context",
-    title: "A proposta ainda não foi aprovada.",
+    title: "Falta contexto: a proposta ainda não foi aprovada.",
     explanation: [
-      "O registro diz que ela foi apresentada para discussão. Ainda não houve votação.",
+      "No cenário fictício, o registro informa que a proposta foi apresentada para discussão. A votação ainda não aconteceu.",
+      "Apresentar uma proposta é diferente de aprová-la. O material contradiz a afirmação de que a medida já foi aprovada, sem avaliar a notícia inteira.",
     ],
     sources: [minutes],
-    next: "Não compartilhe como se fosse uma decisão já tomada.",
+    next: "Evite compartilhar a mensagem como uma decisão já tomada. Confira o registro e procure uma atualização sobre a votação.",
   },
   insufficient: {
     outcome: "insufficient",
-    title: "Não achamos provas para confirmar ou negar.",
+    title: "Não há evidências suficientes para concluir.",
     explanation: [
-      "Isso não quer dizer que seja falso. Só não temos como saber com este material.",
+      "O acervo fictício deste protótipo não contém materiais que permitam confirmar ou contradizer essa afirmação.",
+      "A ausência de evidências não significa que a informação seja falsa. Para avaliar uma notícia real, seria preciso pesquisar fontes relevantes e atualizadas.",
     ],
     sources: [],
-    next: "Espere mais informações e procure a publicação original.",
+    next: "Aguarde mais informações antes de compartilhar. Procure a publicação original e uma fonte responsável pelo assunto.",
   },
 };
 
