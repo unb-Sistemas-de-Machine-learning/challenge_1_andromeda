@@ -606,6 +606,32 @@ footer > div {
   font-size: 17px;
   margin-top: 7px;
 }
+.opinion-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fdf6e9;
+  color: #6e430d;
+  border: 1px solid #ead2a8;
+  padding: 18px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+.opinion-panel svg {
+  flex-shrink: 0;
+}
+.opinion-panel h2 {
+  font-size: 20px;
+}
+.opinion-panel p,
+.opinion-panel li {
+  font-size: 17px;
+  margin-top: 7px;
+}
+.opinion-panel ul {
+  margin: 0;
+  padding-left: 22px;
+}
 .loading-state {
   padding: 65px 10px 80px;
   text-align: center;

@@ -120,6 +120,56 @@ test("arbitrary links get no invented verification", async ({ page }) => {
   await expect(page.getByText(/Não houve pesquisa na internet/)).toBeVisible();
 });
 
+test("opinion text is blocked before analysis and input is kept", async ({
+  page,
+}) => {
+  const opinion =
+    "Na minha opinião, a nova lei é um erro e vai prejudicar a cidade.";
+  await page.getByRole("textbox").fill(opinion);
+  await page
+    .getByRole("button", { name: "Verificar notícia", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Isso parece um artigo de opinião." }),
+  ).toBeFocused();
+  await expect(
+    page.getByText("Declaração explícita de opinião do autor"),
+  ).toBeVisible();
+  await expect(page.getByText("O que encontramos")).toHaveCount(0);
+  await expect(page.getByRole("textbox")).toHaveValue(opinion);
+  expect(
+    (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+      .violations,
+  ).toEqual([]);
+
+  // Ao editar o conteúdo, o aviso some.
+  await page.getByRole("textbox").fill("https://example.com/noticia");
+  await expect(
+    page.getByRole("heading", { name: "Isso parece um artigo de opinião." }),
+  ).toHaveCount(0);
+});
+
+test("links to opinion sections are blocked", async ({ page }) => {
+  await page
+    .getByRole("textbox")
+    .fill("https://www.estadao.com.br/opiniao/editorial-qualquer/");
+  await page
+    .getByRole("button", { name: "Verificar notícia", exact: true })
+    .click();
+  await expect(
+    page.getByText("O link aponta para uma seção de opinião, coluna ou blog"),
+  ).toBeVisible();
+});
+
+test("too short text shows a validation message", async ({ page }) => {
+  await page.getByRole("textbox").fill("Prefeito renunciou ontem");
+  await page
+    .getByRole("button", { name: "Verificar notícia", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("O texto é muito curto.");
+  await expect(page.getByRole("textbox")).toBeFocused();
+});
+
 test("keyboard access and enlarged text reflow", async ({ page }) => {
   await page.keyboard.press("Tab");
   await expect(

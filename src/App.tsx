@@ -8,12 +8,14 @@ import {
   ClipboardPaste,
   Info,
   Link,
+  MessageSquareQuote,
   RotateCcw,
   Search,
   ShieldCheck,
   TriangleAlert,
 } from "lucide-react";
-import { analyzeNews, examples, type Analysis, type Outcome } from "./analysis";
+import { examples, type Analysis, type Outcome } from "./analysis";
+import { screenInput, sendToMl, type Signal } from "./pipeline";
 import { DemoBadge, SourceList } from "./components";
 
 type Stage = "input" | "loading" | "result" | "error";
@@ -26,7 +28,8 @@ const labels: Record<Outcome, string> = {
 export default function App() {
   const [stage, setStage] = useState<Stage>("input");
   const [input, setInput] = useState("");
-  const [emptyError, setEmptyError] = useState(false);
+  const [inputError, setInputError] = useState("");
+  const [opinionSignals, setOpinionSignals] = useState<Signal[] | null>(null);
   const [result, setResult] = useState<Analysis | null>(null);
   const [simulateFailure, setSimulateFailure] = useState(false);
   const [exampleMessage, setExampleMessage] = useState("");
@@ -34,12 +37,18 @@ export default function App() {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    if (stage === "result" || stage === "error") headingRef.current?.focus();
-  }, [stage]);
+    if (stage === "result" || stage === "error" || opinionSignals)
+      headingRef.current?.focus();
+  }, [stage, opinionSignals]);
+
+  function clearFeedback() {
+    setInputError("");
+    setOpinionSignals(null);
+  }
 
   function fillExample(outcome: Outcome) {
     setInput(examples[outcome]);
-    setEmptyError(false);
+    clearFeedback();
     setExampleMessage(
       "Exemplo fictício preenchido. Selecione “Verificar notícia” para continuar.",
     );
@@ -47,15 +56,23 @@ export default function App() {
   }
 
   async function submit() {
-    if (!input.trim()) {
-      setEmptyError(true);
+    // Entrada e filtro de opinião rodam antes do envio: só notícias seguem.
+    const screened = screenInput(input);
+    if (screened.status === "invalid") {
+      setOpinionSignals(null);
+      setInputError(screened.message);
       textRef.current?.focus();
       return;
     }
-    setEmptyError(false);
+    if (screened.status === "opinion") {
+      setInputError("");
+      setOpinionSignals(screened.signals);
+      return;
+    }
+    clearFeedback();
     setStage("loading");
     try {
-      setResult(await analyzeNews(input, { simulateFailure }));
+      setResult(await sendToMl(screened.request, { simulateFailure }));
       setStage("result");
     } catch {
       setStage("error");
@@ -65,6 +82,7 @@ export default function App() {
 
   function reset() {
     setInput("");
+    clearFeedback();
     setResult(null);
     setStage("input");
     setExampleMessage("");
@@ -178,12 +196,12 @@ export default function App() {
                   value={input}
                   onChange={(event) => {
                     setInput(event.target.value);
-                    setEmptyError(false);
+                    clearFeedback();
                     setExampleMessage("");
                   }}
                   placeholder="Cole a notícia aqui…"
-                  aria-describedby={`input-help input-note${emptyError ? " empty-error" : ""}`}
-                  aria-invalid={emptyError}
+                  aria-describedby={`input-help input-note${inputError ? " input-error" : ""}`}
+                  aria-invalid={Boolean(inputError)}
                 />
                 <div className="input-note" id="input-note">
                   <Link size={17} aria-hidden="true" />
@@ -192,10 +210,35 @@ export default function App() {
                     acessados.
                   </span>
                 </div>
-                {emptyError && (
-                  <p className="field-error" id="empty-error" role="alert">
-                    Cole o texto ou o link da notícia para continuar.
+                {inputError && (
+                  <p className="field-error" id="input-error" role="alert">
+                    {inputError}
                   </p>
+                )}
+                {opinionSignals && (
+                  <div className="opinion-panel" role="alert">
+                    <MessageSquareQuote size={24} aria-hidden="true" />
+                    <div>
+                      <h2 ref={headingRef} tabIndex={-1}>
+                        Isso parece um artigo de opinião.
+                      </h2>
+                      <p>
+                        Este serviço verifica apenas notícias. Opiniões não têm
+                        um fato a ser confirmado, por isso o conteúdo não foi
+                        enviado para análise.
+                      </p>
+                      <p>Encontramos:</p>
+                      <ul>
+                        {opinionSignals.map((signal) => (
+                          <li key={signal.id}>{signal.description}</li>
+                        ))}
+                      </ul>
+                      <p>
+                        Se for uma notícia, cole o texto ou o link da reportagem
+                        original.
+                      </p>
+                    </div>
+                  </div>
                 )}
                 <div className="form-actions">
                   <button className="button primary" type="submit">
