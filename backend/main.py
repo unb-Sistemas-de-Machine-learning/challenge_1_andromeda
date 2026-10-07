@@ -1,4 +1,4 @@
-"""Google Fact Check proxy for deployment as a separate Render service."""
+"""Small Google Fact Check proxy for a separate Render web service."""
 
 import os
 import secrets
@@ -18,17 +18,24 @@ class FactCheckRequest(BaseModel):
     pageToken: str | None = Field(default=None, max_length=2048)
 
 
-@app.get("/")
+def missing_configuration() -> list[str]:
+    """Report missing variable names without exposing their values."""
+    return [name for name in ("GOOGLE_FACT_CHECK_API_KEY", "FACTCHECK_PROXY_TOKEN") if not os.getenv(name)]
+
+
+@app.api_route("/", methods=["GET", "HEAD"])
 def health():
-    return {"status": "ok"}
+    missing = missing_configuration()
+    return {"status": "misconfigured" if missing else "ok", "missing_env": missing}
 
 
 @app.post("/fact-check")
 async def fact_check(request: FactCheckRequest, authorization: str | None = Header(default=None)):
-    proxy_token = os.getenv("FACTCHECK_PROXY_TOKEN")
-    api_key = os.getenv("GOOGLE_FACT_CHECK_API_KEY")
-    if not proxy_token or not api_key:
-        raise HTTPException(status_code=503, detail="Serviço não configurado")
+    missing = missing_configuration()
+    if missing:
+        raise HTTPException(status_code=503, detail=f"Configuração ausente no Render: {', '.join(missing)}")
+    proxy_token = os.environ["FACTCHECK_PROXY_TOKEN"]
+    api_key = os.environ["GOOGLE_FACT_CHECK_API_KEY"]
     if not authorization or not secrets.compare_digest(authorization, f"Bearer {proxy_token}"):
         raise HTTPException(status_code=401, detail="Não autorizado")
 
