@@ -166,7 +166,7 @@ class MainActivity : Activity() {
         content.addView(label("Resumo baseado nos critérios da análise.", 13f, Color.rgb(91, 107, 111)))
         if (result.evidence.isNotEmpty()) {
             space(18)
-            content.addView(action("Ver checagens que reduziram a nota", false) {
+            content.addView(action("Ver checagens relacionadas", false) {
                 showEvidence(result.evidence)
             })
         }
@@ -182,26 +182,67 @@ class MainActivity : Activity() {
     }
 
     private fun showEvidence(evidence: List<FactEvidence>) {
+        val ink = Color.rgb(11, 38, 49)
+        val muted = Color.rgb(58, 79, 83)
+        val dialog = AlertDialog.Builder(this).create()
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(22), dp(20), dp(20))
+            background = rounded(Color.rgb(246, 249, 247), Color.rgb(194, 214, 209))
+        }
+        root.addView(label("Checagens relacionadas", 22f, ink, true))
+        root.addView(label("${evidence.size} ${if (evidence.size == 1) "checagem encontrada" else "checagens encontradas"}", 16f, muted, true))
+        root.addView(View(this), LinearLayout.LayoutParams(1, dp(10)))
+        root.addView(label("Leia cada veredito e abra a checagem completa para conferir o contexto.", 16f, muted))
+        root.addView(View(this), LinearLayout.LayoutParams(1, dp(18)))
         val list = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(12), dp(20), dp(12))
         }
         for (review in evidence) {
-            list.addView(label(review.publisher, 17f, Color.rgb(11, 38, 49), true))
-            list.addView(label("Veredito: ${review.verdict}", 15f, Color.rgb(24, 57, 62)))
-            list.addView(label("Afirmação checada: ${review.claim}", 14f, Color.rgb(76, 94, 99)))
-            list.addView(action("Abrir checagem publicada ↗", false) {
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(16), dp(18), dp(16), dp(16))
+                background = rounded(Color.WHITE, Color.rgb(185, 207, 202))
+            }
+            card.addView(label(review.publisher, 19f, ink, true))
+            if (review.title.isNotBlank()) {
+                card.addView(View(this), LinearLayout.LayoutParams(1, dp(8)))
+                card.addView(label(review.title, 17f, ink, true))
+            }
+            if (review.reviewDate.length >= 10) {
+                card.addView(View(this), LinearLayout.LayoutParams(1, dp(8)))
+                val date = review.reviewDate.take(10)
+                val readableDate = if (date.matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
+                    "${date.substring(8, 10)}/${date.substring(5, 7)}/${date.substring(0, 4)}" else date
+                card.addView(label("Publicada em $readableDate", 15f, muted))
+            }
+            card.addView(View(this), LinearLayout.LayoutParams(1, dp(12)))
+            card.addView(label("VEREDITO", 13f, Color.rgb(37, 110, 98), true))
+            card.addView(label(review.verdict.ifBlank { "Não informado" }, 18f, ink, true))
+            card.addView(View(this), LinearLayout.LayoutParams(1, dp(12)))
+            card.addView(label("AFIRMAÇÃO CHECADA", 13f, Color.rgb(37, 110, 98), true))
+            card.addView(label(review.claim, 16f, ink))
+            card.addView(View(this), LinearLayout.LayoutParams(1, dp(16)))
+            card.addView(action("Ler checagem completa ↗", true, onClick = {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(review.url)))
+            }).apply {
+                textSize = 16f
+                setTypeface(null, Typeface.BOLD)
             })
-            list.addView(View(this), LinearLayout.LayoutParams(1, dp(20)))
+            list.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         }
-        val scroll = ScrollView(this).apply { addView(list) }
-        AlertDialog.Builder(this)
-            .setTitle("Checagens da afirmação")
-            .setMessage("As checagens abaixo correspondem à afirmação analisada. Vereditos negativos contribuíram para reduzir a nota.")
-            .setView(scroll)
-            .setPositiveButton("Fechar", null)
-            .show()
+        val scroll = ScrollView(this).apply {
+            addView(list)
+            isVerticalScrollBarEnabled = true
+        }
+        val maxListHeight = (resources.displayMetrics.heightPixels * 0.52f).toInt()
+        root.addView(scroll, LinearLayout.LayoutParams(-1, minOf(dp(evidence.size * 260), maxListHeight)))
+        root.addView(View(this), LinearLayout.LayoutParams(1, dp(8)))
+        root.addView(action("Fechar", false) { dialog.dismiss() })
+        dialog.setView(root)
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.92f).toInt(), -2)
     }
 
     private fun <T> runTask(title: String, task: () -> T, complete: (T) -> Unit) {

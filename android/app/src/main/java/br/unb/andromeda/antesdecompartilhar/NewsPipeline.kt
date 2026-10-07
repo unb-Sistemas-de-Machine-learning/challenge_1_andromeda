@@ -1,6 +1,7 @@
 package br.unb.andromeda.antesdecompartilhar
 
 import android.content.Context
+import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.ByteArrayOutputStream
@@ -76,6 +77,21 @@ class NewsPipeline(private val context: Context) {
         require(BuildConfig.FACTCHECK_PROXY_TOKEN.isNotBlank()) {
             "Configure FACTCHECK_PROXY_TOKEN ao gerar o APK."
         }
+        val allClaims = JSONArray()
+        val seenTokens = HashSet<String>()
+        var pageToken: String? = null
+        repeat(10) {
+            val page = factCheckPage(title, pageToken)
+            val claims = page.optJSONArray("claims")
+            if (claims != null) for (index in 0 until claims.length()) allClaims.put(claims.get(index))
+            val next = page.optString("nextPageToken").takeIf { it.isNotBlank() }
+            if (next == null || !seenTokens.add(next)) return JSONObject().put("claims", allClaims)
+            pageToken = next
+        }
+        return JSONObject().put("claims", allClaims)
+    }
+
+    private fun factCheckPage(title: String, pageToken: String?): JSONObject {
         val connection = (java.net.URL("${BuildConfig.FACTCHECK_BACKEND_URL}/fact-check").openConnection() as HttpURLConnection)
         connection.requestMethod = "POST"
         connection.connectTimeout = 10_000
@@ -84,6 +100,7 @@ class NewsPipeline(private val context: Context) {
         connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
         connection.setRequestProperty("Authorization", "Bearer ${BuildConfig.FACTCHECK_PROXY_TOKEN}")
         val request = JSONObject().put("query", title.take(300)).put("pageSize", 10).put("languageCode", "pt")
+        if (pageToken != null) request.put("pageToken", pageToken)
         try {
             connection.outputStream.use { it.write(request.toString().toByteArray(StandardCharsets.UTF_8)) }
             if (connection.responseCode !in 200..299) throw IllegalStateException("O serviço de Fact Check não respondeu (${connection.responseCode}).")

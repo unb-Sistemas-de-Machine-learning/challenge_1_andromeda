@@ -10,7 +10,9 @@ data class FactEvidence(
     val publisher: String,
     val verdict: String,
     val url: String,
-    val value: Double
+    val value: Double?,
+    val title: String = "",
+    val reviewDate: String = ""
 )
 
 data class RuleResult(val explanation: String, val evidence: List<FactEvidence>)
@@ -48,9 +50,9 @@ object AnalysisRules {
         val institutional = listOf("gov.br", "edu.br", "jus.br", "leg.br", "mp.br").any { domain.endsWith(".$it") }
         val sourceScore = sourceScore(document, url, recognized, institutional)
         val evaluated = evaluateReviews(title, rawFacts)
-        val factScore = evaluated.first
-        val scoredReviews = evaluated.second
-        val matchedUnscored = evaluated.third
+        val factScore = evaluated.factScore
+        val scoredReviews = evaluated.scored
+        val matchedUnscored = evaluated.matchedUnscored
 
         val availableWeights = weights.getValue("source") +
             (if (factScore != null) weights.getValue("fact") else 0.0) +
@@ -69,8 +71,8 @@ object AnalysisRules {
         val factual = when {
             factScore == null && matchedUnscored -> "Há fontes relacionadas, mas faltam dados para concluir."
             factScore == null -> "Não há checagem factual disponível."
-            scoredReviews.all { it.value > 0.5 } -> "Há evidências favoráveis ao fato analisado."
-            scoredReviews.all { it.value < 0.5 } -> "Há evidências contrárias ao fato analisado."
+            scoredReviews.all { it.value != null && it.value > 0.5 } -> "Há evidências favoráveis ao fato analisado."
+            scoredReviews.all { it.value != null && it.value < 0.5 } -> "Há evidências contrárias ao fato analisado."
             else -> "Há evidências divergentes sobre o fato analisado."
         }
         val details = ArrayList<String>()
@@ -93,8 +95,10 @@ object AnalysisRules {
         else if (writingScore < 0.5f) details.add("A escrita apresentou sinais que exigem atenção.")
 
         // Only a same-claim, scored negative review can expose the evidence button.
-        val linked = scoredReviews.filter { safeLink(it.url) }.sortedBy { it.value }
-        val modalEvidence = if (linked.any { it.value < 0.5 }) linked else emptyList()
+        val linked = evaluated.relevant.filter { safeLink(it.url) }.distinctBy { it.url.trimEnd('/') }
+        val modalEvidence = if (linked.any { it.value != null && it.value < 0.5 })
+            linked.sortedWith(compareBy<FactEvidence> { it.value == null || it.value >= 0.5 }.thenBy { it.publisher })
+        else emptyList()
         return RuleResult(details.joinToString(" "), modalEvidence)
     }
 
@@ -115,8 +119,15 @@ object AnalysisRules {
             (if (institutional) 100 else 0) + 5) // HTTPS was validated when the article was fetched.
     }
 
-    private fun evaluateReviews(title: String, raw: JSONObject): Triple<Double?, List<FactEvidence>, Boolean> {
-        val claims = raw.optJSONArray("claims") ?: return Triple(null, emptyList(), false)
+    private data class EvaluatedReviews(
+        val factScore: Double?,
+        val scored: List<FactEvidence>,
+        val matchedUnscored: Boolean,
+        val relevant: List<FactEvidence>
+    )
+
+    private fun evaluateReviews(title: String, raw: JSONObject): EvaluatedReviews {
+        val claims = raw.optJSONArray("claims") ?: return EvaluatedReviews(null, emptyList(), false, emptyList())
         val included = ArrayList<FactEvidence>()
         val seen = HashSet<String>()
         var matchedUnscored = false
@@ -124,31 +135,34 @@ object AnalysisRules {
         for (index in 0 until claims.length()) {
             val claim = claims.optJSONObject(index) ?: continue
             val claimText = claim.optString("text")
-            if (!sameClaim(target, claimText)) continue
+            val strictMatch = sameClaim(target, claimText)
+            if (!strictMatch && !relatedClaim(target, claimText)) continue
             val reviews = claim.optJSONArray("claimReview") ?: continue
-            matchedUnscored = true
+            if (strictMatch) matchedUnscored = true
             for (reviewIndex in 0 until reviews.length()) {
                 val review = reviews.optJSONObject(reviewIndex) ?: continue
                 val publisherObject = review.optJSONObject("publisher")
                 val publisher = publisherObject?.optString("name").orEmpty()
                 val link = review.optString("url")
                 val rating = review.optString("textualRating")
-                val value = ratings[normalize(rating)] ?: continue
+                val value = ratings[normalize(rating)]
                 val key = publisherObject?.optString("site")?.takeIf { it.isNotBlank() }
                     ?: runCatching { URI(link).host }.getOrNull() ?: publisher.takeIf { it.isNotBlank() } ?: continue
-                val identity = if (link.isNotBlank()) "$link|${normalize(claimText)}"
+                val identity = if (safeLink(link)) link.trimEnd('/')
                     else "${normalize(key)}|${normalize(claimText)}|${review.optString("reviewDate")}|$rating"
                 if (!seen.add(identity)) continue
-                included.add(FactEvidence(claimText, publisher.ifBlank { key }, rating, link, value))
+                included.add(FactEvidence(claimText, publisher.ifBlank { key }, rating, link, value,
+                    review.optString("title"), review.optString("reviewDate")))
             }
         }
-        if (included.isEmpty()) return Triple(null, emptyList(), matchedUnscored)
-        val byPublisher = included.groupBy { evidence ->
+        val scored = included.filter { it.value != null && sameClaim(target, it.claim) }
+        if (scored.isEmpty()) return EvaluatedReviews(null, emptyList(), matchedUnscored, included)
+        val byPublisher = scored.groupBy { evidence ->
             runCatching { URI(evidence.url).host?.lowercase()?.removePrefix("www.") }.getOrNull()
                 ?: normalize(evidence.publisher)
         }
-        val factScore = byPublisher.values.map { reviews -> reviews.map { it.value }.average() }.average()
-        return Triple(factScore, included, matchedUnscored)
+        val factScore = byPublisher.values.map { reviews -> reviews.mapNotNull { it.value }.average() }.average()
+        return EvaluatedReviews(factScore, scored, matchedUnscored, included)
     }
 
     private fun cleanTitle(value: String): String {
@@ -180,6 +194,26 @@ object AnalysisRules {
         }
         val similarity = minOf(overlap.size.toDouble() / leftWords.size, overlap.size.toDouble() / rightWords.size)
         return left == right || (overlap.size >= 3 && similarity >= 0.8)
+    }
+
+    // Broader match is only for links in the explanatory modal; it never affects the factual score.
+    private fun relatedClaim(target: String, checked: String): Boolean {
+        if (target.isBlank() || checked.isBlank()) return false
+        if (Regex("\\d+(?:[.,]\\d+)*").findAll(target).map { it.value }.toList() !=
+            Regex("\\d+(?:[.,]\\d+)*").findAll(checked).map { it.value }.toList()) return false
+        if (locationAnchors(target) != locationAnchors(checked)) return false
+        val left = canonical(target).split(' ').filter { it.length >= 2 && it !in stopWords }.toSet()
+        val right = canonical(checked).split(' ').filter { it.length >= 2 && it !in stopWords }.toSet()
+        val negativeParaphrases = setOf("menospreza", "desmerece", "humilha", "deprecia")
+        if (left.any { it in negations } != right.any { it in negations } &&
+            !((left.any { it in negations } && right.any { it in negativeParaphrases }) ||
+                (right.any { it in negations } && left.any { it in negativeParaphrases }))) return false
+        val shared = left.intersect(right) - setOf("diz")
+        if (shared.size >= 3) return true
+        val actor = attribution(target)?.first?.split(' ')?.lastOrNull() ?: return false
+        val negative = setOf("nao", "pobre", "menospreza", "desmerece", "humilha", "deprecia")
+        return actor in right && (shared - actor).isNotEmpty() &&
+            left.any { it in negative } && right.any { it in negative }
     }
 
     private fun canonical(value: String): String {
