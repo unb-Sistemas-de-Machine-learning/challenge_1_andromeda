@@ -15,19 +15,27 @@ repo_url: https://github.com/unb-Sistemas-de-Machine-learning/challenge_1_androm
 
 extra_css:
   - assets/stylesheets/global.css
-  
+
 markdown_extensions:
   - admonition
   - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+
 nav:
   - Home: index.md
-  - Canvas: 
-    - Guiding Questions: 01_Canvas/01_guidingQuestions.md
-    - Objetivos: 01_Canvas/02_objetivos.md
-    - Requisitos: 01_Canvas/03_backlog.md
-  - Sobre: funcionamento.md
+  - Canvas:
+      - Guiding Questions: 01_Canvas/01_guidingQuestions.md
+      - Objetivos: 01_Canvas/02_objetivos.md
+      - Requisitos: 01_Canvas/03_backlog.md
+  - Sobre:
+      - Visão Geral: 02_Sobre/01-funcionamento.md
+      - Métricas: 02_Sobre/02-metricas.md
+      - Score Final e Feedback: 02_Sobre/03-scorefinal-feedback.md
+      - Qualidade, Limites e Execução: 02_Sobre/04-qualidade.md

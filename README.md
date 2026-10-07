@@ -1,27 +1,14 @@
 # Challenge 1 — Equipe Andrômeda
 Sistemas de Machine Learning — UnB/FCTE — 2026/02
 
-## Ideia inicial
+## Ideia Principal
+
 Ajudar pessoas que recebem notícias sobre política pelas redes sociais e por
 aplicativos de mensagem a avaliar se aquele conteúdo é confiável antes de
 repassá-lo aos seus contatos.
 
 A proposta é um assistente com interface simples, pensado para quem não tem
 familiaridade com as ferramentas de checagem que já existem hoje.
-
-## Status
-O projeto está em **fase de exploração**. Ainda não definimos o nome, o escopo
-final, as fontes de dados, a abordagem de modelagem nem os critérios de avaliação
-— este repositório acompanha essas decisões conforme forem sendo tomadas.
-
-## Próximos passos
-1. Entender como jornalistas e agências de checagem verificam, hoje, se uma
-   notícia é falsa — quais sinais eles observam e qual é o processo que seguem.
-2. A partir disso, mapear quais dessas etapas podem ser apoiadas por Machine
-   Learning e quais não podem.
-3. Levantar que dados existem para isso e onde estão.
-4. Investigar que modelos e abordagens já são usados para problemas parecidos.
-5. Definir o escopo do sistema e como vamos medir se ele funciona.
 
 ## Documentação
 A documentação do projeto é publicada em:
@@ -67,6 +54,3 @@ A documentação do projeto é publicada em:
     </table>
 </div>
 
-## Disciplina
-
-Sistemas de Machine Learning — UnB/FCTE — Profs. Isaque Alves e Guilherme Fernandes — 2026/2
