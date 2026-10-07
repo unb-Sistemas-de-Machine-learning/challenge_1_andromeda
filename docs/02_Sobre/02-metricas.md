@@ -32,7 +32,11 @@ O app **não confirma se os fatos são verdadeiros**. Ele avalia a reportagem po
 
 Cada checagem possui um veredito que é transformado em um valor. É retirada a média entre as checagens de um mesmo publicador e depois é feita uma média geral.
 
-<p align="center">Tabela 2 - Tabela de vereditos (`textualRating` → `value`)</p>
+```text
+factScore = média( média(checagens de cada publicador) )
+```
+
+<p align="center">Tabela 2 - Tabela de Vereditos </p>
 
 | Veredito | `value` |
 |---|---|
@@ -44,9 +48,6 @@ Cada checagem possui um veredito que é transformado em um valor. É retirada a 
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
-```text
-factScore = média( média(checagens de cada publicador) )
-```
 
 ---
 
@@ -85,33 +86,16 @@ Um sinal numérico sobre a escrita da reportagem é produzido pelo **BERTimbau**
 
 ### 3.2 Geração do Score
 
+```text
+writingScore = exp(z1) / ( exp(z0) + exp(z1) )
+```
+
 1. **Texto:** pega-se o texto extraído, limitado a 20 mil caracteres.
 2. **Tokenização:** o texto vira até 256 tokens, usando o vocabulário do APK.
 3. **Entrada:** o modelo recebe três tensores, todos `[1, 256]`: `input_ids`, `attention_mask`, `token_type_ids`.
 4. **Saída bruta:** o ONNX devolve dois valores (*logits*), `z0` e `z1`.
 5. **Score:** converte-se em probabilidade da classe de índice 1:
 
-```text
-writingScore = exp(z1) / ( exp(z0) + exp(z1) )
-```
-
-**Classe 1 = "melhor escrita".** Quanto maior o score, melhor. O limiar de atenção é **0,5**.
-
-<p align="center"><b>Diagrama 1 - Geração do writingScore</b></p>
-
-```mermaid
-flowchart LR
-    A["Texto da reportagem"] --> B["Corta em 20 mil caracteres"]
-    B --> C["Tokeniza em até 256 tokens"]
-    C --> D["Tensores input_ids, attention_mask, token_type_ids"]
-    D --> E["BERTimbau ONNX"]
-    E --> F["Logits z0 e z1"]
-    F --> G["Probabilidade da classe 1"]
-    G --> H["writingScore de 0 a 1"]
-    E -. "exceção" .-> N["null: análise indisponível"]
-```
-
-<p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
 ---
 
