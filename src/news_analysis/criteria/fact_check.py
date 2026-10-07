@@ -23,7 +23,7 @@ class FactCheckClient:
         if not backend_url and not self.settings.factcheck_api_key:
             return {"claims": [], "unavailable_reason": "missing_api_key"}
         if backend_url and not self.settings.factcheck_proxy_token:
-            raise ValueError("missing_factcheck_proxy_token")
+            return {"claims": [], "unavailable_reason": "missing_proxy_token"}
         close_client = self.client is None
         client = self.client or httpx.Client(timeout=10)
         try:
@@ -286,6 +286,11 @@ def _flatten_reviews(raw: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _unavailable_message(raw: dict[str, Any], processed: list[FactCheckReview]) -> tuple[str, dict[str, Any]]:
+    if raw.get("unavailable_reason") == "missing_proxy_token":
+        return (
+            "Fact-checking was skipped because FACTCHECK_PROXY_TOKEN is not configured for the Render service.",
+            {"reason": "missing_proxy_token"},
+        )
     if raw.get("unavailable_reason") == "missing_api_key":
         return (
             "Fact-checking was skipped because FACTCHECK_API_KEY is not configured. Set it before starting the server.",

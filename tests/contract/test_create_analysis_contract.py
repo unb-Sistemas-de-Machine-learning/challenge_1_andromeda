@@ -19,7 +19,7 @@ def test_config_status_does_not_expose_secret():
     response = client.get("/config")
     assert response.status_code == 200
     payload = response.json()
-    assert set(payload) == {"fact_check_api_key_configured", 'atlas_enabled', 'atlas_status', 'atlas_last_success_at'}
+    assert set(payload) == {"fact_check_api_key_configured", "fact_check_status", 'atlas_enabled', 'atlas_status', 'atlas_last_success_at'}
     assert "test-key" not in response.text
 
 

@@ -5,9 +5,19 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from backend.main import FactCheckRequest, fact_check
+from backend.main import FactCheckRequest, fact_check, health
 from news_analysis.config import Settings
 from news_analysis.criteria.fact_check import FactCheckClient
+from news_analysis.criteria.fact_check_search import run_fact_check_search
+
+
+def test_health_reports_missing_render_settings_without_values(monkeypatch):
+    monkeypatch.delenv("GOOGLE_FACT_CHECK_API_KEY", raising=False)
+    monkeypatch.setenv("FACTCHECK_PROXY_TOKEN", "proxy-secret")
+    assert health() == {
+        "status": "misconfigured", "missing_env": ["GOOGLE_FACT_CHECK_API_KEY"],
+    }
+    assert "proxy-secret" not in str(health())
 
 
 def test_proxy_forwards_project_parameters_and_raw_response(monkeypatch):
@@ -86,3 +96,25 @@ def test_existing_client_uses_proxy_and_paginates():
         "query": "vacina", "pageSize": 10, "languageCode": "pt", "pageToken": "next",
     }
     assert b"key" not in requests[0].content
+
+
+def test_missing_application_token_reports_render_configuration_error():
+    settings = Settings(factcheck_backend_url="https://proxy.example")
+    result = run_fact_check_search(FactCheckClient(settings), None, "", "Vacina reduz casos graves")
+    assert result.available is False
+    assert result.error.details["reason"] == "missing_proxy_token"
+    assert len(result.search_attempts) == 1
+
+
+def test_render_503_stops_further_queries():
+    requests = []
+
+    def proxy(request):
+        requests.append(request)
+        return httpx.Response(503, json={"detail": "Configuração ausente no Render"})
+
+    settings = Settings(factcheck_backend_url="https://proxy.example", factcheck_proxy_token="proxy-secret")
+    with httpx.Client(transport=httpx.MockTransport(proxy)) as client:
+        result = run_fact_check_search(FactCheckClient(settings, client), None, "", "Vacina reduz casos graves")
+    assert len(requests) == 1
+    assert result.error.details["errors"][0]["http_status"] == 503

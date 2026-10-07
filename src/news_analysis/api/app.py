@@ -298,12 +298,17 @@ INDEX_HTML = """
         document.querySelector('#atlas-status').textContent = `Atlas da Notícia: ${atlasStates[config.atlas_status] || 'estado indisponível'}${config.atlas_last_success_at ? ` · Última atualização: ${config.atlas_last_success_at}` : ''}`;
         const dot = configStatus.querySelector(".dot");
         const text = configStatus.querySelector("span:last-child");
-        if (config.fact_check_api_key_configured) {
+        if (config.fact_check_status === "render_ready") {
+          dot.classList.add("ready");
+          text.textContent = "Conexão com Render configurada; disponibilidade verificada na análise";
+        } else if (config.fact_check_status === "local_key_ready") {
           dot.classList.add("ready");
           text.textContent = "Google Fact Check API configurada";
         } else {
           dot.classList.remove("ready");
-          text.textContent = "Google Fact Check indisponível: configure a chave ou o serviço remoto";
+          text.textContent = config.fact_check_status === "missing_proxy_token"
+            ? "Google Fact Check via Render: configure FACTCHECK_PROXY_TOKEN na aplicação"
+            : "Google Fact Check indisponível: configure a chave ou o serviço remoto";
         }
       } catch (error) {
         configStatus.querySelector("span:last-child").textContent = "Não foi possível verificar a configuração";
@@ -470,12 +475,17 @@ INDEX_HTML = """
       const recorded = criterion?.search_attempts || [];
       const attempts = recorded.length ? recorded : (criterion?.error?.details?.attempted_queries || []).map(query => ({query}));
       if (!attempts.length) return "";
-      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}${attempt.status ? ` · ${escapeHtml(statusLabel(attempt.status))}` : ''}</li>`).join("")}</ul></details>`;
+      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}${attempt.status ? ` · ${escapeHtml(statusLabel(attempt.status))}` : ''}${attempt.error?.http_status ? ` · HTTP ${escapeHtml(attempt.error.http_status)}` : ''}</li>`).join("")}</ul></details>`;
     }
 
     function factCheckErrorMessage(error) {
+      if (error.details?.reason === "partial_search_failure" &&
+          error.details?.errors?.some(item => item.http_status === 503)) {
+        return "O servidor de checagem retornou HTTP 503. Abra a URL do Render para verificar as variáveis ausentes indicadas em missing_env.";
+      }
       const messages = {
         missing_api_key: "A chave do Google Fact Check não está configurada.",
+        missing_proxy_token: "O token de acesso ao servidor Render não está configurado na aplicação.",
         no_reviews_returned: "O Google Fact Check não retornou checagens publicadas para as consultas realizadas.",
         related_reviews_only: "Foram encontradas checagens relacionadas, mas a equivalência da afirmação não foi confirmada. Consulte as evidências.",
         no_applicable_reviews: "Foram encontradas checagens, mas nenhuma correspondeu à afirmação selecionada.",
@@ -582,8 +592,11 @@ def index():
 @app.get("/config")
 def config_status(settings: Settings = Depends(get_settings), atlas: AtlasRepository = Depends(get_atlas_repository)):
     state = atlas_status(atlas, settings.credibility_config().atlas)
-    return {"fact_check_api_key_configured": bool(settings.factcheck_api_key or
-                                                    (settings.factcheck_backend_url and settings.factcheck_proxy_token)),
+    fact_check_status = ("render_ready" if settings.factcheck_backend_url and settings.factcheck_proxy_token else
+                         "missing_proxy_token" if settings.factcheck_backend_url else
+                         "local_key_ready" if settings.factcheck_api_key else "missing_config")
+    return {"fact_check_api_key_configured": fact_check_status in {"render_ready", "local_key_ready"},
+            "fact_check_status": fact_check_status,
             'atlas_enabled': state['enabled'], 'atlas_status': state['status'],
             'atlas_last_success_at': state['last_success_at']}
 

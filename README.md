@@ -123,6 +123,9 @@ limit, and raw claim response format. Keep both secrets out of the repository.
 The proxy token protects the public endpoint from unauthenticated quota use; the
 Google key stays only on Render. If `FACTCHECK_BACKEND_URL` is unset, the local
 `FACTCHECK_API_KEY` path still works.
+The Render service's `/` endpoint reports `missing_env` with variable names only;
+it does not reveal secret values. Both entries must be absent from that list
+before fact-check requests can succeed.
 
 Open the API documentation at:
 

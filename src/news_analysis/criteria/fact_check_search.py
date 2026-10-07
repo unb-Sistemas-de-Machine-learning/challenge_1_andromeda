@@ -72,17 +72,18 @@ def run_fact_check_search(client: Any, title: str | None, text: str,
                     attempt['errors'] = raw.get('search_errors', [])
                     errors.extend(attempt['errors'])
                     combined['search_incomplete'] = True
-                    stop = any(error.get('http_status') in {401, 403, 429} for error in attempt['errors'])
-                if raw.get('unavailable_reason') == 'missing_api_key':
-                    combined['unavailable_reason'] = 'missing_api_key'
-                    attempt['status'] = 'skipped_missing_api_key'
+                    stop = any(error.get('http_status') in {401, 403, 429, 503} for error in attempt['errors'])
+                unavailable_reason = raw.get('unavailable_reason')
+                if unavailable_reason in {'missing_api_key', 'missing_proxy_token'}:
+                    combined['unavailable_reason'] = unavailable_reason
+                    attempt['status'] = f'skipped_{unavailable_reason}'
                     stop = True
             except Exception as exc:
                 detail = safe_search_error(exc)
                 errors.append(detail)
                 attempt.update(status='error', error=detail)
                 combined['search_incomplete'] = True
-                stop = detail.get('http_status') in {401, 403, 429}
+                stop = detail.get('http_status') in {401, 403, 429, 503}
             combined['search_attempts'].append(attempt)
             if stop:
                 break
