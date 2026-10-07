@@ -145,10 +145,10 @@ def test_confidence_labels_follow_requested_thresholds(score, label):
     assert label in render(data)
 
 
-def test_fallback_explanation_is_rendered_without_sml_attribution():
+def test_explanation_is_rendered_from_criteria():
     data = payload({"available": True, "score": 0.5})
     data['criteria']['credibility'] = {'criterios': [{'nome': 'veiculo_reconhecido', 'status': 'negativo', 'pontos': 0, 'maximo': 35, 'detalhe': 'Não localizado'}], 'confianca_fonte': 'baixa', 'score_fonte': 0}
-    data["explanation"] = {"status": "SUCCESS", "validation": "FALLBACK",
+    data["explanation"] = {"status": "SUCCESS",
                            "text": "Confiabilidade média. Pontos negativos encontrados: o veículo não foi reconhecido."}
     html = render(data)
     assert "Por que esta notícia recebeu esta avaliação?" in html
@@ -156,11 +156,11 @@ def test_fallback_explanation_is_rendered_without_sml_attribution():
     assert "Resumo baseado nos critérios" in html
 
 
-def test_writing_only_analysis_ignores_corrupted_sml_and_explains_source_coverage():
+def test_writing_only_analysis_ignores_stale_summary_and_explains_source_coverage():
     data = payload({"available": False, "evidence_status": "UNAVAILABLE", "status": "UNAVAILABLE",
                     "reviews_count": 0, "search_attempts": [{"query": "teste", "status": "success", "claims_count": 0}]})
     data["final"].update(score=86.1, coverage=40)
-    data["explanation"] = {"status": "SUCCESS", "validation": "VALID", "model_id": "google/flan-t5-small",
+    data["explanation"] = {"status": "SUCCESS",
                            "text": "Fonte: Negative Pontes encontrados: o veculo no foi reconhecido; cobertura parcial."}
     data["limitations"] = ["Only the writing-style criterion contributed to the final index."]
     data["criteria"]["credibility"] = {

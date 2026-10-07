@@ -27,7 +27,7 @@ def _ready(target: Path, spec: dict) -> bool:
 
 def ensure_model(name: str) -> Path:
     """Return a verified local model directory, extracting it only if needed."""
-    if name not in ('writing_bertimbau', 'flan_t5_small'):
+    if name != 'writing_bertimbau':
         raise ValueError('Unknown bundled model')
     manifest = json.loads((BUNDLES / 'manifest.json').read_text(encoding='utf-8'))
     if manifest.get('format') != 'zip-parts-v1':

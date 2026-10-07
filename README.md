@@ -105,6 +105,25 @@ loaded automatically whenever the app starts:
 FACTCHECK_API_KEY=<your-api-key>
 ```
 
+To keep the Google key in a separate Render service, deploy the `backend/`
+directory as a Python web service with build command
+`pip install -r requirements.txt` and start command
+`uvicorn main:app --host 0.0.0.0 --port $PORT`. Set
+`GOOGLE_FACT_CHECK_API_KEY` and a long random `FACTCHECK_PROXY_TOKEN` in Render's
+environment. In this application's environment, set:
+
+```text
+FACTCHECK_BACKEND_URL=https://your-service.onrender.com
+FACTCHECK_PROXY_TOKEN=<the-same-random-token>
+```
+
+The application then sends `POST /fact-check` to Render instead of calling Google
+directly. It keeps its current Portuguese search, ten results per page, three-page
+limit, and raw claim response format. Keep both secrets out of the repository.
+The proxy token protects the public endpoint from unauthenticated quota use; the
+Google key stays only on Render. If `FACTCHECK_BACKEND_URL` is unset, the local
+`FACTCHECK_API_KEY` path still works.
+
 Open the API documentation at:
 
 ```text
@@ -129,54 +148,29 @@ exposing the key value.
 
 ### Writing-style inference
 
-The application ships two optimized, pinned ONNX models in ZIP parts under
-`src/news_analysis/assets/bundles`: BERTimbau (INT8) and FLAN-T5 (FP32 encoder,
-INT8 decoders). Both load exclusively from local files. The BERTimbau artifact is the
-default writing classifier. FLAN-T5 is enabled by default as a copy editor for
-the already generated explanation. It receives only that explanation, not the
-article or criterion data. Installation and analysis do not download model weights.
+The application ships the optimized, pinned BERTimbau INT8 model in ZIP parts
+under `src/news_analysis/assets/bundles`. It is the default writing classifier
+and loads exclusively from local files. Installation and analysis do not
+download model weights. The explanation is assembled directly from the
+criterion results.
 
 An ordinary Git clone contains every ZIP part; Git LFS is not required. On first
-use of each model, the application verifies SHA-256 checksums and extracts it to
+use, the application verifies SHA-256 checksums and extracts the model to
 `.data/models/bundled` (or `NEWS_ANALYSIS_MODEL_DIR`). Later runs reuse the
-extracted files. Keep enough free disk space for both the compressed parts and
-roughly 370 MB of extracted models. Missing or corrupted parts cause an error
+extracted files. Keep enough free disk space for the compressed parts and
+roughly 110 MB of extracted model files. Missing or corrupted parts cause an error
 instead of triggering a download. The writing model's artifact hash is included in the
 analysis version. `NEWS_ANALYSIS_WRITING_ONNX_PATH` can override its bundled
 path with another local artifact.
 
-The FLAN engine has a local SHA-256 manifest and loads on first use. Its inference
-timeout starts after loading. The tokenizer, configuration, and three required
-ONNX graphs are included in the package. A generated edit is used only if a
-conservative check confirms that the substantive words, score band and numbers
-are preserved. Otherwise the original explanation is shown. Set
-`NEWS_ANALYSIS_SML_ENABLED=false` to skip the copy-edit attempt.
-
-Copy editing uses greedy decoding (`num_beams=1`), the decoder cache and
-`torch.inference_mode()`. The prompt contains only the original summary and
-does not silently truncate it. The defaults allow 256 input and 160 output tokens.
-The configured time limit is also passed to Transformers as `max_time`: this is
-a cooperative stop that finishes the current decoding step, not a hard process
-deadline. A timed-out draft is discarded and reported as `sml_timeout`.
-
-`NEWS_ANALYSIS_SML_MANIFEST` and `NEWS_ANALYSIS_SML_MODEL` may override the
-bundled local paths. Build scripts under `scripts/` regenerate the optimized
-artifacts from already cached pinned source weights; users do not run them.
-The generation path does not require a GPU.
+The build script under `scripts/` can regenerate the optimized writing model
+from locally cached pinned source weights; users do not need to run it.
 
 Regression checks for the summary path:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests/unit/test_explanation.py tests/unit/test_explanation_service.py tests/unit/test_explanation_engine.py
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_explanation.py tests/unit/test_explanation_service.py
 ```
-
-Local verification on a Ryzen 5 3600 CPU (Torch 2.14.0, Transformers 5.17.0):
-the previous cold load took 30.5 seconds and was charged against the 8-second
-summary budget. Its 402-token prompt was cut to 160 tokens before any results
-reached the model. With the corrected prompt, five factual states used 87–115
-input tokens and produced structurally valid summaries in 0.75–1.88 seconds
-(initialization excluded). These are local measurements, not a latency or
-semantic-quality guarantee; the existing output validator is still applied.
 
 The entire extracted text is processed in non-overlapping windows of at most
 512 tokens, including special tokens. Each segment reports the actual model

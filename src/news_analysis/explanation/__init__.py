@@ -1,3 +1,3 @@
-"""Local SML explainability contracts and engine."""
+"""Deterministic explanation of analysis criteria."""
 
 __all__ = []

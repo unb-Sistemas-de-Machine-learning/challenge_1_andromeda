@@ -14,7 +14,6 @@ dependencies = [
   "torch>=2.0",
   "numpy>=1.24",
   "onnxruntime>=1.18",
-  "optimum-onnx>=0.1.0",
   "uvicorn>=0.29",
   "tzdata>=2025.1",
 ]

@@ -19,19 +19,30 @@ class FactCheckClient:
         self.client = client
 
     def search(self, query: str) -> dict[str, Any]:
-        if not self.settings.factcheck_api_key:
+        backend_url = self.settings.factcheck_backend_url
+        if not backend_url and not self.settings.factcheck_api_key:
             return {"claims": [], "unavailable_reason": "missing_api_key"}
+        if backend_url and not self.settings.factcheck_proxy_token:
+            raise ValueError("missing_factcheck_proxy_token")
         close_client = self.client is None
         client = self.client or httpx.Client(timeout=10)
         try:
-            params = {"query": query, "key": self.settings.factcheck_api_key, "pageSize": 10, "languageCode": "pt"}
+            params = {"query": query, "pageSize": 10, "languageCode": "pt"}
+            if not backend_url:
+                params["key"] = self.settings.factcheck_api_key
             claims = []
             seen_tokens = set()
             for _ in range(3):
                 try:
-                    response = client.get(
-                        "https://factchecktools.googleapis.com/v1alpha1/claims:search", params=params,
-                    )
+                    if backend_url:
+                        response = client.post(
+                            backend_url.rstrip("/") + "/fact-check", json=params,
+                            headers={"Authorization": f"Bearer {self.settings.factcheck_proxy_token}"},
+                        )
+                    else:
+                        response = client.get(
+                            "https://factchecktools.googleapis.com/v1alpha1/claims:search", params=params,
+                        )
                     response.raise_for_status()
                     page = response.json()
                     if not isinstance(page, dict) or not isinstance(page.get('claims', []), list):

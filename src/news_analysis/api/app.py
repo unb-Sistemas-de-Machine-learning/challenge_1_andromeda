@@ -303,7 +303,7 @@ INDEX_HTML = """
           text.textContent = "Google Fact Check API configurada";
         } else {
           dot.classList.remove("ready");
-          text.textContent = "Google Fact Check API sem chave: crie .env ou defina FACTCHECK_API_KEY";
+          text.textContent = "Google Fact Check indisponível: configure a chave ou o serviço remoto";
         }
       } catch (error) {
         configStatus.querySelector("span:last-child").textContent = "Não foi possível verificar a configuração";
@@ -582,7 +582,8 @@ def index():
 @app.get("/config")
 def config_status(settings: Settings = Depends(get_settings), atlas: AtlasRepository = Depends(get_atlas_repository)):
     state = atlas_status(atlas, settings.credibility_config().atlas)
-    return {"fact_check_api_key_configured": bool(settings.factcheck_api_key),
+    return {"fact_check_api_key_configured": bool(settings.factcheck_api_key or
+                                                    (settings.factcheck_backend_url and settings.factcheck_proxy_token)),
             'atlas_enabled': state['enabled'], 'atlas_status': state['status'],
             'atlas_last_success_at': state['last_success_at']}
 

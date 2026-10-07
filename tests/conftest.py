@@ -64,7 +64,6 @@ def temp_settings():
         yield Settings(
             factcheck_api_key="test-key",
             writing_onnx_path=None,
-            explanation_sml_enabled=False,
             db_path=str(Path(directory) / "audit.sqlite3"),
             fetch_timeout_seconds=0.1,
             max_download_bytes=1024,

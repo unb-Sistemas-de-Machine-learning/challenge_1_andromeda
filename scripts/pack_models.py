@@ -1,4 +1,4 @@
-"""Package the two optimized model directories into ordinary Git-sized ZIP parts.
+"""Package the optimized writing model into ordinary Git-sized ZIP parts.
 
 Example: python scripts/pack_models.py --source src/news_analysis/assets
 Only the resulting ``assets/bundles`` directory belongs in Git.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 from news_analysis.asset_paths import ASSETS
 
-MODELS = ('writing_bertimbau', 'flan_t5_small')
+MODELS = ('writing_bertimbau',)
 PART_BYTES = 48 * 1024 * 1024
 
 

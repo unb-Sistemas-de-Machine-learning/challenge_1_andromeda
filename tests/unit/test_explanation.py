@@ -1,6 +1,5 @@
 from news_analysis.explanation.context import _confidence_band, build_explanation_context
-from news_analysis.explanation.prompt import build_fallback_text, build_prompt
-from news_analysis.explanation.validation import validate_explanation
+from news_analysis.explanation.summary import build_explanation_text
 from news_analysis.pipeline.aggregation import aggregate_final_score
 from news_analysis.pipeline.models import (
     Analysis,
@@ -56,18 +55,10 @@ def make_analysis(evidence_status="REFUTED", coverage=100):
     )
 
 
-def test_context_is_compact_and_keeps_explicit_fact_state():
+def test_context_keeps_explicit_fact_state():
     context = build_explanation_context(make_analysis())
     assert context.fact_check.evidence_status == "REFUTED"
-    assert context.fact_check.target_claim == "A afirmação selecionada"
-    assert context.source.veto_applied is False
-    assert len(context.fact_check.target_claim) <= 240
-
-
-def test_validator_rejects_new_numbers_and_unavailable_verdict():
-    context = build_explanation_context(make_analysis("UNAVAILABLE", coverage=40))
-    assert validate_explanation("A nota foi 999% e a afirmação foi confirmada.", context)[0] is False
-    assert validate_explanation("A análise tem cobertura parcial e não encontrou evidência factual utilizável para a afirmação selecionada.", context)[0] is True
+    assert context.source.available is True
 
 
 def test_confidence_band_boundaries():
@@ -83,23 +74,17 @@ def test_source_explanation_uses_human_terms_and_neutral_tld():
         {"nome": "tld_institucional", "status": "neutro", "detalhe": "TLD não institucional"},
     ]
     context = build_explanation_context(analysis)
-    summary = build_fallback_text(context)
+    summary = build_explanation_text(context)
     assert "o veículo desta notícia não pôde ser consultado na base de veículos" in summary
     assert "Pontos negativos encontrados" not in summary
     assert "tld" not in summary.lower()
-    assert "nota 40" not in build_prompt(context)
+    assert "nota 40" not in summary
 
     analysis.criteria.credibility["dominio"] = "portal.gov.br"
     analysis.criteria.credibility["criterios"][1]["status"] = "ok"
     context = build_explanation_context(analysis)
-    assert "o site verificado é um site oficial do governo" in build_fallback_text(context)
+    assert "o site verificado é um site oficial do governo" in build_explanation_text(context)
 
     analysis.criteria.credibility["criterios"][0]["status"] = "negativo"
     context = build_explanation_context(analysis)
-    assert "Pontos negativos encontrados: o veículo desta notícia não foi encontrado nas bases de veículos consultadas." in build_fallback_text(context)
-
-
-def test_validator_rejects_cut_off_and_numeric_score():
-    context = build_explanation_context(make_analysis())
-    assert validate_explanation("Confiabilidade baixa. Há evidências contrárias ao fato analisado. Fonte: complet", context)[1] == "incomplete"
-    assert validate_explanation("A confiabilidade é baixa, com nota 40. Há evidências contrárias ao fato analisado.", context)[1] == "numeric_score"
+    assert "Pontos negativos encontrados: o veículo desta notícia não foi encontrado nas bases de veículos consultadas." in build_explanation_text(context)
