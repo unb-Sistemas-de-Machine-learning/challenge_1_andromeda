@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from news_analysis.criteria.credibility_config import CredibilityConfig
 from news_analysis.criteria.source_credibility import SourceCredibility
 from news_analysis.pipeline.analyzer import NewsAnalyzer
@@ -20,7 +22,15 @@ def test_source_veto_persisted_without_overwriting_fact_check(tmp_path, temp_set
                             fact_check_client=FakeFactCheckClient(sample_fact_check_response),
                             source_credibility=source)
     analysis = analyzer.analyze('https://93.184.216.34/article')
-    assert analysis.criteria.credibility['score_fonte'] == 6
+    assert analysis.criteria.credibility['score_fonte'] == 5
+    assert analysis.criteria.credibility['intended_weight'] == 0.20
+    assert analysis.criteria.credibility['effective_weight'] == 0.20
+    assert analysis.criteria.credibility['contribution'] == 1.0
+    assert analysis.final.score_before_veto == round(
+        0.65 * analysis.criteria.verifiable_facts.score * 100
+        + 0.20 * analysis.criteria.credibility['score_fonte']
+        + 0.15 * analysis.criteria.writing_style.score * 100, 4,
+    )
     assert analysis.final.score == 35
     assert 'min(35' in analysis.final.formula
     stored = repository.get(analysis.id)
@@ -47,6 +57,10 @@ def test_unavailable_source_does_not_cap_pipeline_score(temp_settings, repositor
                             fact_check_client=FakeFactCheckClient(sample_fact_check_response), source_credibility=source)
     analysis = analyzer.analyze('https://93.184.216.34/article')
     assert analysis.criteria.credibility['score_fonte'] is None
+    assert analysis.criteria.credibility['status'] == 'UNAVAILABLE'
+    assert analysis.criteria.credibility['effective_weight'] is None
+    assert analysis.final.coverage == 80
+    assert analysis.final.effective_weights == pytest.approx({'verifiable_facts': 0.8125, 'writing_style': 0.1875})
     assert analysis.final.score > 35
     assert analysis.final.score == analysis.final.score_before_veto
     assert analysis.final.source_veto_applied is False

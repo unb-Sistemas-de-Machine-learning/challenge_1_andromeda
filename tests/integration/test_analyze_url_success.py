@@ -38,5 +38,5 @@ def test_successful_post_analysis_with_mocked_services(temp_settings, repository
     assert payload["input"]["claim"] == "Vacina reduz casos graves"
     assert payload["criteria"]["writing_style"]["available"] is True
     assert payload["final"]["coverage"] == 100
-    assert "probability" in payload["final"]["limitation"]
+    assert "probabilidade" in payload["final"]["limitation"]
     assert "main_text" not in str(payload)

@@ -47,25 +47,30 @@ NEWS_ANALYSIS_MISINFORMATION_DOMAINS=dados/desinformacao.csv
 
 ## Regras e integração
 
-Reconhecimento: 35; transparência: autor 10, data 5, link Sobre/Contato 10;
-idade: 15; TLD institucional: 20; HTTPS validado: 5. Idade usa intervalos
-semiabertos de 30, 183, 730 e 1826 dias. Sem reconhecimento ou 15 pontos
-editoriais, idade fica limitada a 8. Domínio com menos de 30 dias gera flag.
+Reconhecimento: 40; transparência: autor 12, data 6, link Sobre/Contato 12;
+idade: 25; HTTPS validado: 5. Esses quatro critérios somam 100 pontos. Um domínio
+institucional confirmado acrescenta 30 pontos de bônus, limitados pela nota máxima
+de 100; domínio não institucional não perde pontos. Idade usa intervalos
+semiabertos de 30, 183, 730 e 1826 dias. Sem reconhecimento ou 18 pontos
+editoriais, idade fica limitada a 13. Domínio com menos de 30 dias gera flag.
 
-A nota inteira é a soma obtida dividida pelo máximo disponível, vezes 100.
-Confiança mede cobertura: baixa abaixo de 50%, média de 50% até menos de 80%,
+A nota é a soma dos pontos confirmados na base fixa de 100, mais o bônus quando
+aplicável, com teto de 100. Sinais indisponíveis não recebem pontos e permanecem
+identificados como indisponíveis, sem serem apresentados como evidência negativa.
+Confiança mede a cobertura dos quatro sinais principais: baixa abaixo de 50%, média de 50% até menos de 80%,
 alta a partir de 80%. Se nenhum critério puder ser avaliado, retorna
 `score_fonte: null`, confiança baixa e veto falso. Indisponibilidade não é evidência
 negativa. Uma nota disponível menor que 20 aciona o veto; uma correspondência
 comprovada na blocklist prevalece, produzindo zero e veto mesmo se a página falhar.
 
 A API e a auditoria incluem `criteria.credibility`, e a tela mostra explicações,
-flags e falhas. Não há peso especificado para a fonte na média: os pesos 60/40
-existentes permanecem. O motor aplica `min(nota, 35)` quando há veto. Contribuições
-dos demais critérios representam a média anterior ao teto, explicitado na fórmula.
+flags e falhas. A fonte tem peso previsto de 20% na média; checagem factual tem
+65% e escrita tem 15%. Um critério indisponível sai da média e os pesos restantes
+são renormalizados. O motor aplica `min(nota, 35)` quando há veto. As contribuições
+representam a média anterior ao teto, explicitado na fórmula.
 `final.score_before_veto` registra essa média; `final.source_veto_applied` informa
-se o teto foi aplicado a uma nota existente. Sem fatos nem escrita disponíveis,
-a nota final permanece nula, mesmo quando houver veto da fonte.
+se o teto foi aplicado a uma nota existente. A nota final só é nula quando os três
+critérios estão indisponíveis, mesmo quando houver veto da fonte.
 
 `criteria.credibility_evidence` registra a política efetiva e seu hash, estado e
 hash dos bytes consultados da blocklist, domínios correspondentes e motivo do veto
@@ -85,8 +90,8 @@ data, contato, HTTPS e 3000 dias de idade:
 
 | URL fictícia | Base local simulada | Score | Veto |
 |---|---|---|---|
-| https://jornal.example.com/noticia | Reconhecido | 80 | false |
-| https://portal.example.net/noticia | Não reconhecido | 45 | false |
+| https://jornal.example.com/noticia | Reconhecido | 100 | false |
+| https://portal.example.net/noticia | Não reconhecido | 60 | false |
 | https://boato.example.org/noticia | Blocklist | 0 | true |
 
 Todos têm confiança alta e nenhum erro. No terceiro, a flag é

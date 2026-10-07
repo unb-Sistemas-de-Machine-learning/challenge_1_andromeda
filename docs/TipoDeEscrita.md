@@ -119,14 +119,15 @@ com peso de 100%, aparece como `99.5`. Cada campo tem precisão de exibição pr
 
 ## Índice final e cobertura
 
-Com os dois critérios disponíveis, `Índice = (0,60 × F + 0,40 × W) × 100`.
-`F` representa checagens da afirmação selecionada e `W` representa escrita. Com apenas
+Com os três critérios disponíveis, `Índice = (0,65 × F + 0,20 × C + 0,15 × W) × 100`.
+`F` representa checagens da afirmação selecionada, `C` é a credibilidade da fonte
+normalizada entre 0 e 1 e `W` representa escrita. Com apenas
 escrita disponível, seu peso efetivo é 100% e o índice é `W × 100`, mas a
-cobertura permanece **40%**. Cobertura mede a participação dos critérios
+cobertura permanece **15%**. Cobertura mede a participação dos critérios
 previstos, não a proporção de segmentos nem a certeza da classificação.
 A busca Google Fact Check Tools é independente deste classificador.
 
-Nesse caso, o resumo da interface indica “Somente estilo de escrita” e informa
+Nesse caso, o resumo da interface informa que só o estilo de escrita contribuiu e
 que o resultado não confirma os fatos. A fórmula e os pesos efetivos permitem
 identificar exatamente como o índice foi composto.
 

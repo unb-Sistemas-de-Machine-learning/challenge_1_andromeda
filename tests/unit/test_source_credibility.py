@@ -36,7 +36,7 @@ def config(tmp_path):
 
 def test_new_domain(config):
     result = SourceCredibility(config, Network(days=10)).calculate('https://example.com')
-    assert result['score_fonte'] == 6
+    assert result['score_fonte'] == 5
     assert result['criterios'][3]['status'] == 'neutro'
     assert result['flags'] == ['dominio_recem_criado']
     assert result['veto_dominio_suspeito']
@@ -44,20 +44,54 @@ def test_new_domain(config):
 
 def test_old_domain_without_signals_is_capped(config):
     result = SourceCredibility(config, Network()).calculate('https://example.com')
-    assert result['criterios'][2]['pontos'] == 8
-    assert result['score_fonte'] == 16
+    assert result['criterios'][2]['pontos'] == 13
+    assert result['score_fonte'] == 18
 
 
 def test_recognized_domain_gets_full_age(config):
     config.recognized_path.write_text('["example.com"]')
     result = SourceCredibility(config, Network()).calculate('https://example.com')
-    assert result['score_fonte'] == 69
+    assert result['score_fonte'] == 70
 
 
 def test_gov_br(config):
     result = SourceCredibility(config, Network(final='https://ficticio.gov.br/article')).calculate('https://ficticio.gov.br')
-    assert result['criterios'][3]['pontos'] == 20
-    assert result['score_fonte'] == 33
+    assert result['criterios'][3]['pontos'] == 30
+    assert result['score_fonte'] == 48
+
+
+def test_unavailable_recognition_does_not_inflate_source_score():
+    body = '<meta name="author" content="Autora"><time datetime="2026-01-01"/><a href="/contato">Contato</a>'
+    source = SourceCredibility(CredibilityConfig(), Network(days=1070, body=body,
+                                                           final='https://portalvv8.com.br/noticia'))
+    result = source.calculate('https://portalvv8.com.br/noticia')
+    assert [(item['pontos'], item['maximo']) for item in result['criterios']] == [
+        (0, 40), (30, 30), (20, 25), (0, 30), (5, 5),
+    ]
+    assert result['criterios'][0]['status'] == 'indisponivel'
+    assert result['criterios'][3]['status'] == 'neutro'
+    assert result['score_fonte'] == 55
+    assert result['confianca_fonte'] == 'media'
+
+
+def test_institutional_bonus_is_capped_at_100(config):
+    body = '<meta name="author" content="Autora"><time datetime="2026-01-01"/><a href="/contato">Contato</a>'
+    config.recognized_path.write_text('["ficticio.gov.br"]')
+    result = SourceCredibility(config, Network(body=body, final='https://ficticio.gov.br/noticia')).calculate(
+        'https://ficticio.gov.br/noticia')
+    assert sum(item['pontos'] for item in result['criterios']) == 130
+    assert result['score_fonte'] == 100
+    assert result['confianca_fonte'] == 'alta'
+
+
+def test_institutional_bonus_adds_thirty_without_changing_coverage():
+    body = '<meta name="author" content="Autora"><time datetime="2026-01-01"/><a href="/contato">Contato</a>'
+    result = SourceCredibility(CredibilityConfig(), Network(days=1070, body=body,
+                                                           final='https://ficticio.gov.br/noticia')).calculate(
+        'https://ficticio.gov.br/noticia')
+    assert result['criterios'][3]['pontos'] == 30
+    assert result['score_fonte'] == 85
+    assert result['confianca_fonte'] == 'media'
 
 
 def test_blocklist(config):
@@ -67,10 +101,10 @@ def test_blocklist(config):
     assert 'dominio_em_lista_desinformacao' in result['flags']
 
 
-def test_rdap_unavailable_normalizes(config):
+def test_rdap_unavailable_keeps_fixed_denominator(config):
     config.recognized_path.write_text('["example.com"]')
     result = SourceCredibility(config, Network(failed=True)).calculate('https://example.com')
-    assert result['score_fonte'] == round(40 / 65 * 100)
+    assert result['score_fonte'] == 45
     assert result['criterios'][2]['status'] == 'indisponivel'
 
 
@@ -86,18 +120,18 @@ def test_page_specific_cache_and_domain_age(config):
     scorer.calculate('https://example.com/a')
     network.body = '<meta name="author" content="Pessoa"><time datetime="2026-01-01"/>'
     result = scorer.calculate('https://example.com/b')
-    assert result['criterios'][1]['pontos'] == 15
-    assert result['criterios'][2]['pontos'] == 15
+    assert result['criterios'][1]['pontos'] == 18
+    assert result['criterios'][2]['pontos'] == 25
     assert network.calls == 1
 
 
 def test_json_ld_and_same_domain_contact(config):
     body = '<script type="application/ld+json">' + json.dumps({'@graph': [{'@type': 'NewsArticle', 'author': {'name': 'Pessoa'}, 'datePublished': '2026-01-01'}]}) + '</script><a href="/contato">Contato</a>'
-    assert editorial_transparency(body, 'https://example.com', config)['pontos'] == 25
+    assert editorial_transparency(body, 'https://example.com', config)['pontos'] == 30
     assert editorial_transparency('<a href="https://example.org/contato">Contato</a>', 'https://example.com', config)['pontos'] == 0
 
 
-@pytest.mark.parametrize('days,points', [(0, 0), (30, 3), (183, 8), (730, 12), (1826, 15)])
+@pytest.mark.parametrize('days,points', [(0, 0), (30, 5), (183, 13), (730, 20), (1826, 25)])
 def test_boundaries(days, points, config):
     now = datetime.now(timezone.utc)
     result, _ = domain_age(now - timedelta(days=days), True, 0, config, now)

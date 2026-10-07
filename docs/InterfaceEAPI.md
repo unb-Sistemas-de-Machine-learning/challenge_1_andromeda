@@ -72,9 +72,13 @@ que a análise concluiu o fluxo; não significa que a notícia foi comprovada.
 
 | Critérios disponíveis | Média antes do veto | Cobertura |
 | --- | --- | --- |
-| Fatos e escrita | `(0,60 × F + 0,40 × W) × 100` | 100% |
-| Apenas fatos | `F × 100` | 60% |
-| Apenas escrita | `W × 100` | 40% |
+| Fatos, fonte e escrita | `(0,65 × F + 0,20 × C + 0,15 × W) × 100` | 100% |
+| Fatos e fonte | `(0,65 × F + 0,20 × C) ÷ 0,85 × 100` | 85% |
+| Fatos e escrita | `(0,65 × F + 0,15 × W) ÷ 0,80 × 100` | 80% |
+| Fonte e escrita | `(0,20 × C + 0,15 × W) ÷ 0,35 × 100` | 35% |
+| Apenas fatos | `F × 100` | 65% |
+| Apenas fonte | `C × 100` | 20% |
+| Apenas escrita | `W × 100` | 15% |
 | Nenhum | Sem índice | 0% |
 
 A nota final é essa média, limitada a 35 quando houver veto comprovado da fonte.
@@ -82,10 +86,12 @@ A nota final é essa média, limitada a 35 quando houver veto comprovado da font
 a aplicação do teto. As contribuições somam a média anterior ao teto, não
 necessariamente a nota final. Fonte totalmente indisponível não aplica veto;
 blocklist comprovada continua aplicando. Sem média disponível, a nota permanece nula.
-Cobertura final mede fatos e escrita; a cobertura dos sinais da fonte é separada.
+Cobertura final mede a disponibilidade de fatos, credibilidade e escrita. A
+cobertura dos sinais internos da fonte é exibida separadamente. `C` é
+`score_fonte ÷ 100`.
 
-Com apenas escrita disponível, a interface utiliza **“Somente estilo de escrita”**
-e informa que a nota não confirma os fatos. Mesmo uma nota próxima de 100 nesse
+Com apenas escrita disponível, a interface informa que a nota usa somente esse
+critério e não confirma os fatos. Mesmo uma nota próxima de 100 nesse
 caso usa a classificação textual como média, sujeita ao teto da fonte.
 
 Cobertura não é confiança estatística, percentual de texto processado ou

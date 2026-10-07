@@ -189,12 +189,16 @@ class SourceCredibility:
                         results[2], age_flags = age
                         flags.extend(age_flags)
                 results[3] = institutional_tld(domain, config)
-        available = sum(item['maximo'] for item in results if item['status'] not in {'indisponivel', 'neutro'})
-        score = round(sum(item['pontos'] for item in results) / available * 100) if available else None
+        base_results = [item for item in results if item['nome'] != 'tld_institucional']
+        base_maximum = sum(item['maximo'] for item in base_results)
+        available = sum(item['maximo'] for item in base_results if item['status'] != 'indisponivel')
+        # Missing signals retain their share of the fixed base; otherwise a source
+        # with unavailable recognition can appear almost perfectly credible.
+        score = min(100, sum(item['pontos'] for item in results)) if available else None
         if blocked:
             score = 0
             flags.append('dominio_em_lista_desinformacao')
-        coverage = available / sum(config.weights)
+        coverage = available / base_maximum if base_maximum else 0
         confidence = 'baixa' if coverage < config.low_coverage else 'alta' if coverage >= config.high_coverage else 'media'
         veto = blocked or (score is not None and score < config.veto_threshold)
         policy = scoring_policy(config)

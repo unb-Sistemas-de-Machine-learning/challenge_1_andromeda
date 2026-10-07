@@ -29,7 +29,7 @@ def test_atlas_evidence_and_blocklist_survive_new_snapshot(tmp_path, temp_settin
     analyzer = NewsAnalyzer(settings, repository, fetcher=FakeFetcher(long_article_html, 'https://example.com/article'),
                             fact_check_client=FakeFactCheckClient(sample_fact_check_response), source_credibility=source)
     analysis = analyzer.analyze('https://93.184.216.34/article')
-    assert analysis.criteria.credibility['criterios'][0]['pontos'] == 35
+    assert analysis.criteria.credibility['criterios'][0]['pontos'] == 40
     assert analysis.criteria.credibility_evidence['evidence'][0]['snapshot_id'] == snapshot_id
     before = repository.get(analysis.id)
     with atlas.sync_lease(120) as owner:
@@ -174,4 +174,4 @@ def test_analysis_refreshes_atlas_before_source_lookup(monkeypatch, temp_setting
                             source_credibility=source, auto_refresh_atlas=True, atlas_repository=atlas)
     analysis = analyzer.analyze('https://93.184.216.34/article')
     assert calls == [True]
-    assert analysis.criteria.credibility['criterios'][0]['pontos'] == 35
+    assert analysis.criteria.credibility['criterios'][0]['pontos'] == 40

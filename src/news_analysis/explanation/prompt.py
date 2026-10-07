@@ -52,8 +52,12 @@ def build_fallback_text(context: ExplanationContext) -> str:
     factual = _FACT_STATES.get(context.fact_check.evidence_status, _FACT_STATES["UNAVAILABLE"])
     details = []
     if context.coverage < 100:
-        if context.fact_check.evidence_status == "UNAVAILABLE" and context.writing_style.available:
+        if context.fact_check.evidence_status == "UNAVAILABLE" and context.writing_style.available and context.source.available:
+            factual = "Não há checagem factual disponível. A avaliação considera a credibilidade da fonte e o estilo de escrita; não confirma os fatos da notícia."
+        elif context.fact_check.evidence_status == "UNAVAILABLE" and context.writing_style.available:
             factual = "Não há checagem factual disponível. A avaliação considera apenas o estilo de escrita e não confirma os fatos da notícia."
+        elif context.fact_check.evidence_status == "UNAVAILABLE" and context.source.available:
+            factual = "Não há checagem factual disponível. A avaliação considera apenas a credibilidade da fonte e não confirma os fatos da notícia."
         else:
             factual += " A avaliação é parcial."
     if context.negative_source_points:

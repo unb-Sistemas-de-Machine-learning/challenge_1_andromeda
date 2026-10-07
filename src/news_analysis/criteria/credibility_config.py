@@ -40,11 +40,13 @@ class CredibilityConfig:
     recognized_path: Path | None = None
     blocklist_path: Path | None = None
     atlas: AtlasConfig = field(default_factory=AtlasConfig)
-    weights: tuple[int, ...] = (35, 25, 15, 20, 5)
-    transparency_weights: tuple[int, ...] = (10, 5, 10)
-    age_bands: tuple[tuple[float, int], ...] = ((30, 0), (183, 3), (730, 8), (1826, 12), (float('inf'), 15))
-    age_cap: int = 8
-    transparency_threshold: int = 15
+    # Recognition, transparency, age, institutional bonus, HTTPS.
+    # The four base criteria total 100; the bonus is added afterward.
+    weights: tuple[int, ...] = (40, 30, 25, 30, 5)
+    transparency_weights: tuple[int, ...] = (12, 6, 12)
+    age_bands: tuple[tuple[float, int], ...] = ((30, 0), (183, 5), (730, 13), (1826, 20), (float('inf'), 25))
+    age_cap: int = 13
+    transparency_threshold: int = 18
     institutional_tlds: tuple[str, ...] = ('gov.br', 'edu.br', 'jus.br', 'leg.br', 'mp.br')
     tracking_parameters: tuple[str, ...] = ('fbclid', 'gclid', 'dclid', 'msclkid', 'mc_cid', 'mc_eid')
     timeout: float = 6

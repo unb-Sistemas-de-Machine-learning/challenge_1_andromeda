@@ -193,7 +193,8 @@ contribuição ao índice. Esses estados não são vereditos sobre a notícia in
 A interface mantém o cartão do critério visível mesmo sem evidências.
 Mostra a afirmação avaliada, contagens, motivos e consultas registradas; quando
 há revisões, mostra agências, vereditos, datas, links e participação no cálculo.
-Os pesos previstos são 60% para fatos e 40% para escrita. A cobertura informa
+Os pesos previstos são 65% para fatos, 20% para credibilidade da fonte e 15%
+para escrita. A cobertura informa
 quais critérios têm nota, não quantos fatos da notícia foram checados.
 
 SQLite conserva metadados, evidências e decisões necessárias para auditoria.

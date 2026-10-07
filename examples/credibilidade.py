@@ -24,7 +24,7 @@ if __name__ == '__main__':
         recognized.write_text('["jornal.example.com"]')
         blocked.write_text('["boato.example.org"]')
         scorer = SourceCredibility(CredibilityConfig(recognized_path=recognized, blocklist_path=blocked), DemoNetwork())
-        for url, expected in [('https://jornal.example.com/noticia', 80), ('https://portal.example.net/noticia', 45), ('https://boato.example.org/noticia', 0)]:
+        for url, expected in [('https://jornal.example.com/noticia', 100), ('https://portal.example.net/noticia', 60), ('https://boato.example.org/noticia', 0)]:
             result = scorer.calculate(url)
             assert result['score_fonte'] == expected
             print(json.dumps(result, ensure_ascii=False, indent=2))

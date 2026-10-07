@@ -30,10 +30,11 @@ A [integração Atlas da Notícia](docs/Atlas.md) sincroniza cadastros em SQLite
 inclui evidências de reconhecimento e permite consulta local durante a análise.
 
 O critério [Credibilidade da fonte](docs/Credibilidade.md) já está disponível na
-API e na interface, com SCORE_FONTE independente, bases locais configuráveis e
-teto na nota final quando houver veto da fonte.
+API e na interface, com SCORE_FONTE, bases locais configuráveis e peso previsto
+de 20% na nota final. O veto da fonte ainda pode aplicar um teto à média.
 Fonte totalmente indisponível não aplica veto. A [decisão de reconciliação](docs/DecisaoCredibilidade.md)
-documenta os pesos 60/40 atuais, a auditoria e a leitura dos formatos históricos.
+documenta a auditoria e a leitura dos formatos históricos. A média atual usa
+65% para checagem factual, 20% para credibilidade da fonte e 15% para escrita.
 
 A documentação do projeto é publicada em:
 <https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/>
@@ -200,7 +201,8 @@ label, confidence, token count, and probability of class `True` (`LABEL_1`;
 `LABEL_0` means `Fake`). The criterion score is the character-weighted average
 of those probabilities. No keyword rules or heuristic fallback are used.
 If loading or inference fails, this criterion is unavailable and excluded
-from scoring. Its intended weight remains 40%; fact-checking remains 60%.
+from scoring. Its intended weight is 15%; fact-checking is 65% and source
+credibility is 20%. Available weights are renormalized when a criterion is missing.
 Class probabilities describe the model output, not factual verification.
 
 ### Analyze A URL

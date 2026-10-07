@@ -164,12 +164,12 @@ def test_writing_only_analysis_ignores_corrupted_sml_and_explains_source_coverag
                            "text": "Fonte: Negative Pontes encontrados: o veculo no foi reconhecido; cobertura parcial."}
     data["limitations"] = ["Only the writing-style criterion contributed to the final index."]
     data["criteria"]["credibility"] = {
-        "score_fonte": 100, "confianca_fonte": "baixa", "dominio": "cnnbrasil.com.br",
+        "score_fonte": 60, "confianca_fonte": "media", "dominio": "cnnbrasil.com.br",
         "criterios": [
-            {"nome": "veiculo_reconhecido", "pontos": 0, "maximo": 35, "status": "indisponivel", "detalhe": "Base ausente"},
-            {"nome": "transparencia_editorial", "pontos": 25, "maximo": 25, "status": "ok", "detalhe": "Metadados encontrados"},
-            {"nome": "idade_dominio", "pontos": 15, "maximo": 15, "status": "ok", "detalhe": "Domínio antigo"},
-            {"nome": "tld_institucional", "pontos": 0, "maximo": 20, "status": "neutro", "detalhe": "Sem penalidade"},
+            {"nome": "veiculo_reconhecido", "pontos": 0, "maximo": 40, "status": "indisponivel", "detalhe": "Base ausente"},
+            {"nome": "transparencia_editorial", "pontos": 30, "maximo": 30, "status": "ok", "detalhe": "Metadados encontrados"},
+            {"nome": "idade_dominio", "pontos": 25, "maximo": 25, "status": "ok", "detalhe": "Domínio antigo"},
+            {"nome": "tld_institucional", "pontos": 0, "maximo": 30, "status": "neutro", "detalhe": "Sem penalidade"},
             {"nome": "https", "pontos": 5, "maximo": 5, "status": "ok", "detalhe": "Certificado validado"},
         ],
     }
@@ -177,7 +177,7 @@ def test_writing_only_analysis_ignores_corrupted_sml_and_explains_source_coverag
     assert "Confiabilidade alta" in html
     assert "não confirma os fatos da notícia" in html
     assert "O veículo desta notícia não pôde ser consultado na base de veículos" in html
-    assert "Pontuação parcial dos sinais avaliados: 100/100 · Cobertura dos sinais: 45% (baixa)" in html
+    assert "Pontuação da credibilidade: 60/100 · Cobertura dos sinais: 60% (média)" in html
     assert "Apenas o estilo de escrita contribuiu" in html
     assert "Negative Pontes" not in html
     assert "Somente estilo de escrita" not in html
@@ -193,3 +193,20 @@ def test_writing_only_analysis_ignores_corrupted_sml_and_explains_source_coverag
     assert "O veículo desta notícia foi encontrado no Atlas da Notícia." in matched_html
     assert "cadastro parcial" in matched_html
     assert "no_snapshot" not in matched_html
+
+
+def test_three_criterion_weights_and_source_contribution_are_visible():
+    data = payload({"available": True, "status": "EXECUTED", "score": 1.0,
+                    "intended_weight": 0.65, "effective_weight": 0.65, "contribution": 65})
+    data["criteria"]["writing_style"].update(score=0.5, intended_weight=0.15,
+                                             effective_weight=0.15, contribution=7.5)
+    data["criteria"]["credibility"] = {
+        "score_fonte": 50, "confianca_fonte": "alta", "dominio": "example.com", "criterios": [],
+        "intended_weight": 0.20, "effective_weight": 0.20, "contribution": 10,
+    }
+    data["final"].update(score=82.5, coverage=100,
+                         formula="(0.65 * F + 0.20 * C + 0.15 * W) * 100")
+    html = render(data)
+    assert "F = checagem factual; C = credibilidade da fonte; W = estilo de escrita" in html
+    assert "(0.65 * F + 0.20 * C + 0.15 * W) * 100" in html
+    assert "Peso previsto: 20% · Peso efetivo: 20% · Contribuição para o índice: 10.0 pontos" in html

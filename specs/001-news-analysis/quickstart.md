@@ -245,7 +245,7 @@ Latest result:
 
 Real-weight validation exercises `POST /analyses` and
 `GET /analyses/{analysis_id}` with controlled article/fact-check inputs, CPU
-BERTimbau inference, multiple token windows, writing-only coverage of 40%, and
+BERTimbau inference, multiple token windows, writing-only coverage of 15%, and
 SQLite audit retrieval. A second classification confirms in-process model reuse.
 
 ## Scenario 12: Writing Model Failure
@@ -253,8 +253,10 @@ SQLite audit retrieval. A second classification confirms in-process model reuse.
 Simulate a weight-loading or inference failure. Expect writing availability
 `false`, criterion status `ERROR`, error code `WRITING_MODEL_ERROR`, no score,
 no prediction, and zero reported completed segments. No keyword fallback runs.
-With fact-checking available, the analysis remains `SUCCESS` with coverage 60%
-and the fact-check criterion assumes the effective weight of 100%.
+With fact-checking and source credibility available, the analysis remains
+`SUCCESS` with coverage 85%; their effective weights are renormalized to
+65/85 and 20/85. If the source is also unavailable, fact-checking alone has
+coverage 65% and effective weight 100%.
 
 ## Scenario 13: Selected Verifiable Claim
 
@@ -267,9 +269,9 @@ evidence URLs, scoring exclusions, publisher means, divergence and search limits
 ## Scenario 14: Unavailable Facts in the Interface
 
 Render a response with `criteria.verifiable_facts.available=false` and a
-writing-only score of 100. Expect the fact-check card to remain visible, show
+writing-only score of 100 with source credibility unavailable. Expect the fact-check card to remain visible, show
 status, reason, counts and recorded queries, and the summary to say
-"Somente estilo de escrita" with coverage 40%. It must not present the score
+that only writing contributed, with coverage 15%. It must not present the score
 as confirmation of the article's facts. An absent criterion must produce an
 explicit missing-data notice; a legacy `source_credibility` response must remain
 readable without inventing new scoring metadata.

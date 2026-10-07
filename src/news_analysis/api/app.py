@@ -316,16 +316,19 @@ INDEX_HTML = """
       const legacyFacts = !data.criteria?.verifiable_facts && historicalSource?.reviews_count !== undefined && !historicalSource?.signals;
       const factCriterion = data.criteria?.verifiable_facts ?? (legacyFacts ? historicalSource : null);
       const metadataSource = historicalSource?.signals ? historicalSource : null;
-      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available && !metadataSource?.available;
+      const sourceAvailable = data.criteria?.credibility?.score_fonte != null;
+      const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available && !sourceAvailable && !metadataSource?.available;
+      const noFactCheck = !factCriterion?.available;
       const level = score === null || score === undefined ? "Indisponível" : scoreLabel(score);
-      const badgeClass = score === null || score === undefined || writingOnly ? "warn" : score > 85 ? "good" : score > 40 ? "warn" : "bad";
+      const badgeClass = score === null || score === undefined || noFactCheck ? "warn" : score > 85 ? "good" : score > 40 ? "warn" : "bad";
       result.className = "grid";
       result.innerHTML = `
         <aside class="panel score">
           <span class="badge ${badgeClass}">${level}</span>
           <div class="score-number">${score === null || score === undefined ? "--" : Math.round(score)}</div>
           <p class="muted">Índice operacional de confiabilidade</p>
-          ${writingOnly ? `<p><strong>Sem checagem factual disponível.</strong> A média usa o estilo de escrita e pode receber o teto por veto da fonte; não confirma os fatos da notícia.</p>` : ""}
+          ${noFactCheck ? `<p><strong>Sem checagem factual disponível.</strong> ${sourceAvailable && data.criteria?.writing_style?.available ? 'A média considera a credibilidade da fonte e o estilo de escrita.' : sourceAvailable ? 'A média considera apenas a credibilidade da fonte.' : writingOnly ? 'A média considera apenas o estilo de escrita.' : 'Não há critérios disponíveis para uma nota.'} Esta avaliação não confirma os fatos da notícia.</p>` : ""}
+          <p class="muted">F = checagem factual; C = credibilidade da fonte; W = estilo de escrita. Cada critério varia de 0 a 1 na fórmula.</p>
           <dl>
             <dt>Cobertura</dt><dd>${data.final?.coverage ?? 0}%</dd>
             <dt>Fórmula</dt><dd>${escapeHtml(data.final?.formula || "Não informada")}</dd>
@@ -357,7 +360,9 @@ INDEX_HTML = """
       const parts = [score == null ? 'Avaliação de confiabilidade indisponível.' : `${scoreLabel(score)}.`];
       const factual = {SUPPORTED: 'Há evidências favoráveis à afirmação avaliada.', REFUTED: 'Há evidências contrárias à afirmação avaliada.', MIXED: 'As evidências sobre a afirmação avaliada são divergentes.', MATCHED_UNSCORED: 'Há checagens relacionadas, mas faltam dados para uma conclusão.', UNAVAILABLE: 'Não há checagem factual disponível.'};
       parts.push(factual[fact?.evidence_status] || factual.UNAVAILABLE);
-      if (!fact?.available && writing?.available) parts.push('A avaliação considera apenas o estilo de escrita e não confirma os fatos da notícia.');
+      if (!fact?.available && writing?.available && source?.score_fonte != null) parts.push('A avaliação considera a credibilidade da fonte e o estilo de escrita; não confirma os fatos da notícia.');
+      else if (!fact?.available && writing?.available) parts.push('A avaliação considera apenas o estilo de escrita e não confirma os fatos da notícia.');
+      else if (!fact?.available && source?.score_fonte != null) parts.push('A avaliação considera apenas a credibilidade da fonte e não confirma os fatos da notícia.');
       const recognition = source?.criterios?.find(item => item.nome === 'veiculo_reconhecido');
       if (recognition?.status === 'indisponivel') parts.push('O veículo desta notícia não pôde ser consultado na base de veículos.');
       else if (recognition?.status === 'negativo') parts.push('O veículo desta notícia não foi encontrado nas bases de veículos consultadas.');
@@ -376,7 +381,7 @@ INDEX_HTML = """
 
     function factCriterionCard(criterion, legacy, data) {
       const fallback = {
-        available: false, status: "UNAVAILABLE", intended_weight: 0.6,
+        available: false, status: "UNAVAILABLE", intended_weight: 0.65,
         target_claim: data.input?.claim || data.article?.title,
         error: { message: "A resposta da API não contém o critério de checagem de fatos. Reinicie o servidor e faça uma nova análise." }
       };
@@ -401,13 +406,18 @@ INDEX_HTML = """
     function sourceAnalysisCard(source, evidence, historical, final) {
       if (!source && !historical) return `<article class="analysis-card"><h3>Credibilidade da fonte</h3><p>Sem dados de credibilidade disponíveis nesta análise.</p></article>`;
       const criteria = source?.criterios || [];
-      const total = criteria.reduce((sum, item) => sum + Number(item.maximo || 0), 0);
-      const evaluated = criteria.filter(item => !['indisponivel', 'neutro'].includes(item.status)).reduce((sum, item) => sum + Number(item.maximo || 0), 0);
+      const baseCriteria = criteria.filter(item => item.nome !== 'tld_institucional');
+      const total = baseCriteria.reduce((sum, item) => sum + Number(item.maximo || 0), 0);
+      const evaluated = baseCriteria.filter(item => item.status !== 'indisponivel').reduce((sum, item) => sum + Number(item.maximo || 0), 0);
       const sourceCoverage = total ? Math.round(100 * evaluated / total) : 0;
+      const institutionalBonus = criteria.find(item => item.nome === 'tld_institucional' && item.status === 'ok');
+      const sourceConfidence = {baixa: 'baixa', media: 'média', alta: 'alta'}[source?.confianca_fonte] || source?.confianca_fonte || 'não informada';
       const criterionNames = {veiculo_reconhecido: 'Reconhecimento do veículo', transparencia_editorial: 'Transparência editorial', idade_dominio: 'Idade do domínio', tld_institucional: 'Domínio institucional', https: 'Conexão HTTPS'};
       const criterionStatuses = {indisponivel: 'indisponível', negativo: 'não atendido', neutro: 'neutro', ok: 'atendido'};
       return `<article class="analysis-card"><h3>Credibilidade da fonte</h3>
-        ${source ? `<p>${source.score_fonte == null ? 'Pontuação da fonte indisponível' : `Pontuação parcial dos sinais avaliados: ${escapeHtml(source.score_fonte)}/100`} · Cobertura dos sinais: ${sourceCoverage}% (${escapeHtml(source.confianca_fonte || 'não informada')})</p>
+        ${source ? `<p>${source.score_fonte == null ? 'Pontuação da fonte indisponível' : `Pontuação da credibilidade: ${escapeHtml(source.score_fonte)}/100`} · Cobertura dos sinais: ${sourceCoverage}% (${escapeHtml(sourceConfidence)})</p>
+        <p>Os quatro critérios principais somam até 100 pontos. Um critério indisponível não recebe pontos, mas sua ausência não comprova baixa reputação.${institutionalBonus ? ` O domínio institucional acrescentou ${escapeHtml(institutionalBonus.pontos)} pontos de bônus, com limite de 100.` : ''}</p>
+        ${source.intended_weight != null ? `<p>Peso previsto: ${formatWeight(source.intended_weight)} · Peso efetivo: ${formatWeight(source.effective_weight)} · Contribuição para o índice: ${formatScore100(source.contribution)} pontos</p>` : ''}
         ${source.score_fonte == null ? '<p>Sem sinais suficientes para avaliar a fonte; a indisponibilidade não aplica veto.</p>' : ''}
         <p>Domínio: ${escapeHtml(source.dominio)}. Sinais da fonte não comprovam a veracidade da notícia.</p>
         <ul>${criteria.map(c => `<li>${escapeHtml(criterionNames[c.nome] || c.nome)}: ${escapeHtml(c.pontos)}/${escapeHtml(c.maximo)} — ${escapeHtml(criterionStatuses[c.status] || c.status)}. ${escapeHtml(c.detalhe)}</li>`).join("")}</ul>

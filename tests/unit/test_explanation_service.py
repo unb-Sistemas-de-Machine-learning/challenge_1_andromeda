@@ -27,13 +27,13 @@ def test_enabled_sml_does_not_replace_audited_summary(temp_settings):
     assert result.text == build_explanation(make_analysis(), temp_settings).text
 
 
-def test_writing_only_summary_explains_missing_fact_checks(temp_settings):
+def test_source_and_writing_summary_explains_missing_fact_checks(temp_settings):
     analysis = make_analysis("UNAVAILABLE", coverage=40)
     analysis.final.score = 86.1
     result = build_explanation(analysis, temp_settings)
     assert result.text.startswith("Confiabilidade alta.")
     assert "Não há checagem factual disponível" in result.text
-    assert "A avaliação considera apenas o estilo de escrita" in result.text
+    assert "A avaliação considera a credibilidade da fonte e o estilo de escrita" in result.text
     assert "não confirma os fatos" in result.text
     assert "86" not in result.text
 

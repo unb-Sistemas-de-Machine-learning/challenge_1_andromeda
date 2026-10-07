@@ -57,7 +57,7 @@ e não de um nome ou exceção fixa no código. A fixture sanitizada está em
 
 ## Score e disponibilidade
 
-Correspondência Atlas ou lista local concede 35 pontos uma única vez. Os demais
+Correspondência Atlas ou lista local concede 40 pontos uma única vez. Os demais
 sinais e a regra de combinação da idade são mantidos. A blocklist permanece
 independente e prioritária. Ausência no Atlas nunca gera blocklist.
 

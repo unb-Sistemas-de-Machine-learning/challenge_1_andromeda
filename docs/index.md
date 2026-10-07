@@ -83,7 +83,7 @@ A interface apresenta modelo, revisão, segmentos analisados, classe e confianç
 agregadas. Os resultados por segmento estão disponíveis na seção expansível
 da interface, na API e na auditoria.
 Confiança do classificador não comprova veracidade. Com apenas escrita disponível,
-o peso efetivo é 100%, mas a cobertura dos critérios permanece 40%.
+o peso efetivo é 100%, mas a cobertura dos critérios permanece 15%.
 
 Consulte [Estilo de escrita com BERTimbau](TipoDeEscrita.md) para instalação,
 segmentação, interpretação das saídas e tratamento de falhas.

@@ -84,9 +84,13 @@ class NewsAnalyzer:
 
         fact_check = self._run_fact_check(extracted.article.title, extracted.main_text, claim)
         writing = self.writing_classifier.classify(extracted.main_text)
-        final = aggregate_final_score(fact_check.score, writing.score)
-        self._attach_contributions(fact_check, writing, final)
         credibility, credibility_evidence = self.source_credibility.calculate_with_evidence(url, page=(html, final_url))
+        final = aggregate_final_score(
+            fact_check.score if fact_check.available else None,
+            writing.score if writing.available else None,
+            credibility.get('score_fonte'),
+        )
+        self._attach_contributions(fact_check, writing, credibility, final)
         final.score_before_veto = final.score
         final.source_veto_applied = False
         if credibility['veto_dominio_suspeito'] and final.score is not None:
@@ -108,7 +112,7 @@ class NewsAnalyzer:
             criteria=criteria,
             final=final,
             pipeline_version=current_pipeline_version(self.source_credibility.config),
-            limitations=self._limitations_for(final.coverage),
+            limitations=self._limitations_for(final),
             created_at=created_at,
             completed_at=datetime.now(timezone.utc),
         )
@@ -166,18 +170,33 @@ class NewsAnalyzer:
         self,
         fact_check: FactCheckCriterionResult,
         writing: WritingStyleCriterionResult,
+        credibility: dict,
         final: FinalScore,
     ) -> None:
         fact_check.effective_weight = final.effective_weights.get("verifiable_facts")
         writing.effective_weight = final.effective_weights.get("writing_style")
         fact_check.contribution = contribution(fact_check.score, fact_check.effective_weight)
         writing.contribution = contribution(writing.score, writing.effective_weight)
+        credibility['available'] = credibility.get('score_fonte') is not None
+        credibility['status'] = 'EXECUTED' if credibility['available'] else 'UNAVAILABLE'
+        credibility['intended_weight'] = final.intended_weights['credibility']
+        credibility['effective_weight'] = final.effective_weights.get('credibility')
+        credibility['contribution'] = contribution(
+            credibility['score_fonte'] / 100 if credibility['available'] else None,
+            credibility['effective_weight'],
+        )
 
-    def _limitations_for(self, coverage: float) -> list[str]:
-        coverage_message = {
-            100: "Os critérios atuais de checagem factual e estilo de escrita foram avaliados.",
-            60: "Apenas a checagem factual contribuiu para o índice final.",
-            40: "Apenas o estilo de escrita contribuiu para o índice final.",
-            0: "Nenhum critério atual contribuiu para o índice final.",
-        }.get(coverage, "A cobertura foi calculada com os critérios atuais disponíveis.")
+    def _limitations_for(self, final: FinalScore) -> list[str]:
+        names = {
+            'verifiable_facts': 'checagem factual',
+            'credibility': 'credibilidade da fonte',
+            'writing_style': 'estilo de escrita',
+        }
+        active = [names[key] for key in names if key in final.effective_weights]
+        if not active:
+            coverage_message = "Nenhum critério contribuiu para o índice final."
+        elif len(active) == 1:
+            coverage_message = f"Apenas {active[0]} contribuiu para o índice final."
+        else:
+            coverage_message = "Contribuíram para o índice final: " + ", ".join(active) + "."
         return [*LIMITATIONS, coverage_message]

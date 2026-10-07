@@ -10,8 +10,10 @@ SOURCE_SCORE_CAP = 35
 
 def scoring_policy(config: CredibilityConfig = CONFIG) -> dict:
     return {
-        'version': 'source-policy-v3-institutional-tld-bonus',
+        'version': 'source-policy-v4-fixed-base-and-institutional-bonus',
         'weights': list(config.weights),
+        'base_score_maximum': sum(config.weights) - config.weights[3],
+        'institutional_bonus': config.weights[3],
         'transparency_weights': list(config.transparency_weights),
         'age_bands': [[limit if math.isfinite(limit) else None, points]
                       for limit, points in config.age_bands],
@@ -23,7 +25,7 @@ def scoring_policy(config: CredibilityConfig = CONFIG) -> dict:
         'high_coverage': config.high_coverage,
         'veto_threshold': config.veto_threshold,
         'final_score_cap': SOURCE_SCORE_CAP,
-        'unavailable_action': 'abstain',
+        'unavailable_action': 'zero_points_within_fixed_base; abstain_if_all_base_signals_unavailable',
         'recognized_list_enabled': config.recognized_path is not None,
         'blocklist_enabled': config.blocklist_path is not None,
         'atlas_enabled': config.atlas.enabled,

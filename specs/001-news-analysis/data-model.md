@@ -56,9 +56,9 @@ Prepared metadata and transient content identity for the analyzed news item.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| verifiable_facts | FactCheckCriterionResult | yes | Current scoring criterion, intended weight 0.60. |
-| writing_style | WritingStyleCriterionResult | yes | Current scoring criterion, intended weight 0.40. |
-| credibility | object | no | Independent SCORE_FONTE; null source score means unavailable, without veto. |
+| verifiable_facts | FactCheckCriterionResult | yes | Current scoring criterion, intended weight 0.65. |
+| writing_style | WritingStyleCriterionResult | yes | Current scoring criterion, intended weight 0.15. |
+| credibility | object | no | SCORE_FONTE contributes with intended weight 0.20; null source score means unavailable, without veto. |
 | credibility_evidence | object | no | Recognition evidence, effective policy/hash, blocklist state/hash and veto reason. |
 | source_credibility | HistoricalSourceCredibility | no | Read-only v4 metadata criterion; original 50/30/20 scoring is preserved. |
 
@@ -182,23 +182,24 @@ presentation precision does not replace the stored numeric values.
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | score | number/null | yes | 0..100 when any current criterion is available. |
-| coverage | number | yes | 100, 60, 40, or 0 under current criteria. |
+| coverage | number | yes | Sum of intended weights of available current criteria, from 0 to 100. |
 | score_before_veto | number or null | no | New analyses: averaging result before the source cap. Absent from old records. |
 | source_veto_applied | boolean or null | no | Whether a source veto was applied to an existing final score. |
-| intended_weights | object | yes | Fact-checking 0.60; writing style 0.40. |
+| intended_weights | object | yes | Fact-checking 0.65; source credibility 0.20; writing style 0.15. |
 | effective_weights | object | yes | Renormalized over available criteria. |
 | formula | string | yes | Human-readable formula used. |
 | limitation | string | yes | Not a probability of truth/falsity. |
 
 ### Validation Rules
 
-- Both criteria available: `(0.60 * F + 0.40 * W) * 100`.
-  This and the renormalized cases define the pre-veto mean. An available source
+- All three criteria available: `(0.65 * F + 0.20 * C + 0.15 * W) * 100`, where
+  `C = score_fonte / 100`. This and the renormalized cases define the pre-veto mean. An available source
   score below 20 or a confirmed blocklist match caps the final score at 35;
   completely unavailable source evidence does not. Contributions describe the
-  pre-veto mean. Source evidence never creates a final score on its own.
+  pre-veto mean. Source credibility can create a final score on its own when available.
 - Only fact-checking available: `F * 100`.
 - Only writing style available: `W * 100`.
+- Only source credibility available: `C * 100`.
 - No current criteria available: `score = null`, `coverage = 0`.
 - Unavailable criteria are never substituted with zero.
 

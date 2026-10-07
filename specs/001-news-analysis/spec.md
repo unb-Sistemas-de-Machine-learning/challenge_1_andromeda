@@ -71,9 +71,9 @@ coverage follow the documented aggregation rules.
 
 **Acceptance Scenarios**:
 
-1. **Given** both current criteria are available, **When** the final index is
-   calculated, **Then** the fact-checking criterion contributes 60% and the
-   writing-style criterion contributes 40%.
+1. **Given** all three current criteria are available, **When** the final index is
+   calculated, **Then** fact-checking contributes 65%, source credibility 20%,
+   and writing style 15%.
 2. **Given** only one current criterion is available, **When** the final index is
    calculated, **Then** the system renormalizes weights over the available
    criterion and does not substitute zero for the missing criterion.
@@ -247,23 +247,22 @@ scores, weights, coverage, final score, and pipeline/model versions.
   criterion to `ERROR`, unavailable, and exclude it from final scoring.
 - **FR-023**: System MUST calculate the final index on a 0 to 100 scale when at
   least one current criterion is available.
-- **FR-024**: System MUST use initial intended weights of 60% for fact-checking
-  and 40% for writing style when both criteria are available.
-  This defines the pre-veto mean. Independent source credibility has no averaging
-  weight: an available source score below 20 or a confirmed blocklist match caps
-  an existing final score at 35. Completely unavailable source evidence MUST NOT
-  trigger a veto. Record `score_before_veto` and `source_veto_applied`; preserve null
-  final scores when neither averaging criterion is available.
+- **FR-024**: System MUST use intended weights of 65% for fact-checking, 20% for
+  source credibility, and 15% for writing style when all three are available.
+  This defines the pre-veto mean. An available source score below 20 or a
+  confirmed blocklist match caps an existing final score at 35. Completely
+  unavailable source evidence MUST NOT trigger a veto. Record
+  `score_before_veto` and `source_veto_applied`; preserve null final scores when
+  all three criteria are unavailable.
 - **FR-025**: System MUST renormalize weights across available criteria when one
   current criterion is unavailable.
 - **FR-026**: System MUST NOT use zero as a substitute for an unavailable
   criterion.
 - **FR-027**: System MUST return a `null` final score when no current criterion
   is available.
-- **FR-028**: System MUST report analysis coverage as the share of current
-  intended evaluation that was actually executed: 100% when both current
-  criteria are available, 60% when only fact-checking is available, 40% when only
-  writing style is available, and 0% when neither is available.
+- **FR-028**: System MUST report analysis coverage as the sum of intended weights
+  of available criteria: 100% for all three, 65% for fact-checking alone, 20%
+  for source credibility alone, 15% for writing alone, and 0% for none.
 - **FR-029**: System MUST report, for each criterion, whether it was executed,
   source or model used, original result, normalized result, contribution to the
   final index, and supporting information. The interface MUST keep the fact-check

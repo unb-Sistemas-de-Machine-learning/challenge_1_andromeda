@@ -159,12 +159,14 @@ Resultados parciais devem ser interpretados junto com `search_incomplete`.
 
 ## Índice e cobertura
 
-O índice operacional mantém os pesos previstos de 60% para fatos verificáveis
-e 40% para escrita: `Índice = (0,60 × F + 0,40 × W) × 100`.
+O índice operacional usa pesos previstos de 65% para fatos verificáveis, 20%
+para credibilidade da fonte e 15% para escrita:
+`Índice = (0,65 × F + 0,20 × C + 0,15 × W) × 100`, com C normalizado entre 0 e 1.
 A média é sujeita ao teto de 35 por veto da fonte, conforme
 [Credibilidade](Credibilidade.md). Somente a afirmação principal determina F.
-Com um critério indisponível, o peso efetivo do outro é 100%. As coberturas
-continuam 100%, 60%, 40% ou 0%. Elas medem disponibilidade dos critérios,
+Com um critério indisponível, ele sai da média e os pesos restantes são
+renormalizados. A cobertura soma os pesos previstos dos critérios disponíveis.
+Ela mede disponibilidade dos critérios,
 não a proporção de fatos da notícia verificados.
 
 Sem chave, correspondência, veredito mapeado ou agência identificável, o critério

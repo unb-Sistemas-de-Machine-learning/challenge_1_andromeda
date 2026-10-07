@@ -2,6 +2,10 @@
 
 Decisão de 2026-10-06, implementada a partir de `analysis-rules-v6-source-abstention-history`.
 
+> Esta decisão registra a política anterior. A política atual usa 65% para
+> checagem factual, 20% para credibilidade da fonte e 15% para estilo de escrita,
+> com renormalização dos critérios disponíveis e veto da fonte preservado.
+
 O commit `dedfb5c` (Docs Atlas) introduziu implementação, API, persistência e
 documentação da integração Atlas. O merge `e8cfb1d` (merge fake) registrou
 `ba9d9ff` como segundo pai, mas preservou integralmente a árvore de `dedfb5c`.

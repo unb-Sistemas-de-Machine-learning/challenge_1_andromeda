@@ -88,7 +88,7 @@ class FactCheckEvidence(StrictModel):
 
 class FactCheckCriterionResult(FactCheckEvidence):
     additional_claims: list[FactCheckEvidence] = Field(default_factory=list)
-    intended_weight: float = 0.6
+    intended_weight: float = 0.65
     effective_weight: float | None = None
     contribution: float | None = None
     error: ErrorInfo | None = None
@@ -120,7 +120,7 @@ class WritingStyleCriterionResult(StrictModel):
     segments: list[WritingSegmentResult]
     qualitative_state: str | None = None
     limitation: str
-    intended_weight: float = 0.4
+    intended_weight: float = 0.15
     effective_weight: float | None = None
     contribution: float | None = None
     error: ErrorInfo | None = None
