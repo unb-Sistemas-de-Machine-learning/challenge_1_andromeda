@@ -28,47 +28,72 @@ class BertimbauClassifier(private val context: Context) {
     }
 
     fun classify(text: String): Result? = try {
-        val ids = tokenize(text)
-        val mask = LongArray(MAX_TOKENS) { if (it < ids.second) 1L else 0L }
-        val types = LongArray(MAX_TOKENS)
+        val segments = tokenize(text)
+        require(segments.isNotEmpty())
         val environment = OrtEnvironment.getEnvironment()
         val shape = longArrayOf(1, MAX_TOKENS.toLong())
-        OnnxTensor.createTensor(environment, LongBuffer.wrap(ids.first), shape).use { inputIds ->
-            OnnxTensor.createTensor(environment, LongBuffer.wrap(mask), shape).use { attentionMask ->
-                OnnxTensor.createTensor(environment, LongBuffer.wrap(types), shape).use { tokenTypes ->
-                    session.run(mapOf(
-                        "input_ids" to inputIds,
-                        "attention_mask" to attentionMask,
-                        "token_type_ids" to tokenTypes
-                    )).use { output ->
-                        val logits = (output[0].value as Array<*>)[0] as FloatArray
-                        val maximum = maxOf(logits[0], logits[1])
-                        val a = kotlin.math.exp((logits[0] - maximum).toDouble())
-                        val b = kotlin.math.exp((logits[1] - maximum).toDouble())
-                        // The pinned sdd_v1 model maps index 0 to Fake and index 1 to True.
-                        Result((b / (a + b)).toFloat())
+        var weightedScore = 0.0
+        var totalCharacters = 0
+        for (segment in segments) {
+            val mask = LongArray(MAX_TOKENS) { if (it < segment.tokenCount) 1L else 0L }
+            OnnxTensor.createTensor(environment, LongBuffer.wrap(segment.ids), shape).use { inputIds ->
+                OnnxTensor.createTensor(environment, LongBuffer.wrap(mask), shape).use { attentionMask ->
+                    OnnxTensor.createTensor(environment, LongBuffer.wrap(LongArray(MAX_TOKENS)), shape).use { tokenTypes ->
+                        session.run(mapOf(
+                            "input_ids" to inputIds,
+                            "attention_mask" to attentionMask,
+                            "token_type_ids" to tokenTypes
+                        )).use { output ->
+                            val logits = (output[0].value as Array<*>)[0] as FloatArray
+                            val maximum = maxOf(logits[0], logits[1])
+                            val a = kotlin.math.exp((logits[0] - maximum).toDouble())
+                            val b = kotlin.math.exp((logits[1] - maximum).toDouble())
+                            weightedScore += b / (a + b) * segment.characterCount
+                            totalCharacters += segment.characterCount
+                        }
                     }
                 }
             }
         }
+        Result((weightedScore / totalCharacters).toFloat())
     } catch (_: Exception) {
         null
     }
 
-    private fun tokenize(text: String): Pair<LongArray, Int> {
-        val words = Regex("[\\p{L}\\p{N}_]+|[^\\s]").findAll(text.take(20_000)).map { it.value }.toList()
+    private data class Segment(val ids: LongArray, val tokenCount: Int, val characterCount: Int)
+
+    private fun tokenize(text: String): List<Segment> {
+        val normalized = text.trim().replace(Regex("\\s+"), " ")
+        val words = Regex("[\\p{L}\\p{N}_]+|[^\\s]").findAll(normalized)
+        val result = ArrayList<Segment>()
         val pieces = ArrayList<Int>(MAX_TOKENS)
         pieces.add(vocabulary["[CLS]"] ?: 101)
+        var previousEnd = 0
+        var segmentEnd = 0
+        fun finishSegment() {
+            if (pieces.size <= 1) return
+            pieces.add(vocabulary["[SEP]"] ?: 102)
+            result.add(Segment(LongArray(MAX_TOKENS) { if (it < pieces.size) pieces[it].toLong() else 0L },
+                pieces.size, segmentEnd - previousEnd))
+            previousEnd = segmentEnd
+            pieces.clear()
+            pieces.add(vocabulary["[CLS]"] ?: 101)
+        }
         for (word in words) {
-            if (pieces.size >= MAX_TOKENS - 1) break
-            if (word.length > 100) { pieces.add(vocabulary["[UNK]"] ?: 100); continue }
+            val value = word.value
+            if (value.length > 100) {
+                if (pieces.size >= MAX_TOKENS - 1) finishSegment()
+                pieces.add(vocabulary["[UNK]"] ?: 100)
+                segmentEnd = word.range.last + 1
+                continue
+            }
             var start = 0
             val wordPieces = ArrayList<Int>()
-            while (start < word.length) {
-                var end = word.length
+            while (start < value.length) {
+                var end = value.length
                 var found: Int? = null
                 while (end > start) {
-                    val candidate = (if (start == 0) "" else "##") + word.substring(start, end)
+                    val candidate = (if (start == 0) "" else "##") + value.substring(start, end)
                     found = vocabulary[candidate]
                     if (found != null) break
                     end--
@@ -78,16 +103,17 @@ class BertimbauClassifier(private val context: Context) {
                 start = end
             }
             for (piece in wordPieces) {
-                if (pieces.size >= MAX_TOKENS - 1) break
+                if (pieces.size >= MAX_TOKENS - 1) finishSegment()
                 pieces.add(piece)
+                segmentEnd = word.range.last + 1
             }
         }
-        pieces.add(vocabulary["[SEP]"] ?: 102)
-        return LongArray(MAX_TOKENS) { if (it < pieces.size) pieces[it].toLong() else 0L } to pieces.size
+        finishSegment()
+        return result
     }
 
     companion object {
-        private const val MAX_TOKENS = 256
+        private const val MAX_TOKENS = 512
         private const val MODEL_BYTES = 109713262L
     }
 }

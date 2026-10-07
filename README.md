@@ -7,10 +7,14 @@ Aplicativo **nativo em Kotlin**. A interface é uma `Activity` Android; o projet
 1. A pessoa informa o título de uma notícia ou seu link HTTPS.
 2. Para título, o app consulta a GDELT diretamente e mostra reportagens candidatas. A pessoa escolhe o link correto.
 3. O app baixa a reportagem por HTTP nativo, extrai o texto e exclui opinião, coluna e editorial.
-4. Atlas, matching de checagens, resumo e BERTimbau ONNX são processados no aparelho. O modelo e o snapshot do Atlas estão em `android/app/src/main/assets/`.
+4. Atlas, matching de checagens, resumo e BERTimbau ONNX são processados no aparelho. O modelo e uma cópia inicial do Atlas estão em `android/app/src/main/assets/`. Na análise, o app atualiza o índice local diretamente pela API pública do Atlas, no máximo uma vez por dia quando a atualização tem sucesso.
 5. A única chamada ao **nosso** backend é `POST /fact-check` no Render. O servidor da branch `servidor_backend` mantém `GOOGLE_FACT_CHECK_API_KEY`.
 
 A busca pelo título e a leitura da reportagem acessam GDELT e o veículo diretamente; não passam pelo Render. O modelo local fornece um sinal estatístico, não um veredito factual. A extração pode falhar em páginas que exigem JavaScript, login ou bloqueiam clientes automatizados.
+
+O índice atualizado do Atlas fica no armazenamento privado do app e é substituído apenas depois de uma coleta válida. Se a atualização falhar, a última cópia válida é usada por até 7 dias; a cópia incluída no APK também tem esse limite. Depois disso, o app informa que o Atlas está indisponível. Falhas de atualização aguardam uma hora antes de nova tentativa. A consulta usa o JWT público `dummy` do Atlas, sem credenciais pessoais e sem passar pelo Render.
+
+Na tela do resultado, o botão `*` abre a composição da nota. O app aplica os pesos da `sdd_v1`: checagem factual 65%, fonte 20% e escrita 15%. Critérios indisponíveis saem do denominador; os pesos restantes são normalizados. A credibilidade da fonte combina Atlas, transparência editorial, idade do domínio consultada via RDAP, domínio institucional e HTTPS. Uma fonte abaixo de 20/100 limita o índice final a 35/100. A nota do BERTimbau combina os trechos analisados segundo seu comprimento. O índice não mede a probabilidade de veracidade.
 
 ## Configuração
 

@@ -11,15 +11,13 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 data class ArticleCandidate(val title: String, val url: String, val publisher: String)
-data class AnalysisResult(val title: String, val url: String, val explanation: String, val evidence: List<FactEvidence>)
+data class AnalysisResult(val title: String, val url: String, val explanation: String,
+                          val evidence: List<FactEvidence>, val breakdown: ScoreBreakdown)
 
 class NewsPipeline(private val context: Context) {
     private val model = BertimbauClassifier(context)
-    private val atlasDomains: Set<String> by lazy {
-        val data = context.assets.open("atlas-domains.json").bufferedReader().use { it.readText() }
-        val array = JSONObject(data).getJSONArray("domains")
-        buildSet { for (index in 0 until array.length()) add(array.getString(index)) }
-    }
+    private val atlas = AtlasRepository(context)
+    private val domainAge = DomainAge()
 
     fun normalizeArticleUrl(value: String): String {
         val candidate = value.trim().let { if (it.startsWith("http://") || it.startsWith("https://")) it else "https://$it" }
@@ -57,7 +55,7 @@ class NewsPipeline(private val context: Context) {
         require(!OpinionFilter.isOpinionUrl(url)) { "Artigos de opinião não recebem veredito factual." }
         val html = get(url, 3_000_000)
         val document = Jsoup.parse(html, url)
-        document.select("script, style, nav, footer, aside").remove()
+        document.select("style, nav, footer, aside").remove()
         val title = (document.selectFirst("meta[property=og:title]")?.attr("content")
             ?.takeIf { it.isNotBlank() } ?: document.title()).replace(Regex("\\s+"), " ").trim()
         val container = document.selectFirst("article") ?: document.selectFirst("main") ?: document.body()
@@ -68,9 +66,12 @@ class NewsPipeline(private val context: Context) {
         }
 
         val checks = factChecks(title)
+        val atlasSnapshot = atlas.refreshIfNeeded()
+        val ageDays = domainAge.days(url)
         val writing = model.classify(text)
-        val result = AnalysisRules.explain(title, url, document, atlasDomains, checks, writing?.writingScore)
-        return AnalysisResult(title, url, result.explanation, result.evidence)
+        val result = AnalysisRules.explain(title, url, document, atlasSnapshot.domains, checks,
+            writing?.writingScore, atlasSnapshot.status, ageDays)
+        return AnalysisResult(title, url, result.explanation, result.evidence, result.breakdown)
     }
 
     private fun factChecks(title: String): JSONObject {

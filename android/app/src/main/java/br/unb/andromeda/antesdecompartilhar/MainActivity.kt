@@ -10,18 +10,22 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.WindowInsets
+import android.view.Gravity
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import java.util.Locale
 import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
     private lateinit var pipeline: NewsPipeline
     private lateinit var content: LinearLayout
+    private lateinit var scoreButton: Button
     private var mode = Mode.TITLE
     private var value = ""
     private var candidates = emptyList<ArticleCandidate>()
@@ -36,6 +40,7 @@ class MainActivity : Activity() {
         window.statusBarColor = Color.rgb(11, 38, 49)
         window.navigationBarColor = Color.rgb(246, 249, 247)
         val scroll = ScrollView(this).apply { setBackgroundColor(Color.rgb(246, 249, 247)) }
+        val page = FrameLayout(this)
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(24), dp(28), dp(24), dp(28))
@@ -45,9 +50,32 @@ class MainActivity : Activity() {
             val top = if (android.os.Build.VERSION.SDK_INT >= 30) insets.getInsets(WindowInsets.Type.systemBars()).top else insets.systemWindowInsetTop
             val bottom = if (android.os.Build.VERSION.SDK_INT >= 30) insets.getInsets(WindowInsets.Type.systemBars()).bottom else insets.systemWindowInsetBottom
             content.setPadding(dp(24), dp(28) + top, dp(24), dp(28) + bottom)
+            (scoreButton.layoutParams as FrameLayout.LayoutParams).apply {
+                topMargin = dp(52) + top
+                scoreButton.layoutParams = this
+            }
             insets
         }
-        setContentView(scroll)
+        page.addView(scroll)
+        scoreButton = Button(this).apply {
+            text = "*"
+            textSize = 24f
+            setTypeface(null, Typeface.BOLD)
+            isAllCaps = false
+            setTextColor(Color.rgb(13, 54, 66))
+            background = rounded(Color.WHITE, Color.rgb(171, 199, 194))
+            contentDescription = "Abrir detalhes do cálculo da nota"
+            visibility = View.GONE
+            elevation = dp(6).toFloat()
+            setPadding(0, 0, 0, 0)
+            minWidth = 0
+            minHeight = 0
+        }
+        page.addView(scoreButton, FrameLayout.LayoutParams(dp(44), dp(44), Gravity.TOP or Gravity.END).apply {
+            rightMargin = dp(24)
+            topMargin = dp(52)
+        })
+        setContentView(page)
         renderEntry()
     }
 
@@ -57,6 +85,7 @@ class MainActivity : Activity() {
     }
 
     private fun renderHeader() {
+        scoreButton.visibility = View.GONE
         content.removeAllViews()
         content.addView(label("◈  Antes de compartilhar", 18f, Color.rgb(13, 54, 66), true))
         space(36)
@@ -164,6 +193,8 @@ class MainActivity : Activity() {
         })
         space(8)
         content.addView(label("Resumo baseado nos critérios da análise.", 13f, Color.rgb(91, 107, 111)))
+        scoreButton.setOnClickListener { showScoreBreakdown(result.breakdown) }
+        scoreButton.visibility = View.VISIBLE
         if (result.evidence.isNotEmpty()) {
             space(18)
             content.addView(action("Ver checagens relacionadas", false) {
@@ -244,6 +275,79 @@ class MainActivity : Activity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.92f).toInt(), -2)
     }
+
+    private fun showScoreBreakdown(score: ScoreBreakdown) {
+        val ink = Color.rgb(11, 38, 49)
+        val muted = Color.rgb(58, 79, 83)
+        val green = Color.rgb(13, 91, 82)
+        val dialog = AlertDialog.Builder(this).create()
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(22), dp(20), dp(20))
+            background = rounded(Color.rgb(246, 249, 247), Color.rgb(194, 214, 209))
+        }
+        root.addView(label("Como calculamos a nota", 22f, ink, true))
+        root.addView(label("${scoreNumber(score.finalScore)} / 100", 32f, green, true))
+        root.addView(label("Índice de confiabilidade · cobertura de ${score.coverage}%", 14f, muted))
+        root.addView(View(this), LinearLayout.LayoutParams(1, dp(16)))
+
+        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        for (criterion in score.criteria) {
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(dp(16), dp(14), dp(16), dp(14))
+                background = rounded(Color.WHITE, Color.rgb(185, 207, 202))
+            }
+            card.addView(label("${criterion.symbol} · ${criterion.name}", 17f, ink, true))
+            card.addView(label(if (criterion.score == null) "Não avaliado nesta análise"
+                else "Nota: ${scoreNumber(criterion.score * 100)} / 100", 17f, green, true))
+            card.addView(label("Peso: ${(criterion.intendedWeight * 100).toInt()}% previsto · " +
+                (criterion.effectiveWeight?.let { "${scoreNumber(it * 100)}% efetivo" } ?: "não aplicado"),
+                14f, muted))
+            if (criterion.contribution != null) card.addView(label(
+                "Contribuição: ${scoreNumber(criterion.contribution)} pontos", 14f, muted))
+            if (criterion.symbol == "C") {
+                card.addView(View(this), LinearLayout.LayoutParams(1, dp(8)))
+                card.addView(label("Sinais da fonte (${score.sourceCoverage}% disponíveis)", 14f, ink, true))
+                for (signal in score.sourceSignals) {
+                    val points = when {
+                        !signal.available && signal.name == "Domínio institucional" -> "sem bônus"
+                        !signal.available -> "indisponível"
+                        else -> "${signal.points}/${signal.maximum}"
+                    }
+                    card.addView(label("${signal.name}: $points", 14f, muted))
+                }
+            }
+            list.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+        }
+        val formulaCard = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = rounded(Color.rgb(227, 241, 236), Color.rgb(172, 205, 194))
+        }
+        formulaCard.addView(label("Fórmula desta análise", 16f, ink, true))
+        formulaCard.addView(label(score.formula, 17f, ink, true))
+        formulaCard.addView(label("F = fatos · C = fonte · W = escrita. Cada nota vai de 0 a 1.", 14f, muted))
+        if (score.sourceVetoApplied) {
+            formulaCard.addView(label("Média antes do teto: ${scoreNumber(score.scoreBeforeVeto)}. " +
+                "A fonte teve menos de 20/100; a nota final fica limitada a 35.", 14f, muted))
+        }
+        list.addView(formulaCard, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+        list.addView(label("Este índice reúne os critérios disponíveis. Não é a probabilidade de a notícia ser verdadeira.",
+            14f, muted))
+
+        val scroll = ScrollView(this).apply { addView(list) }
+        root.addView(scroll, LinearLayout.LayoutParams(-1, (resources.displayMetrics.heightPixels * 0.58f).toInt()))
+        root.addView(View(this), LinearLayout.LayoutParams(1, dp(10)))
+        root.addView(action("Fechar", false) { dialog.dismiss() })
+        dialog.setView(root)
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.92f).toInt(), -2)
+    }
+
+    private fun scoreNumber(value: Double): String = if (value == value.toInt().toDouble())
+        value.toInt().toString() else String.format(Locale("pt", "BR"), "%.1f", value)
 
     private fun <T> runTask(title: String, task: () -> T, complete: (T) -> Unit) {
         if (busy) return

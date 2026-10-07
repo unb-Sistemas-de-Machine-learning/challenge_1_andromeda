@@ -22,6 +22,13 @@ class AnalysisRulesTest {
         assertTrue(result.evidence.isEmpty())
     }
 
+    @Test fun unavailableAtlasIsReportedInsteadOfClaimingTheOutletWasAbsent() {
+        val result = AnalysisRules.explain("Reportagem local", "https://jornal.com.br/noticia", page,
+            setOf("jornal.com.br"), JSONObject("{\"claims\":[]}"), 0.85f, AtlasStatus.UNAVAILABLE)
+        assertTrue(result.explanation.contains("A base do Atlas da Notícia está indisponível no momento."))
+        assertFalse(result.explanation.contains("foi encontrado no Atlas"))
+    }
+
     @Test fun negativeSameClaimContributesAndExposesItsLink() {
         val fact = facts("Lula afirma que ser gari não dá orgulho: coisa pobre", "Fora de contexto")
         val result = AnalysisRules.explain("Lula diz que ser lixeiro não dá orgulho: coisa pobre", "https://jornal.com.br/noticia", page, setOf("jornal.com.br"), fact, 0.85f)

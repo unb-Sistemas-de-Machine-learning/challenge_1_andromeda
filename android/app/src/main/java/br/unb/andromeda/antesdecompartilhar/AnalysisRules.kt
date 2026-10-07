@@ -15,11 +15,10 @@ data class FactEvidence(
     val reviewDate: String = ""
 )
 
-data class RuleResult(val explanation: String, val evidence: List<FactEvidence>)
+data class RuleResult(val explanation: String, val evidence: List<FactEvidence>, val breakdown: ScoreBreakdown)
 
 /** Public score and wording policy carried over from sdd_v1. */
 object AnalysisRules {
-    private val weights = mapOf("fact" to 0.65, "source" to 0.20, "writing" to 0.15)
     private val ratings = mapOf(
         "true" to 1.0, "verdadeiro" to 1.0, "correto" to 1.0, "e verdadeiro" to 1.0,
         "mostly true" to 0.75, "majoritariamente verdadeiro" to 0.75,
@@ -44,23 +43,21 @@ object AnalysisRules {
     private val states = setOf("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO")
     private val reporting = "diz|disse|afirma|afirmou|declara|declarou|falou"
 
-    fun explain(title: String, url: String, document: Document, atlas: Set<String>, rawFacts: JSONObject, writingScore: Float?): RuleResult {
+    fun explain(title: String, url: String, document: Document, atlas: Set<String>, rawFacts: JSONObject,
+                writingScore: Float?, atlasStatus: AtlasStatus = AtlasStatus.CURRENT,
+                domainAgeDays: Int? = null): RuleResult {
         val domain = URI(url).host.lowercase().removePrefix("www.")
-        val recognized = domain in atlas
-        val institutional = listOf("gov.br", "edu.br", "jus.br", "leg.br", "mp.br").any { domain.endsWith(".$it") }
-        val sourceScore = sourceScore(document, url, recognized, institutional)
+        val source = SourceCredibility.evaluate(document, url, atlas, atlasStatus, domainAgeDays)
+        val recognized = source.signals.first().points > 0
+        val institutional = listOf("gov.br", "edu.br", "jus.br", "leg.br", "mp.br")
+            .any { domain == it || domain.endsWith(".$it") }
         val evaluated = evaluateReviews(title, rawFacts)
         val factScore = evaluated.factScore
         val scoredReviews = evaluated.scored
         val matchedUnscored = evaluated.matchedUnscored
 
-        val availableWeights = weights.getValue("source") +
-            (if (factScore != null) weights.getValue("fact") else 0.0) +
-            (if (writingScore != null) weights.getValue("writing") else 0.0)
-        var score = (weights.getValue("source") * sourceScore +
-            (if (factScore != null) weights.getValue("fact") * factScore * 100 else 0.0) +
-            (if (writingScore != null) weights.getValue("writing") * writingScore * 100 else 0.0)) / availableWeights
-        if (sourceScore < 20) score = minOf(score, 35.0) // sdd_v1 source veto
+        val breakdown = ScoreCalculator.calculate(factScore, source, writingScore?.toDouble())
+        val score = breakdown.finalScore
         val band = when {
             score > 85 -> "alta"
             score > 70 -> "média"
@@ -83,12 +80,19 @@ object AnalysisRules {
                 writingScore != null -> "A avaliação considera a credibilidade da fonte e o estilo de escrita; não confirma os fatos da notícia."
                 else -> "A avaliação considera apenas a credibilidade da fonte e não confirma os fatos da notícia."
             })
-        } else if (availableWeights < 1.0) {
+        } else if (breakdown.coverage < 100) {
             details.add("A avaliação é parcial.")
         }
-        details.add(if (recognized) "O veículo desta notícia foi encontrado no Atlas da Notícia."
-            else "O veículo desta notícia não pôde ser consultado na base de veículos.")
-        if (institutional) details.add(if (domain.endsWith(".gov.br"))
+        details.add(when (atlasStatus) {
+            AtlasStatus.UNAVAILABLE -> "A base do Atlas da Notícia está indisponível no momento."
+            AtlasStatus.BUNDLED -> if (recognized)
+                "O veículo desta notícia foi encontrado na cópia local do Atlas da Notícia."
+                else "O veículo desta notícia não foi encontrado na cópia local do Atlas da Notícia."
+            AtlasStatus.CACHED, AtlasStatus.CURRENT -> if (recognized)
+                "O veículo desta notícia foi encontrado no Atlas da Notícia."
+                else "O veículo desta notícia não foi encontrado na base consultada do Atlas da Notícia."
+        })
+        if (institutional) details.add(if (domain == "gov.br" || domain.endsWith(".gov.br"))
             "Ponto positivo: o site verificado é um site oficial do governo."
             else "Ponto positivo: o site verificado possui um domínio institucional oficial.")
         if (writingScore == null) details.add("Análise da escrita indisponível.")
@@ -99,24 +103,7 @@ object AnalysisRules {
         val modalEvidence = if (linked.any { it.value != null && it.value < 0.5 })
             linked.sortedWith(compareBy<FactEvidence> { it.value == null || it.value >= 0.5 }.thenBy { it.publisher })
         else emptyList()
-        return RuleResult(details.joinToString(" "), modalEvidence)
-    }
-
-    private fun sourceScore(document: Document, url: String, recognized: Boolean, institutional: Boolean): Int {
-        val author = document.select("meta[name=author], meta[property=article:author], [rel=author], [itemprop=author]")
-            .any { it.attr("content").isNotBlank() || it.text().isNotBlank() }
-        val date = document.select("meta[name=date], meta[name=datePublished], meta[property=article:published_time], meta[name=pubdate], time[datetime]")
-            .any { it.attr("content").isNotBlank() || it.attr("datetime").isNotBlank() }
-        val domain = URI(url).host.lowercase().removePrefix("www.")
-        val contact = document.select("a[href]").any { link ->
-            val target = runCatching { URI(url).resolve(link.attr("href")) }.getOrNull()
-            val label = normalize("${link.text()} ${target?.path.orEmpty()}")
-            target?.host?.lowercase()?.removePrefix("www.") == domain &&
-                listOf("sobre", "contato", "about", "contact", "quem somos", "quem-somos").any { label.contains(it) }
-        }
-        return minOf(100, (if (recognized) 40 else 0) + (if (author) 12 else 0) +
-            (if (date) 6 else 0) + (if (contact) 12 else 0) +
-            (if (institutional) 100 else 0) + 5) // HTTPS was validated when the article was fetched.
+        return RuleResult(details.joinToString(" "), modalEvidence, breakdown)
     }
 
     private data class EvaluatedReviews(

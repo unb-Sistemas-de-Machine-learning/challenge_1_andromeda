@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 database = Path(".data/news_analysis.sqlite3")
@@ -14,5 +15,7 @@ domains = sorted({item[0] for item in connection.execute(
     "select distinct domain from atlas_domain_links where snapshot_id=?", (snapshot_id,)
 )}) if snapshot_id else []
 output.parent.mkdir(parents=True, exist_ok=True)
-output.write_text(json.dumps({"version": 1, "snapshot_id": snapshot_id, "domains": domains}, separators=(",", ":")), encoding="utf-8")
+output.write_text(json.dumps({"version": 1, "snapshot_id": snapshot_id,
+                              "exported_at": datetime.now(timezone.utc).isoformat(),
+                              "domains": domains}, separators=(",", ":")), encoding="utf-8")
 print(f"exported {len(domains)} Atlas domains to {output}")
