@@ -4,3 +4,10 @@ test-results/
 playwright-report/
 artifacts/
 *.tsbuildinfo
+src/
+tests/
+.env
+build/
+.data/
+.test-tmp/
+.vite/
