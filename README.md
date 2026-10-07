@@ -1,94 +1,225 @@
-# Antes de compartilhar — Equipe Andrômeda
+# Challenge 1 — Equipe Andrômeda
 
-Sistemas de Machine Learning — UnB/FCTE — 2026/02
+Documentação do **Challenge 1** da disciplina de **Sistemas de Machine Learning (2026/2)** da **Universidade de Brasília (UnB)**.
 
-## Ideia
+O projeto consiste no desenvolvimento de um sistema de Inteligência Artificial para auxiliar no **combate à desinformação**, especialmente entre pessoas da terceira idade.
 
-Ajudar pessoas que recebem notícias sobre política pelas redes sociais e por aplicativos de mensagem a avaliar se aquele conteúdo é confiável antes de repassá-lo aos seus contatos.
+## 1. Projeto
 
-A proposta é um assistente com interface simples, pensado para quem não tem familiaridade com as ferramentas de checagem que já existem hoje.
+### 1.1. Ideia
 
-O aplicativo permite informar o título ou o link de uma notícia, consultar reportagens candidatas, analisar o conteúdo e apresentar um índice de confiabilidade acompanhado da composição da nota.
+O projeto **Antes de Compartilhar** tem como objetivo auxiliar pessoas que recebem notícias sobre política pelas redes sociais e aplicativos de mensagem a avaliar se determinado conteúdo é confiável antes de repassá-lo aos seus contatos.
 
-## Como funciona
+A proposta consiste em um assistente com interface simples, pensado principalmente para pessoas que não possuem familiaridade com as ferramentas de checagem disponíveis atualmente.
 
-1. A pessoa informa o título de uma notícia ou seu link HTTPS.
-2. Para títulos, o aplicativo consulta a GDELT e apresenta reportagens candidatas para a pessoa escolher o link correto.
-3. O aplicativo acessa a reportagem diretamente por HTTP, extrai o texto e exclui conteúdos de opinião, colunas e editoriais.
-4. A análise é realizada no próprio aparelho, incluindo o matching de checagens, a consulta ao Atlas, o resumo e o modelo BERTimbau em ONNX.
-5. O aplicativo consulta o backend do projeto para realizar a checagem factual por meio da API do Google Fact Check.
-6. O resultado apresenta um índice de confiabilidade e permite consultar a composição da nota pelo botão `*`.
+O aplicativo permite informar o **título ou o link de uma notícia**, consultar reportagens candidatas, analisar o conteúdo e apresentar um **índice de confiabilidade**, acompanhado da composição da nota.
 
-O modelo local fornece um sinal estatístico, não um veredito factual. O índice apresentado não representa a probabilidade de uma notícia ser verdadeira.
+### 1.2. Objetivo
 
-## Critérios de avaliação
+O sistema busca facilitar o processo de verificação de informações por meio da combinação de:
 
-A composição da nota segue os pesos definidos na `sdd_v1`:
+* checagem factual;
+* análise da credibilidade da fonte;
+* análise estatística do estilo de escrita;
+* apresentação simplificada dos resultados.
 
-* **Checagem factual:** 65%.
-* **Credibilidade da fonte:** 20%.
-* **Estilo de escrita:** 15%.
+O sistema não determina de forma absoluta se uma notícia é verdadeira ou falsa. O modelo de linguagem fornece um sinal estatístico que é combinado com outras informações para compor o índice apresentado ao usuário.
 
-Quando algum critério está indisponível, ele é retirado do denominador e os pesos restantes são normalizados.
+## 2. Funcionamento
 
-A credibilidade da fonte considera o Atlas, a transparência editorial, a idade do domínio consultada via RDAP, o domínio institucional e o uso de HTTPS. Fontes com nota inferior a 20/100 limitam o índice final a 35/100.
+O fluxo principal do aplicativo ocorre da seguinte forma:
 
-A nota do BERTimbau combina os trechos analisados de acordo com seus comprimentos.
+1. A pessoa informa o **título de uma notícia** ou seu **link HTTPS**.
+2. Quando é informado apenas um título, o aplicativo consulta a **GDELT** e apresenta reportagens candidatas para que a pessoa selecione o link correto.
+3. O aplicativo acessa diretamente a reportagem por HTTP e realiza a extração do texto.
+4. Conteúdos classificados como **opinião, coluna ou editorial** são excluídos da análise.
+5. O aplicativo realiza parte do processamento localmente, incluindo:
 
-## Tecnologias e arquitetura
+   * matching de checagens;
+   * consulta ao Atlas;
+   * geração do resumo;
+   * análise pelo modelo BERTimbau em ONNX.
+6. O aplicativo consulta o backend do projeto para realizar a checagem factual por meio da **API do Google Fact Check**.
+7. O sistema apresenta o **índice de confiabilidade** ao usuário.
+8. Por meio do botão `*`, o usuário pode consultar a composição da nota.
 
-O aplicativo é nativo para Android, desenvolvido em Kotlin. A interface utiliza uma `Activity` Android, e o projeto gera um APK para instalação no aparelho.
+O modelo local fornece apenas um **sinal estatístico**, não um veredito factual. Portanto, o índice apresentado **não representa a probabilidade de uma notícia ser verdadeira**.
 
-A aplicação não utiliza React, Capacitor, Vite, WebView ou servidor em `localhost`.
+## 3. Critérios de Avaliação
 
-A arquitetura distribui o processamento entre o aplicativo e o backend:
+A composição do índice segue os pesos definidos na especificação `sdd_v1`:
 
-* **Android/Kotlin:** interface, extração de texto, análise local e apresentação dos resultados.
-* **GDELT:** busca de reportagens a partir de títulos.
-* **Atlas:** índice local de fontes, atualizado pela API pública.
-* **BERTimbau ONNX:** análise estatística do estilo de escrita.
-* **Render:** backend responsável pela rota `POST /fact-check`.
-* **Google Fact Check:** serviço de checagem factual acessado pelo backend.
+| Critério               | Peso |
+| ---------------------- | ---: |
+| Checagem factual       |  65% |
+| Credibilidade da fonte |  20% |
+| Estilo de escrita      |  15% |
 
-A busca de reportagens e a leitura do conteúdo acessam a GDELT e o veículo diretamente, sem passar pelo Render.
+Quando algum critério não está disponível, ele é removido do denominador e os pesos dos critérios restantes são normalizados.
 
-## Dados e funcionamento offline
+### 3.1. Checagem factual
 
-O modelo ONNX e uma cópia inicial do Atlas ficam em `android/app/src/main/assets/`.
+A checagem factual representa o principal componente do índice, correspondendo a **65% da composição original**.
 
-O índice atualizado do Atlas é armazenado na área privada do aplicativo e substituído somente após uma coleta válida. As atualizações são realizadas diretamente pela API pública do Atlas, utilizando o JWT público `dummy`, sem credenciais pessoais e sem passar pelo Render.
+O aplicativo consulta o backend, que utiliza a **API do Google Fact Check** para realizar a verificação das alegações relacionadas ao conteúdo analisado.
 
-A atualização ocorre, no máximo, uma vez por dia quando bem-sucedida. Se houver falha, a última cópia válida pode ser utilizada por até 7 dias, incluindo a cópia inicial fornecida no APK. Após esse período, o aplicativo informa que o Atlas está indisponível. Falhas de atualização aguardam uma hora antes de uma nova tentativa.
+### 3.2. Credibilidade da fonte
 
-O aplicativo não depende de um servidor local para funcionar. Entretanto, consultas externas, como a busca de reportagens, a atualização do Atlas e a checagem factual, dependem de conexão com a internet.
+A credibilidade da fonte corresponde a **20% da composição original** e considera informações como:
 
-A extração do texto pode falhar em páginas que exigem JavaScript, login ou que bloqueiam clientes automatizados.
+* índice do Atlas;
+* transparência editorial;
+* idade do domínio, consultada via RDAP;
+* domínio institucional;
+* utilização de HTTPS.
 
-## Configuração
+Fontes com nota inferior a **20/100** limitam o índice final a **35/100**.
 
-Defina a variável `FACTCHECK_PROXY_TOKEN` em um dos seguintes locais:
+### 3.3. Estilo de escrita
 
-* No ambiente do sistema.
-* Em `~/.gradle/gradle.properties`, utilizando `factcheckProxyToken=...`.
-* Em um arquivo `.env` local na raiz do repositório.
+A análise de estilo corresponde a **15% da composição original**.
+
+O aplicativo utiliza o modelo **BERTimbau**, executado localmente em formato ONNX, para obter uma avaliação estatística dos trechos analisados.
+
+A nota final do BERTimbau é calculada considerando os trechos analisados de acordo com seus respectivos comprimentos.
+
+## 4. Tecnologias e Arquitetura
+
+O aplicativo é desenvolvido de forma **nativa para Android**, utilizando **Kotlin**.
+
+A interface utiliza uma `Activity` Android e o projeto gera um APK para instalação diretamente no dispositivo.
+
+O projeto **não utiliza**:
+
+* React;
+* Capacitor;
+* Vite;
+* WebView;
+* servidor em `localhost`.
+
+### 4.1. Componentes
+
+| Componente        | Responsabilidade                                                          |
+| ----------------- | ------------------------------------------------------------------------- |
+| Android/Kotlin    | Interface, extração de texto, análise local e apresentação dos resultados |
+| GDELT             | Busca de reportagens a partir de títulos                                  |
+| Atlas             | Índice local de fontes                                                    |
+| BERTimbau ONNX    | Análise estatística do estilo de escrita                                  |
+| Render            | Backend responsável pela rota `POST /fact-check`                          |
+| Google Fact Check | Serviço de checagem factual utilizado pelo backend                        |
+
+### 4.2. Distribuição do processamento
+
+O processamento é distribuído entre o aplicativo Android e o backend.
+
+**Aplicativo Android:**
+
+* interface;
+* busca de reportagens;
+* extração de texto;
+* consulta e atualização do Atlas;
+* matching de checagens;
+* resumo;
+* execução do BERTimbau;
+* cálculo e apresentação dos resultados.
+
+**Backend:**
+
+* disponibilização da rota `POST /fact-check`;
+* comunicação com a API do Google Fact Check;
+* gerenciamento da chave da API do Google.
+
+A busca de reportagens e a leitura do conteúdo são realizadas diretamente pela aplicação, sem passar pelo Render.
+
+## 5. Dados e Funcionamento Offline
+
+O modelo ONNX e uma cópia inicial do Atlas estão armazenados em:
+
+```text
+android/app/src/main/assets/
+```
+
+O Atlas atualizado é armazenado na área privada do aplicativo e somente substitui a versão anterior após uma coleta válida.
+
+As atualizações são realizadas diretamente pela API pública do Atlas utilizando o JWT público `dummy`, sem credenciais pessoais e sem passar pelo Render.
+
+### 5.1. Política de atualização do Atlas
+
+A atualização do Atlas ocorre, no máximo, uma vez por dia quando realizada com sucesso.
+
+Em caso de falha:
+
+* a última cópia válida pode ser utilizada por até **7 dias**;
+* a cópia inicial fornecida no APK também pode ser utilizada durante esse período;
+* após esse período, o aplicativo informa que o Atlas está indisponível;
+* novas tentativas após uma falha aguardam **uma hora**.
+
+### 5.2. Dependência de Internet
+
+O aplicativo não depende de um servidor local para funcionar.
+
+Entretanto, algumas funcionalidades dependem de conexão com a internet, incluindo:
+
+* busca de reportagens;
+* atualização do Atlas;
+* checagem factual.
+
+A extração do texto pode falhar em páginas que:
+
+* exigem JavaScript;
+* exigem autenticação;
+* bloqueiam clientes automatizados;
+* utilizam mecanismos que impedem o acesso automatizado ao conteúdo.
+
+## 6. Configuração
+
+A variável `FACTCHECK_PROXY_TOKEN` deve ser configurada em um dos seguintes locais:
+
+* variável de ambiente do sistema;
+* `~/.gradle/gradle.properties`, utilizando `factcheckProxyToken=...`;
+* arquivo `.env` local na raiz do repositório.
 
 O valor deve ser igual ao `FACTCHECK_PROXY_TOKEN` configurado no Render.
 
-O endereço padrão do backend é `https://challenge-1-andromeda-00o6.onrender.com`. Para alterá-lo, utilize `FACTCHECK_BACKEND_URL`.
+O endereço padrão do backend é:
 
-A chave `GOOGLE_FACT_CHECK_API_KEY` permanece exclusivamente no backend, na branch `servidor_backend`, hospedado no Render.
+```text
+https://challenge-1-andromeda-00o6.onrender.com
+```
 
-O token de comunicação com o backend é incorporado ao APK e pode ser extraído por quem instalar o aplicativo. Ele não deve ser tratado como um segredo. A chave do Google, por outro lado, não é distribuída no aplicativo.
+Para alterá-lo, utilize a variável:
 
-## Gerar APK
+```text
+FACTCHECK_BACKEND_URL
+```
 
-Para compilar o aplicativo, instale:
+A chave `GOOGLE_FACT_CHECK_API_KEY` permanece exclusivamente no backend, na branch `servidor_backend`, hospedada no Render.
 
-* Android SDK, API 36 e Build Tools.
-* JDK 17.
-* Git LFS, para obter os pesos reais do modelo ONNX.
+O token utilizado para comunicação com o backend é incorporado ao APK e pode ser extraído por qualquer pessoa que instale o aplicativo. Portanto, esse token **não deve ser tratado como um segredo**.
 
-Após clonar o repositório, execute `git lfs pull` para baixar os arquivos do modelo.
+A chave da API do Google, por outro lado, **não é distribuída no aplicativo**.
+
+## 7. Compilação do APK
+
+### 7.1. Requisitos
+
+Para compilar o aplicativo, são necessários:
+
+* Android SDK;
+* Android API 36;
+* Android Build Tools;
+* JDK 17;
+* Git LFS.
+
+O Git LFS é necessário para obter os pesos reais do modelo ONNX.
+
+Após clonar o repositório, execute:
+
+```sh
+git lfs pull
+```
+
+### 7.2. Windows
 
 No Windows, execute:
 
@@ -97,6 +228,8 @@ cd android
 .\gradlew.bat assembleDebug
 ```
 
+### 7.3. macOS e Linux
+
 No macOS ou Linux, execute:
 
 ```sh
@@ -104,19 +237,29 @@ cd android
 ./gradlew assembleDebug
 ```
 
-O APK gerado estará em:
+O APK será gerado em:
 
-`android/app/build/outputs/apk/debug/app-debug.apk`
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
 
-O build falha com uma mensagem clara caso o token de comunicação com o backend não esteja configurado. Não utilize `pnpm build`, pois esta branch não possui um projeto web.
+O processo de build apresenta uma mensagem de erro caso o token de comunicação com o backend não esteja configurado.
 
-## Documentação
+Não utilize:
 
-A documentação do projeto é publicada em:
+```sh
+pnpm build
+```
 
-https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/
+Essa branch não possui um projeto web.
 
-## Equipe
+## 8. Documentação
+
+A documentação completa do projeto está disponível em:
+
+[https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/](https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/)
+
+## 9. Equipe
 
 <div align="center">
     <table style="margin-left: auto; margin-right: auto;">
@@ -157,6 +300,4 @@ https://unb-sistemas-de-machine-learning.github.io/challenge_1_andromeda/
     </table>
 </div>
 
-## Disciplina
-
-Sistemas de Machine Learning — UnB/FCTE — Profs. Isaque Alves e Guilherme Fernandes — 2026/2
+**Professores:** Isaque Alves e Guilherme Fernandes.
