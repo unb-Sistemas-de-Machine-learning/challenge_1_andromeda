@@ -8,11 +8,27 @@ Dado um título ou um link de reportagem, o app devolve:
 
 ---
 
-## 1. Componentes do Sistema
+## 1. Principais Referências
+
+
+<p align="center">Tabela 2 - Referências Utilizadas</p>
+
+| Referência                                                 | Critério                            | Fonte                                                                                                                         |
+| ---------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 
+Detecção automática de notícias falsas em português, Roney Santos (2022)                                             | Fluxo geral de verificação/checagem | [Tese – USP](https://teses.usp.br/teses/disponiveis/55/55134/tde-14072022-165613/publico/RoneyLiradeSalesSantos_revisada.pdf) |
+| Google Fact Check                                          | Credibilidade da fonte              | [Google Fact Check](https://developers.google.com/fact-check/tools/api?hl=pt-br)                                                                                                             |
+| `vzani/portuguese-fake-news-classifier-bertimbau-combined` | Tipo de escrita                     | [Hugging Face](https://huggingface.co/vzani/portuguese-fake-news-classifier-bertimbau-combined)                               |
+| `Ashg2099/xlm-roberta-factchecker`                         | Checagem de fatos incontestáveis    | [Hugging Face](https://huggingface.co/Ashg2099/xlm-roberta-factchecker) — Dataset: FEVER                                      |
+
+<p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+
+
+## 2. Componentes do Sistema
 
 O sistema é dividido em três componentes principais, cada um com uma responsabilidade bem definida:
 
-<p align="center">Tabela 1 - Componentes do sistema</p>
+<p align="center">Tabela 2 - Componentes do sistema</p>
 
 | Número | Componente | Função |
 |---|---|---|
@@ -24,9 +40,9 @@ O sistema é dividido em três componentes principais, cada um com uma responsab
 
 ---
 
-## 2. Fluxo de Funcionamento
+## 3. Fluxo de Funcionamento
 
-<p align="center">Tabela 2 - Etapas detalhadas do fluxo</p>
+<p align="center">Tabela 3 - Etapas detalhadas do fluxo</p>
 
 | Número | Etapa | O que acontece |
 |---|---|---|
@@ -48,6 +64,7 @@ O sistema é dividido em três componentes principais, cada um com uma responsab
 </p>
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
+
 
 ---
 
