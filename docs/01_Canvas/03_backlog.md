@@ -144,7 +144,7 @@ Referências: Gomez-Hernandez et al. (2023) — “Design Guidelines of Mobile A
 
 ## Histórico de Versão
 
-<table classa= "full-width-table">
+<table class= "full-width-table">
   <thead>
     <tr>
       <th>Versão</th>

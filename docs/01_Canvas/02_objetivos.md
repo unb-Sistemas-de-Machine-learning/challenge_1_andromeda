@@ -28,7 +28,7 @@ Esse projeto **NÃO TRATA** de moderação automática de redes sociais, rastrea
 
 
 ## Histórico de Versão
-<table classa= "full-width-table">
+<table class= "full-width-table">
   <thead>
     <tr>
       <th>Versão</th>

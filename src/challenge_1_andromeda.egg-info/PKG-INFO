@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: challenge-1-andromeda
+Version: 0.1.0
+Summary: Auditable news analysis service with transparent criterion scoring.
+Requires-Python: >=3.11
+Requires-Dist: fastapi>=0.110
+Requires-Dist: pydantic>=2
+Requires-Dist: httpx>=0.27
+Requires-Dist: tldextract>=5.1
+Requires-Dist: lxml>=5
+Requires-Dist: trafilatura>=1.9
+Requires-Dist: transformers>=4.40
+Requires-Dist: torch>=2.0
+Requires-Dist: uvicorn>=0.29
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: respx>=0.21; extra == "dev"
+Requires-Dist: PyYAML>=6; extra == "dev"

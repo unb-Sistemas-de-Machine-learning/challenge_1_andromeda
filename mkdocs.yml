@@ -19,10 +19,16 @@ extra_css:
 markdown_extensions:
   - admonition
   - tables
-
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 nav:
   - Home: index.md
   - Canvas: 
     - Guiding Questions: 01_Canvas/01_guidingQuestions.md
     - Objetivos: 01_Canvas/02_objetivos.md
     - Requisitos: 01_Canvas/03_backlog.md
+  - Sobre: 
+  - Visão Gerafuncionamento.md

@@ -2,14 +2,14 @@
 
 Esta é a documentação do **Challenge 1** da disciplina de **Sistemas de Machine Learning (2026.2)** da **Universidade de Brasília (UnB)**. Nosso projeto consiste no desenvolvimento de um sistema de Inteligência Artificial para o **Combate à Desinformação na Terceira Idade**.
 
-## 1. Ideia inicial
+<!-- ## 1. Ideia inicial
 
 Circulam pelas redes sociais e pelos aplicativos de mensagem muitas notícias sobre
 política cuja veracidade é difícil de verificar. Quem recebe raramente tem tempo,
 ou familiaridade com as ferramentas de checagem que já existem, para conferir antes
 de repassar, seja de forma oral ou através do compartilhamento dentro de redes sociais.
 
-Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a avaliar se uma notícia é confiável por meio de um assistente com interface simples.
+Nossa ideia é auxiliar pessoas, especialmente aquelas da terceira idade, a avaliar se uma notícia é confiável por meio de um assistente com interface simples. -->
 
 
 ## Equipe
