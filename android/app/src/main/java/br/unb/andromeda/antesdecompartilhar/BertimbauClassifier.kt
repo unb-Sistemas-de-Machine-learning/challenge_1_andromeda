@@ -9,7 +9,7 @@ import java.nio.LongBuffer
 
 /** Runs the bundled quantized model on device. No article text leaves this class. */
 class BertimbauClassifier(private val context: Context) {
-    data class Result(val label: String, val confidence: Float)
+    data class Result(val writingScore: Float)
 
     private val vocabulary: Map<String, Int> by lazy {
         context.assets.open("model/vocab.txt").bufferedReader().useLines { lines ->
@@ -45,8 +45,8 @@ class BertimbauClassifier(private val context: Context) {
                         val maximum = maxOf(logits[0], logits[1])
                         val a = kotlin.math.exp((logits[0] - maximum).toDouble())
                         val b = kotlin.math.exp((logits[1] - maximum).toDouble())
-                        val fake = (b / (a + b)).toFloat()
-                        Result(if (fake >= 0.5f) "padrão associado à classe Fake" else "padrão associado à classe True", maxOf(fake, 1f - fake))
+                        // The pinned sdd_v1 model maps index 0 to Fake and index 1 to True.
+                        Result((b / (a + b)).toFloat())
                     }
                 }
             }

@@ -8,10 +8,9 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.text.Normalizer
 
 data class ArticleCandidate(val title: String, val url: String, val publisher: String)
-data class AnalysisResult(val title: String, val url: String, val explanation: String)
+data class AnalysisResult(val title: String, val url: String, val explanation: String, val evidence: List<FactEvidence>)
 
 class NewsPipeline(private val context: Context) {
     private val model = BertimbauClassifier(context)
@@ -67,21 +66,10 @@ class NewsPipeline(private val context: Context) {
             "Esta página parece ser opinião ou editorial e não será avaliada como notícia."
         }
 
-        val domain = URI(url).host.lowercase().removePrefix("www.")
-        val sourceText = when {
-            domain.endsWith(".gov.br") -> "Ponto positivo: o site verificado é um site oficial do governo."
-            atlasDomains.contains(domain) -> "O veículo aparece no Atlas da Notícia; isso não confirma os fatos da reportagem."
-            else -> "O veículo desta notícia não pôde ser consultado na base de veículos."
-        }
         val checks = factChecks(title)
-        val matched = matchReviews(title, checks)
-        val checkText = if (matched.isEmpty()) "Não há checagem factual disponível para esta notícia."
-            else "Checagens relacionadas encontradas: ${matched.take(3).joinToString("; ")}."
         val writing = model.classify(text)
-        val writingText = if (writing == null) "O modelo local de escrita não pôde ser executado neste dispositivo."
-            else "O modelo local encontrou ${writing.label}; esse sinal isolado não comprova veracidade."
-        val explanation = "Confiabilidade parcial. $checkText A avaliação considera sinais da fonte e do texto; não confirma os fatos da notícia. $sourceText $writingText"
-        return AnalysisResult(title, url, explanation)
+        val result = AnalysisRules.explain(title, url, document, atlasDomains, checks, writing?.writingScore)
+        return AnalysisResult(title, url, result.explanation, result.evidence)
     }
 
     private fun factChecks(title: String): JSONObject {
@@ -101,33 +89,6 @@ class NewsPipeline(private val context: Context) {
             if (connection.responseCode !in 200..299) throw IllegalStateException("O serviço de Fact Check não respondeu (${connection.responseCode}).")
             return JSONObject(readLimited(connection, 1_000_000))
         } finally { connection.disconnect() }
-    }
-
-    private fun matchReviews(title: String, payload: JSONObject): List<String> {
-        val titleWords = words(title)
-        val claims = payload.optJSONArray("claims") ?: return emptyList()
-        val matches = ArrayList<Pair<Double, String>>()
-        for (index in 0 until claims.length()) {
-            val claim = claims.optJSONObject(index) ?: continue
-            val claimWords = words(claim.optString("text"))
-            val overlap = titleWords.intersect(claimWords).size.toDouble()
-            val similarity = if (titleWords.isEmpty() || claimWords.isEmpty()) 0.0
-                else overlap / titleWords.union(claimWords).size
-            if (similarity < 0.20) continue
-            val reviews = claim.optJSONArray("claimReview") ?: continue
-            for (reviewIndex in 0 until reviews.length()) {
-                val review = reviews.optJSONObject(reviewIndex) ?: continue
-                val publisher = review.optJSONObject("publisher")?.optString("name").orEmpty()
-                val rating = review.optString("textualRating")
-                if (publisher.isNotBlank()) matches.add(similarity to "$publisher: ${rating.ifBlank { "avaliação publicada" }}")
-            }
-        }
-        return matches.sortedByDescending { it.first }.map { it.second }.distinct()
-    }
-
-    private fun words(value: String): Set<String> {
-        val plain = Normalizer.normalize(value.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
-        return Regex("[a-z0-9]{3,}").findAll(plain).map { it.value }.filterNot { it in STOP_WORDS }.toSet()
     }
 
     private fun get(url: String, maxBytes: Int): String {
@@ -156,7 +117,4 @@ class NewsPipeline(private val context: Context) {
         return output.toString(StandardCharsets.UTF_8.name())
     }
 
-    companion object {
-        private val STOP_WORDS = setOf("para", "com", "uma", "das", "dos", "que", "por", "nos", "nas", "sobre", "como", "tem", "mais")
-    }
 }

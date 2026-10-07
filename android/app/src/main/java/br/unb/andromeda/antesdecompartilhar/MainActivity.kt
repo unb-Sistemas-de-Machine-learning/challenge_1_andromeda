@@ -1,6 +1,7 @@
 package br.unb.andromeda.antesdecompartilhar
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -153,7 +154,7 @@ class MainActivity : Activity() {
         renderHeader()
         content.addView(label("RESULTADO DA ANÁLISE", 12f, Color.rgb(37, 110, 98), true))
         space(10)
-        content.addView(label("O que encontramos", 30f, Color.rgb(11, 38, 49), true))
+        content.addView(label("Por que esta notícia recebeu esta avaliação?", 28f, Color.rgb(11, 38, 49), true))
         space(20)
         content.addView(label(result.title, 18f, Color.rgb(11, 38, 49), true))
         space(18)
@@ -161,6 +162,14 @@ class MainActivity : Activity() {
             setPadding(dp(18), dp(18), dp(18), dp(18))
             background = rounded(Color.WHITE, Color.rgb(194, 214, 209))
         })
+        space(8)
+        content.addView(label("Resumo baseado nos critérios da análise.", 13f, Color.rgb(91, 107, 111)))
+        if (result.evidence.isNotEmpty()) {
+            space(18)
+            content.addView(action("Ver checagens que reduziram a nota", false) {
+                showEvidence(result.evidence)
+            })
+        }
         space(18)
         content.addView(action("Abrir reportagem original", false) {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result.url)))
@@ -170,6 +179,29 @@ class MainActivity : Activity() {
             mode = Mode.TITLE; value = ""; message = ""; candidates = emptyList(); renderEntry()
         })
         scopeNote()
+    }
+
+    private fun showEvidence(evidence: List<FactEvidence>) {
+        val list = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(12), dp(20), dp(12))
+        }
+        for (review in evidence) {
+            list.addView(label(review.publisher, 17f, Color.rgb(11, 38, 49), true))
+            list.addView(label("Veredito: ${review.verdict}", 15f, Color.rgb(24, 57, 62)))
+            list.addView(label("Afirmação checada: ${review.claim}", 14f, Color.rgb(76, 94, 99)))
+            list.addView(action("Abrir checagem publicada ↗", false) {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(review.url)))
+            })
+            list.addView(View(this), LinearLayout.LayoutParams(1, dp(20)))
+        }
+        val scroll = ScrollView(this).apply { addView(list) }
+        AlertDialog.Builder(this)
+            .setTitle("Checagens da afirmação")
+            .setMessage("As checagens abaixo correspondem à afirmação analisada. Vereditos negativos contribuíram para reduzir a nota.")
+            .setView(scroll)
+            .setPositiveButton("Fechar", null)
+            .show()
     }
 
     private fun <T> runTask(title: String, task: () -> T, complete: (T) -> Unit) {
