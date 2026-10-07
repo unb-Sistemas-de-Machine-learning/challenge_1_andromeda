@@ -1,4 +1,0 @@
--e .
-pytest>=8
-respx>=0.21
-PyYAML>=6
