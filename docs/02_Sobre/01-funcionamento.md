@@ -13,13 +13,12 @@ Dado um título ou um link de reportagem, o app devolve:
 
 <p align="center">Tabela 2 - Referências Utilizadas</p>
 
-| Referência                                                 | Critério                            | Fonte                                                                                                              |
-| ---------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| 
-Detecção automática de notícias falsas em português, Roney Santos (2022)                                             | Fluxo geral de verificação/checagem | [Tese – USP](https://teses.usp.br/teses/disponiveis/55/55134/tde-14072022-165613/publico/RoneyLiradeSalesSantos_revisada.pdf) |
-| Google Fact Check                                          | Credibilidade da fonte              | [Google Fact Check](https://developers.google.com/fact-check/tools/api?hl=pt-br)                                                                                                             |
+| Referência       | Critério     | Fonte    |
+| -------------------- | ----------- | ------------------------------------------------- |
+| Detecção automática de notícias falsas em português, Roney Santos (2022)                                             | Fluxo geral de verificação/checagem | [Tese – USP](https://teses.usp.br/teses/disponiveis/55/55134/tde-14072022-165613/publico/RoneyLiradeSalesSantos_revisada.pdf) |
+| Atlas                                        | Credibilidade da fonte              | [Google Fact Check](https://developers.google.com/fact-check/tools/api?hl=pt-br)                                                                                                             |
 | `vzani/portuguese-fake-news-classifier-bertimbau-combined` | Tipo de escrita                     | [Hugging Face](https://huggingface.co/vzani/portuguese-fake-news-classifier-bertimbau-combined)                               |
-| `Ashg2099/xlm-roberta-factchecker`                         | Checagem de fatos incontestáveis    | [Hugging Face](https://huggingface.co/Ashg2099/xlm-roberta-factchecker) — Dataset: FEVER                                      |
+| Google Fact Check                          | Checagem de fatos verificáveis    | [Hugging Face](https://huggingface.co/Ashg2099/xlm-roberta-factchecker) — Dataset: FEVER                                      |
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
