@@ -13,7 +13,7 @@ Dado um título ou um link de reportagem, o app devolve:
 
 <p align="center">Tabela 2 - Referências Utilizadas</p>
 
-| Referência                                                 | Critério                            | Fonte                                                                                                                         |
+| Referência                                                 | Critério                            | Fonte                                                                                                              |
 | ---------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | 
 Detecção automática de notícias falsas em português, Roney Santos (2022)                                             | Fluxo geral de verificação/checagem | [Tese – USP](https://teses.usp.br/teses/disponiveis/55/55134/tde-14072022-165613/publico/RoneyLiradeSalesSantos_revisada.pdf) |
@@ -60,8 +60,10 @@ O sistema é dividido em três componentes principais, cada um com uma responsab
 <p align="center"><b>Figura 1 - Fluxo de funcionamento do app</b></p>
 
 <p align="center">
-  <img src="/02_Sobre/fluxo.png" alt="Fluxo de funcionamento do app">
+  <img src="docs/02_Sobre/fluxo.png" alt="Fluxo de funcionamento do app">
 </p>
+
+
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
