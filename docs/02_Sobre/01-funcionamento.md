@@ -60,10 +60,10 @@ O sistema é dividido em três componentes principais, cada um com uma responsab
 <p align="center"><b>Figura 1 - Fluxo de funcionamento do app</b></p>
 
 <p align="center">
-  <img src="docs/02_Sobre/fluxo.png" alt="Fluxo de funcionamento do app">
+  <img src="fluxo.png" alt="Fluxo de funcionamento do app">
 </p>
 
-
+![Fluxo de funcionamento do app](fluxo.png)
 
 <p align="center">Fonte: Autoria de <a href="https://github.com/DaviNegreiros">Davi Negreiros</a> e <a href="https://github.com/bolzanMGB">Othavio Araújo Bolzan</a></p>
 
