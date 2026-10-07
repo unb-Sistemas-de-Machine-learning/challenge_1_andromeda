@@ -8,21 +8,23 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Protocol
 
+from news_analysis.asset_paths import FLAN_DIR, FLAN_MANIFEST
+from news_analysis.bundled_models import ensure_model
 from news_analysis.explanation.models import ExplanationContext
 
 
 @lru_cache(maxsize=2)
 def _load_model(model_id: str, revision: str | None, cache_dir: str | None):
-    """Download on first use, then reuse the tokenizer and model cache."""
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+    """Load the bundled optimized encoder and decoders without network access."""
+    from optimum.onnxruntime import ORTModelForSeq2SeqLM
+    from transformers import AutoTokenizer
 
-    options = {"cache_dir": cache_dir} if cache_dir else {}
-    if revision:
-        options["revision"] = revision
-    tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True, **options)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_id, **options)
-    model.to("cpu")
-    model.eval()
+    model_dir = Path(model_id).resolve()
+    if not model_dir.is_dir():
+        raise FileNotFoundError(f"Local explanation model not found: {model_dir}")
+    tokenizer = AutoTokenizer.from_pretrained(model_dir, use_fast=True, local_files_only=True)
+    model = ORTModelForSeq2SeqLM.from_pretrained(
+        model_dir, local_files_only=True, use_merged=False, provider="CPUExecutionProvider")
     return tokenizer, model
 
 
@@ -41,8 +43,9 @@ class FlanT5SmallEngine:
     prompt_version = "explanation-prompt-v5"
 
     def __init__(self, cache_dir: str | None = None, max_new_tokens: int = 80, max_input_tokens: int = 160,
-                 model_id: str = "google/flan-t5-small", revision: str | None = None,
-                 manifest_path: str | None = None, timeout_seconds: float = 8.0):
+                 model_id: str = str(FLAN_DIR),
+                 revision: str | None = "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab",
+                 manifest_path: str | None = str(FLAN_MANIFEST), timeout_seconds: float = 8.0):
         self.cache_dir = cache_dir
         self.max_new_tokens = max_new_tokens
         self.max_input_tokens = max_input_tokens
@@ -63,16 +66,21 @@ class FlanT5SmallEngine:
         manifest_bytes = Path(self.manifest_path).read_bytes()
         self.artifact_manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
         manifest = json.loads(manifest_bytes.decode("utf-8"))
-        root = Path(manifest.get("root", self.cache_dir or "."))
+        if manifest.get("model") != "google/flan-t5-small" or manifest.get("revision") != self.revision:
+            raise RuntimeError("model_manifest_mismatch")
+        root = Path(self.manifest_path).resolve().parent
         for relative, expected in manifest.get("files", {}).items():
             path = root / relative
-            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            with path.open("rb") as stream:
+                digest = hashlib.file_digest(stream, "sha256").hexdigest()
             if digest.lower() != str(expected).lower():
                 raise RuntimeError(f"model_integrity_mismatch:{relative}")
 
     def _load(self) -> None:
         if self._tokenizer is not None and self._model is not None:
             return
+        if Path(self.model_id).resolve() == FLAN_DIR:
+            ensure_model('flan_t5_small')
         self._verify_manifest()
         self._tokenizer, self._model = _load_model(self.model_id, self.revision, self.cache_dir)
 

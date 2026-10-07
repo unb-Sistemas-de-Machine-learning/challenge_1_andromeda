@@ -10,8 +10,11 @@ dependencies = [
   "tldextract>=5.1",
   "lxml>=5",
   "trafilatura>=1.9",
-  "transformers>=4.40",
+  "transformers>=4.40,<5",
   "torch>=2.0",
+  "numpy>=1.24",
+  "onnxruntime>=1.18",
+  "optimum-onnx>=0.1.0",
   "uvicorn>=0.29",
   "tzdata>=2025.1",
 ]
@@ -22,6 +25,9 @@ dev = [
   "respx>=0.21",
   "PyYAML>=6",
 ]
+mobile = [
+  "onnx>=1.17",
+]
 
 [build-system]
 requires = ["setuptools>=69", "wheel"]
@@ -29,6 +35,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+news_analysis = ["assets/bundles/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

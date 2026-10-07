@@ -4,12 +4,15 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from news_analysis.asset_paths import FLAN_DIR, FLAN_MANIFEST, WRITING_ONNX
+
 
 @dataclass(frozen=True)
 class Settings:
     factcheck_api_key: str | None = None
     db_path: str = ".data/news_analysis.sqlite3"
     model_cache: str | None = None
+    writing_onnx_path: str | None = str(WRITING_ONNX)
     fetch_timeout_seconds: float = 10.0
     max_download_bytes: int = 5 * 1024 * 1024
     max_redirects: int = 5
@@ -22,9 +25,9 @@ class Settings:
     atlas_email: str | None = field(default=None, repr=False)
     atlas_password: str | None = field(default=None, repr=False)
     explanation_sml_enabled: bool = False
-    explanation_sml_model: str = "google/flan-t5-small"
-    explanation_sml_revision: str | None = None
-    explanation_sml_manifest: str | None = None
+    explanation_sml_model: str = str(FLAN_DIR)
+    explanation_sml_revision: str | None = "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab"
+    explanation_sml_manifest: str | None = str(FLAN_MANIFEST)
     explanation_max_new_tokens: int = 80
     explanation_max_input_tokens: int = 160
     explanation_timeout_seconds: float = 8.0
@@ -46,6 +49,7 @@ class Settings:
             factcheck_api_key=values.get("FACTCHECK_API_KEY") or None,
             db_path=values.get("NEWS_ANALYSIS_DB_PATH", cls.db_path),
             model_cache=values.get("NEWS_ANALYSIS_MODEL_CACHE") or None,
+            writing_onnx_path=values.get("NEWS_ANALYSIS_WRITING_ONNX_PATH") or cls.writing_onnx_path,
             recognized_domains_path=values.get("NEWS_ANALYSIS_RECOGNIZED_DOMAINS") or None,
             misinformation_domains_path=values.get("NEWS_ANALYSIS_MISINFORMATION_DOMAINS") or None,
             atlas_enabled=_read_bool(values.get('NEWS_ANALYSIS_ATLAS_ENABLED', 'false')),
@@ -53,9 +57,9 @@ class Settings:
             atlas_email=values.get('NEWS_ANALYSIS_ATLAS_EMAIL') or None,
             atlas_password=values.get('NEWS_ANALYSIS_ATLAS_PASSWORD') or None,
             explanation_sml_enabled=_read_bool(values.get('NEWS_ANALYSIS_SML_ENABLED', 'false')),
-            explanation_sml_model=values.get('NEWS_ANALYSIS_SML_MODEL', 'google/flan-t5-small'),
-            explanation_sml_revision=values.get('NEWS_ANALYSIS_SML_REVISION') or None,
-            explanation_sml_manifest=values.get('NEWS_ANALYSIS_SML_MANIFEST') or None,
+            explanation_sml_model=values.get('NEWS_ANALYSIS_SML_MODEL') or cls.explanation_sml_model,
+            explanation_sml_revision=values.get('NEWS_ANALYSIS_SML_REVISION') or cls.explanation_sml_revision,
+            explanation_sml_manifest=values.get('NEWS_ANALYSIS_SML_MANIFEST') or cls.explanation_sml_manifest,
             explanation_max_new_tokens=int(values.get('NEWS_ANALYSIS_SML_MAX_NEW_TOKENS', '80')),
             explanation_max_input_tokens=int(values.get('NEWS_ANALYSIS_SML_MAX_INPUT_TOKENS', '160')),
             explanation_timeout_seconds=float(values.get('NEWS_ANALYSIS_SML_TIMEOUT_SECONDS', '8')),

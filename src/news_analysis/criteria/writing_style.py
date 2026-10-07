@@ -20,7 +20,7 @@ _INFERENCE_LOCK = Lock()
 def _load_model(cache_dir: str | None):
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-    options = {"revision": WRITING_MODEL_REVISION, "cache_dir": cache_dir}
+    options = {"revision": WRITING_MODEL_REVISION, "cache_dir": cache_dir, "local_files_only": True}
     tokenizer = AutoTokenizer.from_pretrained(WRITING_MODEL_NAME, use_fast=True, **options)
     model = AutoModelForSequenceClassification.from_pretrained(WRITING_MODEL_NAME, **options)
     model.to("cpu")
@@ -31,6 +31,7 @@ def _load_model(cache_dir: str | None):
 class WritingStyleClassifier:
     def __init__(self, cache_dir: str | None = None):
         self.cache_dir = cache_dir
+        self.model_version = WRITING_MODEL_REVISION
 
     def classify(self, text: str) -> WritingStyleCriterionResult:
         try:
@@ -49,7 +50,7 @@ class WritingStyleClassifier:
                 status=CriterionStatus.EXECUTED,
                 score=round(score, 4),
                 model=WRITING_MODEL_NAME,
-                model_version=WRITING_MODEL_REVISION,
+                model_version=self.model_version,
                 prediction=WritingPrediction(label=label, confidence=round(confidence, 4), writing_score=round(score, 4)),
                 segments_analyzed=len(segments),
                 segments=segments,
@@ -62,7 +63,7 @@ class WritingStyleClassifier:
                 status=CriterionStatus.ERROR,
                 score=None,
                 model=WRITING_MODEL_NAME,
-                model_version=WRITING_MODEL_REVISION,
+                model_version=self.model_version,
                 segments_analyzed=0,
                 segments=[],
                 qualitative_state=None,

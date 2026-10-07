@@ -48,14 +48,16 @@ def derive_pipeline_id(
     return f"pipeline-{digest}"
 
 
-def current_pipeline_version(credibility_config: CredibilityConfig = CONFIG) -> PipelineVersion:
+def current_pipeline_version(credibility_config: CredibilityConfig = CONFIG,
+                             writing_model_revision: str = WRITING_MODEL_REVISION) -> PipelineVersion:
     deps = dependency_versions()
     return PipelineVersion(
-        id=derive_pipeline_id(deps=deps, credibility_config=credibility_config),
+        id=derive_pipeline_id(deps=deps, credibility_config=credibility_config,
+                              writing_model_revision=writing_model_revision),
         rules_version=RULES_VERSION,
         fact_check_mapping_version=FACT_CHECK_MAPPING_VERSION,
         writing_model_name=WRITING_MODEL_NAME,
-        writing_model_revision=WRITING_MODEL_REVISION,
+        writing_model_revision=writing_model_revision,
         dependency_versions=deps,
         credibility_policy_hash=policy_hash(scoring_policy(credibility_config)),
     )

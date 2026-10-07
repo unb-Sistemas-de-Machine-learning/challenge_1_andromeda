@@ -20,6 +20,13 @@ def test_pipeline_identifier_changes_when_version_inputs_change():
     assert derive_pipeline_id(deps={"fastapi": "1"}, intended_weights={"verifiable_facts": 1.0}) != base
 
 
+def test_optimized_writing_artifact_gets_distinct_pipeline_version():
+    original = current_pipeline_version()
+    optimized = current_pipeline_version(writing_model_revision=original.writing_model_revision + '-onnx-int8-abc')
+    assert optimized.id != original.id
+    assert optimized.writing_model_revision.endswith('-onnx-int8-abc')
+
+
 def test_effective_source_policy_changes_pipeline_id_without_exposing_secrets():
     from dataclasses import replace
     from news_analysis.criteria.credibility_config import AtlasConfig, CredibilityConfig

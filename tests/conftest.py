@@ -63,6 +63,7 @@ def temp_settings():
     with tempfile.TemporaryDirectory() as directory:
         yield Settings(
             factcheck_api_key="test-key",
+            writing_onnx_path=None,
             db_path=str(Path(directory) / "audit.sqlite3"),
             fetch_timeout_seconds=0.1,
             max_download_bytes=1024,

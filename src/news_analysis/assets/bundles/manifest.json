@@ -1,0 +1,72 @@
+{
+  "format": "zip-parts-v1",
+  "part_bytes": 50331648,
+  "models": {
+    "writing_bertimbau": {
+      "archive_sha256": "bfd70eea16a07a61a70e660552a0b731aaa2c966e359501836fcf92cb5755ea4",
+      "archive_bytes": 65766956,
+      "files": {
+        "manifest.json": "e3e53f4bd6d59813407a75ecd1e0247372c3366a77500bcdbd4a6c218af954ca",
+        "model.int8.onnx": "a2a4c91592896e613510dff011a8818e049cfce636c52ac4d0edd2e3bd633974",
+        "special_tokens_map.json": "5aa43c2f985a25296d5a5ce621c2f77376ca8091a47993c492fd5460b895b140",
+        "tokenizer.json": "bcc8fe4209dffce14189a4319759f834e84c7df0a0bee8bfc6b576d4e2c6d387",
+        "tokenizer_config.json": "7525d84e2d59af28db08243599eb1da698db5f415be9fc1f5a41332d27be405b",
+        "vocab.txt": "69c28584c67a0e5018f85ca734aa272cc38e26b5dd0d33fffa28059299f21707"
+      },
+      "parts": [
+        {
+          "name": "writing_bertimbau.zip.part000",
+          "bytes": 50331648,
+          "sha256": "aaf213ebd538b12a4f9ac02c1407a2da1db94b32d5d1ad26556065acafcbc94f"
+        },
+        {
+          "name": "writing_bertimbau.zip.part001",
+          "bytes": 15435308,
+          "sha256": "b9c30bcd4cc7181d5b292821d469c6118c07adda13948fa09399960b77ef2a70"
+        }
+      ]
+    },
+    "flan_t5_small": {
+      "archive_sha256": "555ade3b62d84af89b64ab78ebf9c3460eb6c929377b92cae97e3fac0fff10df",
+      "archive_bytes": 214975311,
+      "files": {
+        "config.json": "ea2a536e5280f4fc365dc67af766c54bba4d07d142fa6fed0a215edb6c2f54c3",
+        "decoder_model.onnx": "9ce8369584c341918f463303f629511f971da266aa7cbab82f9ff1ad889387ff",
+        "decoder_with_past_model.onnx": "892830bd6e6288bdc68bebce3dfbc531a76d6b28aa96555815af5b567566caa9",
+        "encoder_model.onnx": "ce4aaff44c5d201245f710b46e1b7151db4d8b952cbdb114567938731f3679b5",
+        "generation_config.json": "34f49d5043dafc40ac0f60a26f3ba19690bd2f2f4ea4957bdafa51d05feee63e",
+        "manifest.json": "259ff14392c925ff40f9f59204dad44bb1550016432d17534e15eea97d49ccf7",
+        "special_tokens_map.json": "65d84a9271d68f1230ab99518c00f0f7eaef95c7b363001595ba6fa662d434b1",
+        "tokenizer.json": "4d4b21a8cc7c0407dafd8ac6215269cd05c8e49a521c3580479b567879526160",
+        "tokenizer_config.json": "f0f4630efa94e1d9e93c877ecdf2e45a8b9685037f752eddf0611508425b967b"
+      },
+      "parts": [
+        {
+          "name": "flan_t5_small.zip.part000",
+          "bytes": 50331648,
+          "sha256": "187a5306d22b409d72a53da0aae6f21e90fca85cff33e41f28a0bef5ff8b4ead"
+        },
+        {
+          "name": "flan_t5_small.zip.part001",
+          "bytes": 50331648,
+          "sha256": "da6b634fd54a1264efc6639d8883c28d916ec2dc84927f3135f732c8ecc5c3e6"
+        },
+        {
+          "name": "flan_t5_small.zip.part002",
+          "bytes": 50331648,
+          "sha256": "28b68f1dc9513850d38c9c6056896fcbb382ea1f942875850e4083a89c9f9810"
+        },
+        {
+          "name": "flan_t5_small.zip.part003",
+          "bytes": 50331648,
+          "sha256": "cdd1e752b4b0f28b6bddaa764f5651113a492a8f5d04545357fdb15df8389bb9"
+        },
+        {
+          "name": "flan_t5_small.zip.part004",
+          "bytes": 13648719,
+          "sha256": "a7ab6c2b3a10256b3bd6a509e8b969ed3c84f58f1d661099ff3041b9dd961a4b"
+        }
+      ]
+    }
+  }
+}

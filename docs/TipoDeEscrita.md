@@ -18,11 +18,18 @@ binária de notícias em português com dados de Fake.br e FakeTrue.Br.
 | 1 | `LABEL_1` | `True` |
 
 A revisão dos pesos é `86971e56e7f5ad781cf56673df73a57375455793`.
-`AutoTokenizer` e `AutoModelForSequenceClassification` carregam tokenizer e
-modelo na CPU. A inferência usa modo de avaliação e `torch.inference_mode()`.
-O carregamento é feito na primeira análise que chega ao critério. O modelo é
-reutilizado em memória por processo e diretório de cache. Um bloqueio serializa
-carregamento e inferência; cada processo do servidor tem sua própria instância.
+O aplicativo carrega por padrão o modelo ONNX de 8 bits incluído no pacote.
+O carregamento é feito na primeira análise que chega ao critério e reutilizado
+em memória por processo. Um bloqueio serializa a inferência.
+
+O artefato é gerado pelo script `scripts/optimize_writing_model.py` a partir
+da revisão acima; o usuário não precisa executá-lo nem baixar pesos.
+O tokenizer, as janelas de 512 tokens e a média por caracteres são mantidos.
+O manifesto verifica a revisão original e a integridade do arquivo; a versão
+da análise distingue o artefato otimizado. Os pesos quantizados ocupam cerca de
+110 MB, contra 436 MB do arquivo original. A quantização altera algumas
+probabilidades; a versão incluída foi testada com textos curtos e longos no
+computador. Ainda falta medir desempenho em celulares reais.
 
 Não há lista de palavras suspeitas, notas fixas ou classificação alternativa
 por regras. Termos como “falso” e “boato” fazem parte do contexto recebido pelo

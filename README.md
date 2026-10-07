@@ -129,31 +129,26 @@ exposing the key value.
 
 ### Writing-style inference
 
-The writing-style criterion runs the actual BERTimbau classifier
-`vzani/portuguese-fake-news-classifier-bertimbau-combined` on CPU. Tokenizer and
-weights are loaded lazily and reused within each server process. The first
-analysis downloads the pinned revision if it is not already cached. Optionally,
-set `NEWS_ANALYSIS_MODEL_CACHE` to choose a Hugging Face cache directory.
+The application ships two optimized, pinned ONNX models in ZIP parts under
+`src/news_analysis/assets/bundles`: BERTimbau (INT8) and FLAN-T5 (FP32 encoder,
+INT8 decoders). Both load exclusively from local files. The BERTimbau artifact is the
+default writing classifier. The FLAN artifact is ready for the optional
+`FlanT5SmallEngine`, while the public explanation remains the audited,
+rule-based text. Installation and analysis do not download model weights.
 
-The local explanation model is opt-in. On first use, Transformers downloads
-`google/flan-t5-small` into the configured local cache; subsequent requests reuse
-the cache and the in-memory model. Enable it with:
+An ordinary Git clone contains every ZIP part; Git LFS is not required. On first
+use of each model, the application verifies SHA-256 checksums and extracts it to
+`.data/models/bundled` (or `NEWS_ANALYSIS_MODEL_DIR`). Later runs reuse the
+extracted files. Keep enough free disk space for both the compressed parts and
+roughly 370 MB of extracted models. Missing or corrupted parts cause an error
+instead of triggering a download. The writing model's artifact hash is included in the
+analysis version. `NEWS_ANALYSIS_WRITING_ONNX_PATH` can override its bundled
+path with another local artifact.
 
-```env
-NEWS_ANALYSIS_SML_ENABLED=true
-NEWS_ANALYSIS_SML_MODEL=google/flan-t5-small
-NEWS_ANALYSIS_SML_REVISION=<pinned-revision>
-NEWS_ANALYSIS_SML_MAX_INPUT_TOKENS=160
-NEWS_ANALYSIS_SML_MAX_NEW_TOKENS=80
-NEWS_ANALYSIS_SML_TIMEOUT_SECONDS=8
-```
-
-The timeout is an **inference budget**, not a download/startup deadline.
-Initialization happens once through `prepare()` before timing the summary;
-`generated_ms` measures inference, including the wait for the engine's generation
-lock. The first request can still take longer while model files are downloaded
-or loaded. Prepare the artifacts below before serving traffic to avoid a download
-in that request.
+The FLAN engine has a local SHA-256 manifest and is loaded on first explicit
+use. Its inference timeout starts after loading. The tokenizer, configuration,
+and three required ONNX graphs are included in the package. The optional engine
+does not replace the public explanation because its output may be inaccurate.
 
 Summary generation uses greedy decoding (`num_beams=1`), the decoder cache and
 `torch.inference_mode()`. The compact prompt keeps the score and factual state;
@@ -163,23 +158,10 @@ The configured time limit is also passed to Transformers as `max_time`: this is
 a cooperative stop that finishes the current decoding step, not a hard process
 deadline. A timed-out draft is discarded and reported as `sml_timeout`.
 
-`NEWS_ANALYSIS_SML_MANIFEST` may point to a JSON SHA-256 manifest for the local
-model files. If the model is disabled, missing or rejected by validation, the API
-returns an explicit explanation state and keeps the original analysis unchanged.
-
-The optional preparation command can warm the cache outside the request path:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\prepare_sml_model.py `
-  --output .data\models\flan-t5-small `
-  --model google/flan-t5-small `
-  --revision <pinned-revision>
-```
-
-To use those prepared files directly, set `NEWS_ANALYSIS_SML_MODEL` to the
-absolute output directory and `NEWS_ANALYSIS_SML_MANIFEST` to its `manifest.json`.
-The generation path does not require a GPU and does not change Torch's global
-CPU thread settings used by the other models.
+`NEWS_ANALYSIS_SML_MANIFEST` and `NEWS_ANALYSIS_SML_MODEL` may override the
+bundled local paths. Build scripts under `scripts/` regenerate the optimized
+artifacts from already cached pinned source weights; users do not run them.
+The generation path does not require a GPU.
 
 Regression checks for the summary path:
 

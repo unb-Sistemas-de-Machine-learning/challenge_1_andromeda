@@ -11,6 +11,7 @@ from news_analysis.config import Settings
 from news_analysis.criteria.fact_check import FactCheckClient
 from news_analysis.criteria.fact_check_search import run_fact_check_search
 from news_analysis.criteria.writing_style import WritingStyleClassifier
+from news_analysis.criteria.writing_style_onnx import OnnxWritingStyleClassifier
 from news_analysis.criteria.source_credibility import SourceCredibility
 from news_analysis.explanation.service import build_explanation
 from news_analysis.criteria.credibility_policy import SOURCE_SCORE_CAP
@@ -53,7 +54,9 @@ class NewsAnalyzer:
         self.fetcher = fetcher or ArticleFetcher(settings)
         self.extractor = extractor or ArticleExtractor(settings.min_extracted_characters)
         self.fact_check_client = fact_check_client or FactCheckClient(settings)
-        self.writing_classifier = writing_classifier or WritingStyleClassifier(cache_dir=settings.model_cache)
+        self.writing_classifier = writing_classifier or (
+            OnnxWritingStyleClassifier(settings.writing_onnx_path)
+            if settings.writing_onnx_path else WritingStyleClassifier(cache_dir=settings.model_cache))
         if source_credibility is None:
             from news_analysis.criteria.recognition import RecognitionProvider
             from news_analysis.storage.atlas_repository import AtlasRepository
@@ -111,7 +114,8 @@ class NewsAnalyzer:
             article=extracted.article,
             criteria=criteria,
             final=final,
-            pipeline_version=current_pipeline_version(self.source_credibility.config),
+            pipeline_version=current_pipeline_version(self.source_credibility.config,
+                                                      writing_model_revision=writing.model_version),
             limitations=self._limitations_for(final),
             created_at=created_at,
             completed_at=datetime.now(timezone.utc),
