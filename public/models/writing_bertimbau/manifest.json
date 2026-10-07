@@ -1,0 +1,9 @@
+{
+  "model": "vzani/portuguese-fake-news-classifier-bertimbau-combined",
+  "revision": "86971e56e7f5ad781cf56673df73a57375455793",
+  "format": "onnx-int8-dynamic-matmul-gather",
+  "fp32_bytes": 435928535,
+  "int8_bytes": 109713262,
+  "sha256": "a2a4c91592896e613510dff011a8818e049cfce636c52ac4d0edd2e3bd633974",
+  "max_length": 512
+}

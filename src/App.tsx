@@ -1,457 +1,109 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  CheckCheck,
-  CircleHelp,
-  ClipboardPaste,
-  Info,
-  Link,
-  MessageSquareQuote,
-  RotateCcw,
-  Search,
-  ShieldCheck,
-  TriangleAlert,
-} from "lucide-react";
-import { examples, type Analysis, type Outcome } from "./analysis";
-import { screenInput, sendToMl, type Signal } from "./pipeline";
-import { DemoBadge, SourceList } from "./components";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowLeft, ArrowRight, ExternalLink, Search, ShieldCheck } from "lucide-react";
+import { analyzeLocally, searchNewsByTitle, type LocalAnalysis, type ArticleCandidate } from "./pipeline/localAnalysis";
+import { screenInput } from "./pipeline";
+import { classifyContent } from "./pipeline/opinionFilter";
 
-type Stage = "input" | "loading" | "result" | "error";
-const labels: Record<Outcome, string> = {
-  supported: "Informação sustentada",
-  context: "Informação sem contexto",
-  insufficient: "Evidências insuficientes",
-};
+type Mode = "title" | "url";
+type Stage = "entry" | "searching" | "choices" | "analyzing" | "result";
+
+function isOpinionTitle(title: string): boolean {
+  return classifyContent({ kind: "text", text: title, raw: title }).type === "opinion";
+}
 
 export default function App() {
-  const [stage, setStage] = useState<Stage>("input");
-  const [input, setInput] = useState("");
-  const [inputError, setInputError] = useState("");
-  const [opinionSignals, setOpinionSignals] = useState<Signal[] | null>(null);
-  const [result, setResult] = useState<Analysis | null>(null);
-  const [simulateFailure, setSimulateFailure] = useState(false);
-  const [exampleMessage, setExampleMessage] = useState("");
-  const textRef = useRef<HTMLTextAreaElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [mode, setMode] = useState<Mode>("title");
+  const [stage, setStage] = useState<Stage>("entry");
+  const [value, setValue] = useState("");
+  const [candidates, setCandidates] = useState<ArticleCandidate[]>([]);
+  const [selected, setSelected] = useState<ArticleCandidate | null>(null);
+  const [result, setResult] = useState<LocalAnalysis | null>(null);
+  const [message, setMessage] = useState("");
+  const heading = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => {
-    if (stage === "result" || stage === "error" || opinionSignals)
-      headingRef.current?.focus();
-  }, [stage, opinionSignals]);
-
-  function clearFeedback() {
-    setInputError("");
-    setOpinionSignals(null);
-  }
-
-  function fillExample(outcome: Outcome) {
-    setInput(examples[outcome]);
-    clearFeedback();
-    setExampleMessage(
-      "Exemplo fictício preenchido. Selecione “Verificar notícia” para continuar.",
-    );
-    textRef.current?.focus();
-  }
-
-  async function submit() {
-    // Entrada e filtro de opinião rodam antes do envio: só notícias seguem.
-    const screened = screenInput(input);
-    if (screened.status === "invalid") {
-      setOpinionSignals(null);
-      setInputError(screened.message);
-      textRef.current?.focus();
-      return;
-    }
-    if (screened.status === "opinion") {
-      setInputError("");
-      setOpinionSignals(screened.signals);
-      return;
-    }
-    clearFeedback();
-    setStage("loading");
-    try {
-      setResult(await sendToMl(screened.request, { simulateFailure }));
-      setStage("result");
-    } catch {
-      setStage("error");
-      setSimulateFailure(false);
-    }
-  }
+  useEffect(() => { if (stage !== "entry" || message) heading.current?.focus(); }, [stage, message]);
 
   function reset() {
-    setInput("");
-    clearFeedback();
-    setResult(null);
-    setStage("input");
-    setExampleMessage("");
-    requestAnimationFrame(() => textRef.current?.focus());
+    setStage("entry"); setValue(""); setCandidates([]); setSelected(null);
+    setResult(null); setMessage("");
   }
 
-  return (
-    <>
-      <a className="skip-link" href="#main">
-        Ir para o conteúdo
-      </a>
-      <header className="site-header">
-        <div className="header-inner">
-          <a
-            className="brand"
-            href="/"
-            aria-label="Antes de compartilhar — início"
-          >
-            <span className="brand-icon">
-              <CheckCheck size={29} />
-            </span>
-            <span>
-              antes de
-              <br />
-              <strong>compartilhar</strong>
-            </span>
-          </a>
-          <nav aria-label="Navegação principal">
-            <a href="#como-usar">
-              <CircleHelp size={21} />
-              Como usar
-            </a>
-            <span className="prototype">Protótipo exploratório</span>
-          </nav>
-        </div>
-      </header>
+  function onMode(next: Mode) { reset(); setMode(next); }
 
-      <main id="main" className="page">
-        <div className="eyebrow">
-          <span /> INFORMAÇÃO COM MAIS CUIDADO
-        </div>
-        <div className="intro">
-          <h1>
-            Recebeu uma notícia
-            <br className="desktop-break" /> e ficou em dúvida?
-          </h1>
-          <p>Confira as informações antes de compartilhar.</p>
-        </div>
-        <div className="workspace">
-          <section className="main-card" aria-label="Verificação de notícia">
-            <div className="card-top">
-              <DemoBadge />
-              <span className="card-mark" aria-hidden="true">
-                <ShieldCheck size={24} />
-              </span>
-            </div>
-            <div
-              role="status"
-              className={stage === "loading" ? "loading-state" : "sr-only"}
-              aria-live="polite"
-            >
-              {stage === "loading" && (
-                <>
-                  <span className="loading-symbol" aria-hidden="true">
-                    <Search size={34} />
-                  </span>
-                  <p className="loading-title">
-                    Estamos buscando informações sobre essa notícia.
-                  </p>
-                  <p>
-                    Esta é uma simulação. Nenhuma pesquisa real está sendo
-                    feita.
-                  </p>
-                  <span className="loading-dots" aria-hidden="true">
-                    •••
-                  </span>
-                </>
-              )}
-            </div>
+  async function search() {
+    const title = value.trim();
+    if (title.length < 12 || title.length > 180 || title.split(/\s+/).length < 3) {
+      setMessage("Digite pelo menos três palavras do título, com 12 a 180 caracteres."); return;
+    }
+    if (isOpinionTitle(title)) {
+      setMessage("Esse título parece ser de opinião ou editorial. Procure uma reportagem factual para analisar."); return;
+    }
+    setMessage(""); setStage("searching");
+    try {
+      const found = (await searchNewsByTitle(title)).filter((candidate) => {
+        const screened = screenInput(candidate.url);
+        return screened.status === "accepted" && !isOpinionTitle(candidate.title);
+      });
+      setCandidates(found); setStage("choices");
+      if (!found.length) setMessage("Nenhuma reportagem correspondente foi encontrada. Tente outro título ou cole o link.");
+    } catch (error) { setStage("entry"); setMessage(error instanceof Error ? error.message : "Não foi possível buscar notícias."); }
+  }
 
-            {(stage === "input" || stage === "error") && (
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void submit();
-                }}
-                noValidate
-              >
-                {stage === "error" && (
-                  <div className="error-panel" role="alert">
-                    <TriangleAlert size={24} />
-                    <div>
-                      <h2 ref={headingRef} tabIndex={-1}>
-                        Não foi possível concluir a verificação.
-                      </h2>
-                      <p>Seu texto foi mantido. Tente novamente.</p>
-                    </div>
-                  </div>
-                )}
-                <label className="input-label" htmlFor="news">
-                  Cole aqui o texto ou o link da notícia
-                </label>
-                <p className="field-hint" id="input-help">
-                  Pode ser uma mensagem que você recebeu ou o endereço de uma
-                  notícia.
-                </p>
-                <textarea
-                  ref={textRef}
-                  id="news"
-                  rows={6}
-                  value={input}
-                  onChange={(event) => {
-                    setInput(event.target.value);
-                    clearFeedback();
-                    setExampleMessage("");
-                  }}
-                  placeholder="Cole a notícia aqui…"
-                  aria-describedby={`input-help input-note${inputError ? " input-error" : ""}`}
-                  aria-invalid={Boolean(inputError)}
-                />
-                <div className="input-note" id="input-note">
-                  <Link size={17} aria-hidden="true" />
-                  <span>
-                    Aceita texto ou link. Neste protótipo, links não são
-                    acessados.
-                  </span>
-                </div>
-                {inputError && (
-                  <p className="field-error" id="input-error" role="alert">
-                    {inputError}
-                  </p>
-                )}
-                {opinionSignals && (
-                  <div className="opinion-panel" role="alert">
-                    <MessageSquareQuote size={24} aria-hidden="true" />
-                    <div>
-                      <h2 ref={headingRef} tabIndex={-1}>
-                        Isso parece um artigo de opinião.
-                      </h2>
-                      <p>
-                        Este serviço verifica apenas notícias. Opiniões não têm
-                        um fato a ser confirmado, por isso o conteúdo não foi
-                        enviado para análise.
-                      </p>
-                      <p>Encontramos:</p>
-                      <ul>
-                        {opinionSignals.map((signal) => (
-                          <li key={signal.id}>{signal.description}</li>
-                        ))}
-                      </ul>
-                      <p>
-                        Se for uma notícia, cole o texto ou o link da reportagem
-                        original.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="form-actions">
-                  <button className="button primary" type="submit">
-                    {stage === "error" ? (
-                      <RotateCcw size={21} />
-                    ) : (
-                      <Search size={21} />
-                    )}
-                    {stage === "error"
-                      ? "Tentar novamente"
-                      : "Verificar notícia"}
-                    <ArrowRight className="button-arrow" size={21} />
-                  </button>
-                  <button
-                    className="button secondary"
-                    type="button"
-                    onClick={() => fillExample("supported")}
-                  >
-                    Ver um exemplo
-                  </button>
-                </div>
-                <p className="sr-only" role="status">
-                  {exampleMessage}
-                </p>
-                <div className="example-options">
-                  <p>Explore os resultados com exemplos fictícios:</p>
-                  <div>
-                    {(Object.keys(labels) as Outcome[]).map((key) => (
-                      <button
-                        type="button"
-                        key={key}
-                        onClick={() => fillExample(key)}
-                      >
-                        {labels[key]}
-                        <ArrowUpRight size={16} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <details className="test-controls">
-                  <summary>Testar uma falha de verificação</summary>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={simulateFailure}
-                      onChange={(event) =>
-                        setSimulateFailure(event.target.checked)
-                      }
-                    />
-                    Simular falha no próximo envio
-                  </label>
-                  <p>Seu conteúdo será mantido para tentar novamente.</p>
-                </details>
-              </form>
-            )}
+  async function analyze(candidate: ArticleCandidate) {
+    const screened = screenInput(candidate.url);
+    if (screened.status !== "accepted" || isOpinionTitle(candidate.title)) {
+      setMessage("Este link parece ser de opinião, coluna ou editorial e não será avaliado como notícia."); return;
+    }
+    setSelected(candidate); setMessage(""); setStage("analyzing");
+    try { setResult(await analyzeLocally(screened.request.content)); setStage("result"); }
+    catch (error) { setStage(mode === "title" ? "choices" : "entry"); setMessage(error instanceof Error ? error.message : "Não foi possível analisar a notícia."); }
+  }
 
-            {stage === "result" && result && (
-              <div className={`result result-${result.outcome}`}>
-                <div className="result-status">
-                  {result.outcome === "supported" ? (
-                    <Check size={22} />
-                  ) : result.outcome === "context" ? (
-                    <TriangleAlert size={22} />
-                  ) : (
-                    <CircleHelp size={22} />
-                  )}
-                  {labels[result.outcome]}
-                </div>
-                <section>
-                  <h2 ref={headingRef} tabIndex={-1}>
-                    O que encontramos
-                  </h2>
-                  <p className="result-title">{result.title}</p>
-                  <div className="claim">
-                    <h3>Afirmação analisada</h3>
-                    <p>{result.claim}</p>
-                  </div>
-                  <p className="simulation-note">
-                    Resultado de demonstração, baseado apenas no acervo
-                    fictício. Não é uma avaliação real do conteúdo enviado.
-                  </p>
-                </section>
-                <section>
-                  <h2>Por que chegamos a esse resultado</h2>
-                  {result.explanation.map((text) => (
-                    <p key={text}>{text}</p>
-                  ))}
-                </section>
-                <section>
-                  <h2>Fontes para conferir</h2>
-                  <SourceList sources={result.sources} />
-                </section>
-                <section className="next-step">
-                  <h2>Próximo passo</h2>
-                  <p>{result.next}</p>
-                </section>
-                <p className="result-warning">
-                  <Info size={23} />
-                  Esta análise pode conter erros. Confira as fontes antes de
-                  compartilhar.
-                </p>
-                <button className="button primary" onClick={reset}>
-                  <RotateCcw size={21} />
-                  Verificar outra notícia
-                </button>
-              </div>
-            )}
-          </section>
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (mode === "title") { void search(); return; }
+    const screened = screenInput(value);
+    if (screened.status === "invalid") { setMessage(screened.message); return; }
+    if (screened.status === "opinion") {
+      setMessage("Este link aponta para opinião, coluna ou editorial e não será avaliado como notícia."); return;
+    }
+    if (screened.request.type !== "url") { setMessage("Cole o link completo da reportagem para continuar."); return; }
+    void analyze({ title: "Notícia informada por link", url: screened.request.content, publisher: new URL(screened.request.content).hostname });
+  }
 
-          <aside className="guide" aria-label="Orientações">
-            <div className="guide-illustration" aria-hidden="true">
-              <div className="illustration-orbit" />
-              <div className="paper">
-                <span />
-                <span />
-                <span />
-                <div className="paper-line" />
-              </div>
-              <div className="search-disc">
-                <Search size={40} strokeWidth={1.7} />
-              </div>
-              <span className="mini-check">
-                <Check size={19} />
-              </span>
-            </div>
-            <h2>
-              Uma pausa faz
-              <br />a diferença.
-            </h2>
-            <p>
-              Antes de passar uma notícia adiante, confira o que está por trás
-              da informação.
-            </p>
-            <ol className="steps">
-              <li>
-                <span>1</span>
-                <div>
-                  <strong>Cole a notícia.</strong>
-                  <p>Um texto ou um link já é um começo.</p>
-                </div>
-              </li>
-              <li>
-                <span>2</span>
-                <div>
-                  <strong>Solicite a verificação.</strong>
-                  <p>Vamos organizar as informações para você.</p>
-                </div>
-              </li>
-              <li>
-                <span>3</span>
-                <div>
-                  <strong>Leia o resultado e confira as fontes.</strong>
-                  <p>Decida com mais informação.</p>
-                </div>
-              </li>
-            </ol>
-            <div className="guide-note">
-              <Info size={21} />
-              <p>Conferir é um cuidado com você e com quem recebe a notícia.</p>
-            </div>
-          </aside>
+  return <main className="app-shell">
+    <header className="app-header"><ShieldCheck aria-hidden="true"/><span>Antes de compartilhar</span></header>
+    <div className="app-content">
+      {stage === "entry" && <>
+        <div className="intro-mobile"><p className="eyebrow-mobile">VERIFIQUE COM CALMA</p><h1 ref={heading} tabIndex={-1}>Qual notícia você leu?</h1><p>Encontre a reportagem pelo título ou use o link que você já tem.</p></div>
+        <div className="mode-switch" role="group" aria-label="Forma de encontrar a notícia">
+          <button type="button" aria-pressed={mode === "title"} onClick={() => onMode("title")}>Tenho o título</button>
+          <button type="button" aria-pressed={mode === "url"} onClick={() => onMode("url")}>Tenho o link</button>
         </div>
-
-        <div className="bottom-note">
-          <ShieldCheck size={24} />
-          <p>
-            <strong>Um apoio para refletir, sem respostas absolutas.</strong>
-            <span>
-              Este protótipo não determina a verdade. Todas as análises são
-              demonstrativas.
-            </span>
-          </p>
-          <span className="no-signup">Sem cadastro</span>
-        </div>
-        <section id="como-usar" className="help">
-          <div>
-            <span className="help-icon">
-              <ClipboardPaste size={25} />
-            </span>
-            <h2>Como usar</h2>
-            <p>
-              Você pode conferir com calma,
-              <br />
-              um passo de cada vez.
-            </p>
-          </div>
-          <ol>
-            <li>
-              <strong>Copie o conteúdo.</strong> No celular, toque e segure o
-              texto ou link e escolha “Copiar”. No computador, selecione o
-              conteúdo e use Ctrl+C (ou ⌘C).
-            </li>
-            <li>
-              <strong>Cole no campo acima.</strong> Toque e segure o campo e
-              escolha “Colar”, ou use Ctrl+V (ou ⌘V).
-            </li>
-            <li>
-              <strong>Selecione “Verificar notícia”.</strong> Leia a explicação
-              e abra as fontes. Para explorar este protótipo, use “Ver um
-              exemplo”.
-            </li>
-          </ol>
-        </section>
-      </main>
-      <footer>
-        <div>
-          <span className="footer-brand">
-            <CheckCheck size={21} /> antes de compartilhar
-          </span>
-          <span>Mais contexto. Mais cuidado ao compartilhar.</span>
-          <span>Protótipo · 2026</span>
-        </div>
-      </footer>
-    </>
-  );
+        <form onSubmit={submit} className="entry-form">
+          <label htmlFor="news-input">{mode === "title" ? "Título da notícia" : "Link da reportagem"}</label>
+          <input id="news-input" value={value} onChange={(event) => { setValue(event.target.value); setMessage(""); }}
+            placeholder={mode === "title" ? "Digite o título que você lembra" : "https://site.com.br/noticia"}
+            type="text" inputMode={mode === "url" ? "url" : "text"} autoComplete="off" aria-invalid={!!message} aria-describedby={message ? "feedback" : undefined}/>
+          <button className="primary-action" type="submit"><Search size={20} aria-hidden="true"/>{mode === "title" ? "Buscar notícia" : "Analisar notícia"}<ArrowRight size={20} aria-hidden="true"/></button>
+        </form>
+      </>}
+      {stage === "searching" && <section className="state-card" role="status"><Search size={32} aria-hidden="true"/><h1 ref={heading} tabIndex={-1}>Buscando reportagens</h1><p>Estamos procurando notícias com esse título.</p></section>}
+      {stage === "choices" && <section className="choice-screen">
+        <button className="back-action" onClick={() => { setStage("entry"); setMessage(""); }}><ArrowLeft size={18}/>Voltar à busca</button>
+        <h1 ref={heading} tabIndex={-1}>Escolha a reportagem</h1><p>Confirme o título e o veículo antes de analisar. A busca não confirma os fatos.</p>
+        <div className="choices">{candidates.map((candidate) => <button className="choice" key={candidate.url} onClick={() => void analyze(candidate)}><strong>{candidate.title}</strong><span>{candidate.publisher}<ArrowRight size={18} aria-hidden="true"/></span></button>)}</div>
+      </section>}
+      {stage === "analyzing" && <section className="state-card" role="status"><ShieldCheck size={32} aria-hidden="true"/><h1 ref={heading} tabIndex={-1}>Analisando a notícia</h1><p>Isso pode levar alguns instantes.</p></section>}
+      {stage === "result" && result && <section className="result-screen">
+        <p className="eyebrow-mobile">RESULTADO DA ANÁLISE</p><h1 ref={heading} tabIndex={-1}>O que encontramos</h1>
+        <p className="article-name">{result.article?.title || selected?.title}</p>
+        <div className="explanation" role="status"><ShieldCheck size={26} aria-hidden="true"/><p>{result.explanation.text}</p></div>
+        {selected && <a className="article-link" href={result.article?.final_url || selected.url} target="_blank" rel="noopener noreferrer">Abrir reportagem original <ExternalLink size={18} aria-hidden="true"/></a>}
+        <button className="primary-action" onClick={reset}>Analisar outra notícia <ArrowRight size={20} aria-hidden="true"/></button>
+      </section>}
+      {message && <p className="feedback" id="feedback" role="alert">{message}</p>}
+      <p className="scope-note">A avaliação pode ser parcial e não substitui a leitura das fontes. Artigos de opinião não recebem veredito factual.</p>
+    </div>
+  </main>;
 }

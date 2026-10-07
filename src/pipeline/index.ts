@@ -4,12 +4,12 @@
 
 import { parseInput } from "./input";
 import { classifyContent, type Signal } from "./opinionFilter";
-import type { MlRequest } from "./mlClient";
+type PreparedInput = { type: "url" | "text"; content: string };
 
 export type ScreeningResult =
   | { status: "invalid"; message: string }
   | { status: "opinion"; signals: Signal[] }
-  | { status: "accepted"; request: MlRequest };
+  | { status: "accepted"; request: PreparedInput };
 
 export function screenInput(raw: string): ScreeningResult {
   const parsed = parseInput(raw);
@@ -29,5 +29,4 @@ export function screenInput(raw: string): ScreeningResult {
   };
 }
 
-export { sendToMl } from "./mlClient";
 export type { Signal } from "./opinionFilter";
