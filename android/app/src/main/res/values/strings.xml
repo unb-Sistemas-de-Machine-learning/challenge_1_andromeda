@@ -1,7 +1,4 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Antes de compartilhar</string>
-    <string name="title_activity_main">Antes de compartilhar</string>
-    <string name="package_name">br.unb.andromeda.antesdecompartilhar</string>
-    <string name="custom_url_scheme">br.unb.andromeda.antesdecompartilhar</string>
 </resources>

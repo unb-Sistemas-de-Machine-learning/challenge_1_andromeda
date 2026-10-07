@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 database = Path(".data/news_analysis.sqlite3")
-output = Path("public/data/atlas-domains.json")
+output = Path("android/app/src/main/assets/atlas-domains.json")
 connection = sqlite3.connect(database)
 row = connection.execute("select active_snapshot_id from atlas_sync_state where id=1").fetchone()
 snapshot_id = row[0] if row else None

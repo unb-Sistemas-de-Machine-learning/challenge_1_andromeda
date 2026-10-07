@@ -1,54 +1,43 @@
-apply plugin: 'com.android.application'
-
-android {
-    namespace = "br.unb.andromeda.antesdecompartilhar"
-    compileSdk = rootProject.ext.compileSdkVersion
-    defaultConfig {
-        applicationId "br.unb.andromeda.antesdecompartilhar"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
-        }
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
 }
 
-repositories {
-    flatDir{
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+def localEnv = rootProject.file('../.env')
+def fromEnvFile = { key ->
+    if (!localEnv.isFile()) return null
+    def line = localEnv.readLines('UTF-8').find { it.startsWith(key + '=') }
+    return line == null ? null : line.substring(key.length() + 1).trim().replaceAll(/^['"]|['"]$/, '')
+}
+def backendUrl = (System.getenv('FACTCHECK_BACKEND_URL') ?: fromEnvFile('FACTCHECK_BACKEND_URL') ?: 'https://challenge-1-andromeda-00o6.onrender.com').trim().replaceAll('/+$', '')
+def proxyToken = (System.getenv('FACTCHECK_PROXY_TOKEN') ?: project.findProperty('factcheckProxyToken') ?: fromEnvFile('FACTCHECK_PROXY_TOKEN') ?: '').toString().trim()
+if (!backendUrl.startsWith('https://')) throw new GradleException('FACTCHECK_BACKEND_URL precisa usar HTTPS.')
+if (proxyToken.isEmpty()) throw new GradleException('Configure FACTCHECK_PROXY_TOKEN no ambiente, no ~/.gradle/gradle.properties ou no .env local.')
+
+android {
+    namespace 'br.unb.andromeda.antesdecompartilhar'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'br.unb.andromeda.antesdecompartilhar'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+        buildConfigField 'String', 'FACTCHECK_BACKEND_URL', '"' + backendUrl.replace('\\', '\\\\').replace('"', '\\"') + '"'
+        buildConfigField 'String', 'FACTCHECK_PROXY_TOKEN', '"' + proxyToken.replace('\\', '\\\\').replace('"', '\\"') + '"'
     }
+
+    buildFeatures { buildConfig true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    buildTypes { release { minifyEnabled false } }
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
-    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
-    implementation project(':capacitor-android')
-    testImplementation "junit:junit:$junitVersion"
-    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
-    implementation project(':capacitor-cordova-android-plugins')
-}
-
-apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+    implementation 'org.jsoup:jsoup:1.21.2'
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.23.2'
 }

@@ -1,39 +1,39 @@
-# Antes de compartilhar
+# Antes de compartilhar — Android
 
-Aplicativo Android em Capacitor para localizar uma notícia pelo título ou analisar um link. O fluxo atual filtra URLs de opinião antes de mostrar o resultado e consulta o proxy de Fact Check no Render. A chave da API do Google fica no servidor.
+Aplicativo **nativo em Kotlin**. A interface é uma `Activity` Android; o projeto não usa React, Capacitor, Vite, WebView nem servidor em `localhost`. O build produz um APK, não um site.
 
-## Fluxo atual
+## Fluxo
 
-1. `src/App.tsx` recebe título ou URL e aplica `src/pipeline/opinionFilter.ts`.
-2. `src/pipeline/localAnalysis.ts` busca candidatos na GDELT quando há título, abre a página escolhida e extrai texto no WebView.
-3. O app consulta `public/data/atlas-domains.json`, chama `POST /fact-check` pelo cliente `src/pipeline/factCheckClient.ts` e tenta classificar a escrita com `src/pipeline/bertimbau.ts` e os arquivos de `public/models/writing_bertimbau/`.
-4. O app monta uma explicação curta na tela.
+1. A pessoa informa o título de uma notícia ou seu link HTTPS.
+2. Para título, o app consulta a GDELT diretamente e mostra reportagens candidatas. A pessoa escolhe o link correto.
+3. O app baixa a reportagem por HTTP nativo, extrai o texto e exclui opinião, coluna e editorial.
+4. Atlas, matching de checagens, resumo e BERTimbau ONNX são processados no aparelho. O modelo e o snapshot do Atlas estão em `android/app/src/main/assets/`.
+5. A única chamada ao **nosso** backend é `POST /fact-check` no Render. O servidor da branch `servidor_backend` mantém `GOOGLE_FACT_CHECK_API_KEY`.
 
-O código atual ainda não reproduz integralmente a lógica de `sdd_v1`: não executa matching local das alegações, a agregação ponderada nem o resumo original. A busca e a extração por `fetch` no WebView também dependem de CORS dos serviços e veículos consultados. O carregamento dinâmico do runtime BERTimbau precisa ser validado no APK: hoje uma falha é convertida silenciosamente em resultado parcial. Esses pontos impedem considerar o fluxo Android validado de ponta a ponta.
+A busca pelo título e a leitura da reportagem acessam GDELT e o veículo diretamente; não passam pelo Render. O modelo local fornece um sinal estatístico, não um veredito factual. A extração pode falhar em páginas que exigem JavaScript, login ou bloqueiam clientes automatizados.
 
-## Configuração e build
+## Configuração
 
-```env
-VITE_FACTCHECK_API_URL=https://challenge-1-andromeda-00o6.onrender.com
-VITE_FACTCHECK_PROXY_TOKEN=valor_compartilhado_com_o_proxy
+Defina `FACTCHECK_PROXY_TOKEN` no ambiente, em `~/.gradle/gradle.properties` como `factcheckProxyToken=...`, ou em um `.env` local na raiz do repositório. Esse valor deve ser igual ao `FACTCHECK_PROXY_TOKEN` no Render. O endereço padrão é `https://challenge-1-andromeda-00o6.onrender.com`; `FACTCHECK_BACKEND_URL` permite alterá-lo.
+
+O token de comunicação é incorporado ao APK e pode ser extraído por quem instalar o aplicativo. A chave do Google permanece exclusivamente no Render.
+
+## Gerar APK
+
+Instale Android SDK (API 36 e Build Tools), JDK 17 e Gradle Wrapper. No Windows:
+
+```powershell
+cd android
+.\gradlew.bat assembleDebug
 ```
 
-`VITE_FACTCHECK_PROXY_TOKEN` entra no APK e não deve ser tratado como segredo do Google. O servidor da branch `servidor_backend` mantém `GOOGLE_FACT_CHECK_API_KEY` e atende `POST /fact-check`.
+Em macOS ou Linux:
 
 ```sh
-pnpm install
-pnpm build
-pnpm test
-pnpm exec cap sync android
-pnpm exec cap open android
+cd android
+./gradlew assembleDebug
 ```
 
-## Arquivos da branch
+APK gerado: `android/app/build/outputs/apk/debug/app-debug.apk`. O arquivo ONNX usa Git LFS; execute `git lfs pull` após clonar para obter os pesos reais antes de compilar.
 
-- `src/App.tsx` e `src/pipeline/`: interface e análise executada pelo app.
-- `public/data/` e `public/models/`: Atlas exportado e modelo embarcado. O arquivo ONNX é versionado com Git LFS porque excede 100 MiB.
-- `android/` e `capacitor.config.ts`: projeto Android Capacitor.
-- `scripts/export_atlas.py`: exportação do snapshot local do Atlas; requer a base SQLite em `.data/`.
-- `tests/app-flow.spec.ts` e `scripts/test-server.mjs`: verificação do fluxo da interface.
-
-O código Python de `sdd_v1` e o proxy permanecem nas respectivas branches, fora desta branch do app.
+O build falha com mensagem clara se o token não estiver configurado. Não use `pnpm build`: esta branch não possui um projeto web.

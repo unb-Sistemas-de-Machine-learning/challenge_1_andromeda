@@ -1,1 +1,1 @@
-public/models/writing_bertimbau/*.onnx filter=lfs diff=lfs merge=lfs -text
+android/app/src/main/assets/model/*.onnx filter=lfs diff=lfs merge=lfs -text
