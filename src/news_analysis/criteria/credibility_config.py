@@ -42,7 +42,7 @@ class CredibilityConfig:
     atlas: AtlasConfig = field(default_factory=AtlasConfig)
     # Recognition, transparency, age, institutional bonus, HTTPS.
     # The four base criteria total 100; the bonus is added afterward.
-    weights: tuple[int, ...] = (40, 30, 25, 30, 5)
+    weights: tuple[int, ...] = (40, 30, 25, 100, 5)
     transparency_weights: tuple[int, ...] = (12, 6, 12)
     age_bands: tuple[tuple[float, int], ...] = ((30, 0), (183, 5), (730, 13), (1826, 20), (float('inf'), 25))
     age_cap: int = 13

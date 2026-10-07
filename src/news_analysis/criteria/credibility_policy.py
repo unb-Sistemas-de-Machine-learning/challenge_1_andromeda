@@ -10,7 +10,7 @@ SOURCE_SCORE_CAP = 35
 
 def scoring_policy(config: CredibilityConfig = CONFIG) -> dict:
     return {
-        'version': 'source-policy-v4-fixed-base-and-institutional-bonus',
+        'version': 'source-policy-v5-institutional-full-score',
         'weights': list(config.weights),
         'base_score_maximum': sum(config.weights) - config.weights[3],
         'institutional_bonus': config.weights[3],

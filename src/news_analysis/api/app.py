@@ -421,7 +421,7 @@ INDEX_HTML = """
       const criterionStatuses = {indisponivel: 'indisponível', negativo: 'não atendido', neutro: 'neutro', ok: 'atendido'};
       return `<article class="analysis-card"><h3>Credibilidade da fonte</h3>
         ${source ? `<p>${source.score_fonte == null ? 'Pontuação da fonte indisponível' : `Pontuação da credibilidade: ${escapeHtml(source.score_fonte)}/100`} · Cobertura dos sinais: ${sourceCoverage}% (${escapeHtml(sourceConfidence)})</p>
-        <p>Os quatro critérios principais somam até 100 pontos. Um critério indisponível não recebe pontos, mas sua ausência não comprova baixa reputação.${institutionalBonus ? ` O domínio institucional acrescentou ${escapeHtml(institutionalBonus.pontos)} pontos de bônus, com limite de 100.` : ''}</p>
+        <p>Os quatro critérios principais somam até 100 pontos. Um critério indisponível não recebe pontos, mas sua ausência não comprova baixa reputação.${institutionalBonus ? (source.score_fonte === 100 ? ' O domínio institucional oficial garantiu 100/100 para a credibilidade da fonte.' : ' O domínio institucional foi reconhecido, mas a lista de bloqueio prevaleceu.') : ''}</p>
         ${source.intended_weight != null ? `<p>Peso previsto: ${formatWeight(source.intended_weight)} · Peso efetivo: ${formatWeight(source.effective_weight)} · Contribuição para o índice: ${formatScore100(source.contribution)} pontos</p>` : ''}
         ${source.score_fonte == null ? '<p>Sem sinais suficientes para avaliar a fonte; a indisponibilidade não aplica veto.</p>' : ''}
         <p>Domínio: ${escapeHtml(source.dominio)}. Sinais da fonte não comprovam a veracidade da notícia.</p>

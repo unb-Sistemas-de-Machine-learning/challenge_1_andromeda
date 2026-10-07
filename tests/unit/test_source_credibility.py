@@ -54,10 +54,13 @@ def test_recognized_domain_gets_full_age(config):
     assert result['score_fonte'] == 70
 
 
-def test_gov_br(config):
-    result = SourceCredibility(config, Network(final='https://ficticio.gov.br/article')).calculate('https://ficticio.gov.br')
-    assert result['criterios'][3]['pontos'] == 30
-    assert result['score_fonte'] == 48
+@pytest.mark.parametrize('suffix', ['gov.br', 'edu.br', 'jus.br', 'leg.br', 'mp.br'])
+def test_institutional_domain_gets_full_source_score(config, suffix):
+    domain = f'ficticio.{suffix}'
+    result = SourceCredibility(config, Network(final=f'https://{domain}/article')).calculate(f'https://{domain}')
+    assert result['criterios'][3]['pontos'] == 100
+    assert result['criterios'][3]['maximo'] == 100
+    assert result['score_fonte'] == 100
 
 
 def test_unavailable_recognition_does_not_inflate_source_score():
@@ -66,7 +69,7 @@ def test_unavailable_recognition_does_not_inflate_source_score():
                                                            final='https://portalvv8.com.br/noticia'))
     result = source.calculate('https://portalvv8.com.br/noticia')
     assert [(item['pontos'], item['maximo']) for item in result['criterios']] == [
-        (0, 40), (30, 30), (20, 25), (0, 30), (5, 5),
+        (0, 40), (30, 30), (20, 25), (0, 100), (5, 5),
     ]
     assert result['criterios'][0]['status'] == 'indisponivel'
     assert result['criterios'][3]['status'] == 'neutro'
@@ -79,19 +82,28 @@ def test_institutional_bonus_is_capped_at_100(config):
     config.recognized_path.write_text('["ficticio.gov.br"]')
     result = SourceCredibility(config, Network(body=body, final='https://ficticio.gov.br/noticia')).calculate(
         'https://ficticio.gov.br/noticia')
-    assert sum(item['pontos'] for item in result['criterios']) == 130
+    assert sum(item['pontos'] for item in result['criterios']) == 200
     assert result['score_fonte'] == 100
     assert result['confianca_fonte'] == 'alta'
 
 
-def test_institutional_bonus_adds_thirty_without_changing_coverage():
+def test_institutional_bonus_sets_maximum_without_changing_coverage():
     body = '<meta name="author" content="Autora"><time datetime="2026-01-01"/><a href="/contato">Contato</a>'
     result = SourceCredibility(CredibilityConfig(), Network(days=1070, body=body,
                                                            final='https://ficticio.gov.br/noticia')).calculate(
         'https://ficticio.gov.br/noticia')
-    assert result['criterios'][3]['pontos'] == 30
-    assert result['score_fonte'] == 85
+    assert result['criterios'][3]['pontos'] == 100
+    assert result['score_fonte'] == 100
     assert result['confianca_fonte'] == 'media'
+
+
+def test_blocklist_overrides_institutional_bonus(config):
+    config.blocklist_path.write_text('["ficticio.gov.br"]')
+    result = SourceCredibility(config, Network(final='https://ficticio.gov.br/noticia')).calculate(
+        'https://ficticio.gov.br/noticia')
+    assert result['criterios'][3]['pontos'] == 100
+    assert result['score_fonte'] == 0
+    assert result['veto_dominio_suspeito'] is True
 
 
 def test_blocklist(config):

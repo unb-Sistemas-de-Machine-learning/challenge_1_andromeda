@@ -49,13 +49,15 @@ NEWS_ANALYSIS_MISINFORMATION_DOMAINS=dados/desinformacao.csv
 
 Reconhecimento: 40; transparência: autor 12, data 6, link Sobre/Contato 12;
 idade: 25; HTTPS validado: 5. Esses quatro critérios somam 100 pontos. Um domínio
-institucional confirmado acrescenta 30 pontos de bônus, limitados pela nota máxima
-de 100; domínio não institucional não perde pontos. Idade usa intervalos
+institucional confirmado acrescenta 100 pontos de bônus e garante a nota máxima
+de 100 para a fonte, salvo correspondência comprovada na lista de bloqueio;
+domínio não institucional não perde pontos. Idade usa intervalos
 semiabertos de 30, 183, 730 e 1826 dias. Sem reconhecimento ou 18 pontos
 editoriais, idade fica limitada a 13. Domínio com menos de 30 dias gera flag.
 
 A nota é a soma dos pontos confirmados na base fixa de 100, mais o bônus quando
-aplicável, com teto de 100. Sinais indisponíveis não recebem pontos e permanecem
+aplicável, com teto de 100. O bônus institucional aparece como `100/100` na
+evidência do critério. Sinais indisponíveis não recebem pontos e permanecem
 identificados como indisponíveis, sem serem apresentados como evidência negativa.
 Confiança mede a cobertura dos quatro sinais principais: baixa abaixo de 50%, média de 50% até menos de 80%,
 alta a partir de 80%. Se nenhum critério puder ser avaliado, retorna
