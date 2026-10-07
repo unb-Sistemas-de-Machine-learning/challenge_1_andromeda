@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
+from difflib import SequenceMatcher
 
 from news_analysis.explanation.models import ExplanationContext
 
@@ -42,3 +44,28 @@ def validate_explanation(text: str, context: ExplanationContext) -> tuple[bool, 
     if context.source_veto_applied is False and re.search(r"\bveto\b", normalized, re.I):
         return False, "veto_contradiction"
     return True, "valid"
+
+
+def validate_rewrite(original: str, rewritten: str) -> tuple[bool, str]:
+    """Accept a copy edit only when its meaningful words remain unchanged."""
+    candidate = " ".join(rewritten.split())
+    source = " ".join(original.split())
+    if not candidate or candidate[-1] not in '.!?':
+        return False, 'incomplete'
+    if _FORBIDDEN.search(candidate) or _URL.search(candidate):
+        return False, 'unsafe_content'
+    if candidate == source:
+        return False, 'unchanged'
+    if len(candidate) > len(source) * 1.2 or len(candidate) < len(source) * 0.8:
+        return False, 'length'
+    if not candidate.startswith(source.split('.')[0] + '.'):
+        return False, 'confidence_changed'
+    if Counter(_NUMBER.findall(candidate)) != Counter(_NUMBER.findall(source)):
+        return False, 'numbers_changed'
+    words = lambda value: Counter(word.lower() for word in re.findall(r"[A-Za-zÀ-ÿ]+", value)
+                                  if len(word) >= 5)
+    if words(candidate) != words(source):
+        return False, 'meaningful_words_changed'
+    if SequenceMatcher(None, source.lower(), candidate.lower()).ratio() < 0.85:
+        return False, 'substantial_change'
+    return True, 'valid'

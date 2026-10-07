@@ -24,12 +24,12 @@ class Settings:
     atlas_auth_mode: str = 'dummy'
     atlas_email: str | None = field(default=None, repr=False)
     atlas_password: str | None = field(default=None, repr=False)
-    explanation_sml_enabled: bool = False
+    explanation_sml_enabled: bool = True
     explanation_sml_model: str = str(FLAN_DIR)
     explanation_sml_revision: str | None = "0fc9ddf78a1e988dac52e2dac162b0ede4fd74ab"
     explanation_sml_manifest: str | None = str(FLAN_MANIFEST)
-    explanation_max_new_tokens: int = 80
-    explanation_max_input_tokens: int = 160
+    explanation_max_new_tokens: int = 160
+    explanation_max_input_tokens: int = 256
     explanation_timeout_seconds: float = 8.0
 
     def credibility_config(self):
@@ -56,12 +56,12 @@ class Settings:
             atlas_auth_mode=values.get('NEWS_ANALYSIS_ATLAS_AUTH_MODE', 'dummy'),
             atlas_email=values.get('NEWS_ANALYSIS_ATLAS_EMAIL') or None,
             atlas_password=values.get('NEWS_ANALYSIS_ATLAS_PASSWORD') or None,
-            explanation_sml_enabled=_read_bool(values.get('NEWS_ANALYSIS_SML_ENABLED', 'false')),
+            explanation_sml_enabled=_read_bool(values.get('NEWS_ANALYSIS_SML_ENABLED', 'true')),
             explanation_sml_model=values.get('NEWS_ANALYSIS_SML_MODEL') or cls.explanation_sml_model,
             explanation_sml_revision=values.get('NEWS_ANALYSIS_SML_REVISION') or cls.explanation_sml_revision,
             explanation_sml_manifest=values.get('NEWS_ANALYSIS_SML_MANIFEST') or cls.explanation_sml_manifest,
-            explanation_max_new_tokens=int(values.get('NEWS_ANALYSIS_SML_MAX_NEW_TOKENS', '80')),
-            explanation_max_input_tokens=int(values.get('NEWS_ANALYSIS_SML_MAX_INPUT_TOKENS', '160')),
+            explanation_max_new_tokens=int(values.get('NEWS_ANALYSIS_SML_MAX_NEW_TOKENS', '160')),
+            explanation_max_input_tokens=int(values.get('NEWS_ANALYSIS_SML_MAX_INPUT_TOKENS', '256')),
             explanation_timeout_seconds=float(values.get('NEWS_ANALYSIS_SML_TIMEOUT_SECONDS', '8')),
             fetch_timeout_seconds=float(values.get("NEWS_ANALYSIS_FETCH_TIMEOUT_SECONDS", "10")),
             max_download_bytes=int(values.get("NEWS_ANALYSIS_MAX_DOWNLOAD_BYTES", str(cls.max_download_bytes))),

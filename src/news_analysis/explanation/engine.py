@@ -40,7 +40,7 @@ class FlanT5SmallEngine:
     """Lazy, optional FLAN-T5 engine used only when explicitly enabled."""
 
     model_id = "google/flan-t5-small"
-    prompt_version = "explanation-prompt-v5"
+    prompt_version = "rewrite-only-v1"
 
     def __init__(self, cache_dir: str | None = None, max_new_tokens: int = 80, max_input_tokens: int = 160,
                  model_id: str = str(FLAN_DIR),
@@ -133,5 +133,37 @@ class FlanT5SmallEngine:
             if time.perf_counter() - started >= self.timeout_seconds:
                 raise TimeoutError("sml_timeout")
             return text
+        finally:
+            self._lock.release()
+
+    def rewrite(self, text: str) -> str:
+        """Edit only the already audited summary; no analysis data enters the model."""
+        import torch
+
+        self.prepare()
+        prompt = (
+            "Revise apenas a fluidez deste texto em português brasileiro. "
+            "Preserve todas as informações, ressalvas e o grau de confiabilidade. "
+            "Não acrescente fatos.\nTexto: " + text + "\nRevisão:"
+        )
+        started = time.perf_counter()
+        if not self._lock.acquire(timeout=max(0.0, self.timeout_seconds)):
+            raise TimeoutError("sml_timeout")
+        try:
+            inputs = self._tokenizer(prompt, return_tensors="pt", truncation=False)
+            if inputs["input_ids"].shape[-1] > self.max_input_tokens:
+                raise ValueError("sml_input_budget_too_small")
+            remaining = self.timeout_seconds - (time.perf_counter() - started)
+            if remaining <= 0:
+                raise TimeoutError("sml_timeout")
+            with torch.inference_mode():
+                output = self._model.generate(
+                    **inputs, max_new_tokens=self.max_new_tokens, max_time=remaining,
+                    num_beams=1, do_sample=False, use_cache=True,
+                )
+            result = self._tokenizer.decode(output[0], skip_special_tokens=True).strip()
+            if time.perf_counter() - started >= self.timeout_seconds:
+                raise TimeoutError("sml_timeout")
+            return result
         finally:
             self._lock.release()

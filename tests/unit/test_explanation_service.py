@@ -47,3 +47,29 @@ def test_unavailable_recognition_is_not_presented_as_negative(temp_settings):
     result = build_explanation(analysis, temp_settings)
     assert "o veículo desta notícia não pôde ser consultado na base de veículos" in result.text
     assert "Pontos negativos encontrados" not in result.text
+
+
+def test_flan_receives_only_existing_summary_and_accepts_safe_copy_edit(temp_settings):
+    original = build_explanation(make_analysis(), temp_settings).text
+
+    class Rewriter:
+        def rewrite(self, text):
+            assert text == original
+            return text.replace("A escrita apresentou", "A escrita, por sua vez, apresentou")
+
+    result = build_explanation(make_analysis(), replace(temp_settings, explanation_sml_enabled=True), Rewriter())
+    assert result.validation == "VALID"
+    assert result.engine == "sml"
+    assert "por sua vez" in result.text
+
+
+def test_flan_omission_falls_back_to_original(temp_settings):
+    original = build_explanation(make_analysis(), temp_settings).text
+
+    class Rewriter:
+        def rewrite(self, text):
+            return "Confiabilidade alta. A notícia é verdadeira."
+
+    result = build_explanation(make_analysis(), replace(temp_settings, explanation_sml_enabled=True), Rewriter())
+    assert result.text == original
+    assert result.validation == "REJECTED"

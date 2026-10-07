@@ -132,9 +132,9 @@ exposing the key value.
 The application ships two optimized, pinned ONNX models in ZIP parts under
 `src/news_analysis/assets/bundles`: BERTimbau (INT8) and FLAN-T5 (FP32 encoder,
 INT8 decoders). Both load exclusively from local files. The BERTimbau artifact is the
-default writing classifier. The FLAN artifact is ready for the optional
-`FlanT5SmallEngine`, while the public explanation remains the audited,
-rule-based text. Installation and analysis do not download model weights.
+default writing classifier. FLAN-T5 is enabled by default as a copy editor for
+the already generated explanation. It receives only that explanation, not the
+article or criterion data. Installation and analysis do not download model weights.
 
 An ordinary Git clone contains every ZIP part; Git LFS is not required. On first
 use of each model, the application verifies SHA-256 checksums and extracts it to
@@ -145,15 +145,16 @@ instead of triggering a download. The writing model's artifact hash is included 
 analysis version. `NEWS_ANALYSIS_WRITING_ONNX_PATH` can override its bundled
 path with another local artifact.
 
-The FLAN engine has a local SHA-256 manifest and is loaded on first explicit
-use. Its inference timeout starts after loading. The tokenizer, configuration,
-and three required ONNX graphs are included in the package. The optional engine
-does not replace the public explanation because its output may be inaccurate.
+The FLAN engine has a local SHA-256 manifest and loads on first use. Its inference
+timeout starts after loading. The tokenizer, configuration, and three required
+ONNX graphs are included in the package. A generated edit is used only if a
+conservative check confirms that the substantive words, score band and numbers
+are preserved. Otherwise the original explanation is shown. Set
+`NEWS_ANALYSIS_SML_ENABLED=false` to skip the copy-edit attempt.
 
-Summary generation uses greedy decoding (`num_beams=1`), the decoder cache and
-`torch.inference_mode()`. The compact prompt keeps the score and factual state;
-if necessary, optional source/writing details are shortened instead of silently
-truncating the results. The existing 160 input / 80 output token defaults remain.
+Copy editing uses greedy decoding (`num_beams=1`), the decoder cache and
+`torch.inference_mode()`. The prompt contains only the original summary and
+does not silently truncate it. The defaults allow 256 input and 160 output tokens.
 The configured time limit is also passed to Transformers as `max_time`: this is
 a cooperative stop that finishes the current decoding step, not a hard process
 deadline. A timed-out draft is discarded and reported as `sml_timeout`.
