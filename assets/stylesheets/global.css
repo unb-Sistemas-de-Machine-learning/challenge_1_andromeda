@@ -1,0 +1,55 @@
+:root {
+  --md-typeset-a-color: #d1d5db;
+  --md-typeset-a-color--hover: #ffffff;
+}
+
+.md-typeset a {
+  color: #d1d5db !important;
+  text-decoration: underline;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.md-typeset a:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.md-typeset a:visited {
+  color: #c0c0c0 !important;
+}
+
+.md-nav__link--active {
+  color: #ffffff !important;
+  font-weight: bold;
+}
+
+.md-nav__link:hover{
+  color: #d1d5db !important;
+  transition: color 0.2s ease;
+}
+
+
+.full-width-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.full-width-table th,
+.full-width-table td {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.full-width-table th {
+    text-align: center;
+}
+
+.full-width-table td:first-child {
+    text-align: center;
+}
+
+.full-width-table td:last-child {
+    text-align: center;
+}

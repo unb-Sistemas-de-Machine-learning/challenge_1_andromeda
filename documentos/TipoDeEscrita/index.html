@@ -1,0 +1,1652 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Portuguese Fake News Classifier — BERTimbau Combined - Challenge 1 - Andrômeda</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/global.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="red">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#portuguese-fake-news-classifier-bertimbau-combined" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Challenge 1 - Andrômeda" class="md-header__button md-logo" aria-label="Challenge 1 - Andrômeda" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Challenge 1 - Andrômeda
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Portuguese Fake News Classifier — BERTimbau Combined
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/unb-Sistemas-de-Machine-learning/challenge_1_andromeda" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../01_Canvas/01_guidingQuestions/" class="md-tabs__link">
+          
+  
+  
+  Canvas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../02_Sobre/01-funcionamento/" class="md-tabs__link">
+          
+  
+  
+  Sobre
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Challenge 1 - Andrômeda" class="md-nav__button md-logo" aria-label="Challenge 1 - Andrômeda" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Challenge 1 - Andrômeda
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/unb-Sistemas-de-Machine-learning/challenge_1_andromeda" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canvas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Canvas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_Canvas/01_guidingQuestions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guiding Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_Canvas/02_objetivos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objetivos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_Canvas/03_backlog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sobre
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Sobre
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/01-funcionamento/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão Geral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/02-metricas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Métricas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/03-scorefinal-feedback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score Final e Feedback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/04-qualidade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qualidade, Limites e Execução
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-o-que-e-o-modelo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. O que é o modelo?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="portuguese-fake-news-classifier-bertimbau-combined">Portuguese Fake News Classifier — BERTimbau Combined<a class="headerlink" href="#portuguese-fake-news-classifier-bertimbau-combined" title="Permanent link">&para;</a></h1>
+<h2 id="1-o-que-e-o-modelo">1. O que é o modelo?<a class="headerlink" href="#1-o-que-e-o-modelo" title="Permanent link">&para;</a></h2>
+<p>O modelo <strong><code>vzani/portuguese-fake-news-classifier-bertimbau-combined</code></strong>, disponibilizado no Hugging Face, é um modelo de <strong>classificação binária de textos em português</strong>, desenvolvido para classificar notícias nas categorias:</p>
+<ul>
+<li><strong>Fake</strong> — notícia considerada falsa pelo classificador;</li>
+<li><strong>True</strong> — notícia considerada verdadeira pelo classificador.</li>
+</ul>
+<p>O modelo é baseado no <strong>BERTimbau</strong>, uma versão do BERT treinada especificamente para o português brasileiro, e passou por um processo de <strong>fine-tuning</strong> para a tarefa de classificação de notícias.</p>
+<p>O modelo-base utilizado é:</p>
+<div class="highlight"><pre><span></span><code>neuralmind/bert-base-portuguese-cased
+</code></pre></div>
+<p>Portanto, é importante destacar que o BERTimbau originalmente <strong>não é um detector de fake news</strong>. Ele é um modelo de linguagem para português. O modelo <code>portuguese-fake-news-classifier-bertimbau-combined</code> é o resultado da adaptação desse modelo para a tarefa específica de classificação de fake news.</p>
+<hr />
+<h1 id="2-funcionamento-geral">2. Funcionamento geral<a class="headerlink" href="#2-funcionamento-geral" title="Permanent link">&para;</a></h1>
+<p>O funcionamento pode ser representado da seguinte forma:</p>
+<div class="highlight"><pre><span></span><code>                    TEXTO DA NOTÍCIA
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  Tokenizer  │
+                    └──────┬──────┘
+                           │
+                           ▼
+                  Tokens / IDs / Máscara
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  BERTimbau  │
+                    │     Base    │
+                    └──────┬──────┘
+                           │
+                           ▼
+                 Representação do texto
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │  Classificador  │
+                  │     binário     │
+                  └────────┬────────┘
+                           │
+                    ┌──────┴──────┐
+                    ▼             ▼
+                  Fake          True
+</code></pre></div>
+<p>O texto é inicialmente convertido em tokens pelo tokenizer. Esses tokens são processados pelo BERTimbau, que produz uma representação contextualizada do texto. Em seguida, uma camada de classificação utiliza essa representação para determinar a classe da notícia.</p>
+<hr />
+<h1 id="3-o-que-e-o-bertimbau">3. O que é o BERTimbau?<a class="headerlink" href="#3-o-que-e-o-bertimbau" title="Permanent link">&para;</a></h1>
+<p>O BERTimbau é uma versão do modelo <strong>BERT</strong> adaptada para o português brasileiro.</p>
+<p>BERT significa:</p>
+<blockquote>
+<p><strong>Bidirectional Encoder Representations from Transformers</strong></p>
+</blockquote>
+<p>Uma das principais características do BERT é sua capacidade de analisar uma palavra considerando o contexto em que ela aparece.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>O banco aprovou o empréstimo.
+</code></pre></div>
+<p>e:</p>
+<div class="highlight"><pre><span></span><code>Sentei no banco da praça.
+</code></pre></div>
+<p>A palavra <code>banco</code> possui significados diferentes nos dois casos.</p>
+<p>O BERT consegue utilizar as palavras que aparecem ao redor para construir uma representação contextualizada da palavra.</p>
+<p>Isso é especialmente importante para notícias, pois o significado das palavras depende do contexto em que elas são utilizadas.</p>
+<hr />
+<h1 id="4-por-que-utilizar-bertimbau-para-portugues">4. Por que utilizar BERTimbau para português?<a class="headerlink" href="#4-por-que-utilizar-bertimbau-para-portugues" title="Permanent link">&para;</a></h1>
+<p>O BERTimbau foi desenvolvido para trabalhar com características da língua portuguesa, incluindo:</p>
+<ul>
+<li>flexões verbais;</li>
+<li>gênero;</li>
+<li>número;</li>
+<li>acentuação;</li>
+<li>concordância;</li>
+<li>estruturas sintáticas;</li>
+<li>vocabulário do português brasileiro;</li>
+<li>palavras compostas;</li>
+<li>expressões características do português.</li>
+</ul>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>O governo anunciou novas medidas econômicas.
+</code></pre></div>
+<p>O modelo não analisa apenas cada palavra individualmente. Ele utiliza o contexto da frase para construir uma representação numérica do texto.</p>
+<hr />
+<h1 id="5-o-significado-de-combined">5. O significado de <code>combined</code><a class="headerlink" href="#5-o-significado-de-combined" title="Permanent link">&para;</a></h1>
+<p>O termo <code>combined</code> é importante porque indica que essa versão do modelo foi treinada utilizando uma combinação de diferentes conjuntos de dados.</p>
+<p>A estrutura utilizada pode ser representada como:</p>
+<div class="highlight"><pre><span></span><code>Fake.br
+   +
+FakeTrue.Br
+   │
+   ▼
+Corpus combinado
+   │
+   ▼
+Fine-tuning do BERTimbau
+   │
+   ▼
+Modelo final
+</code></pre></div>
+<p>O model card do modelo identifica o dataset <code>vzani/corpus-combined</code> como conjunto utilizado no treinamento.</p>
+<hr />
+<h1 id="6-qual-e-a-tarefa-do-modelo">6. Qual é a tarefa do modelo?<a class="headerlink" href="#6-qual-e-a-tarefa-do-modelo" title="Permanent link">&para;</a></h1>
+<p>A tarefa realizada pelo modelo é uma <strong>classificação binária de textos</strong>.</p>
+<p>Isso significa que existem duas classes possíveis:</p>
+<div class="highlight"><pre><span></span><code>LABEL_0 → Fake
+LABEL_1 → True
+</code></pre></div>
+<p>Portanto:</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Classe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LABEL_0</code></td>
+<td>Fake</td>
+</tr>
+<tr>
+<td><code>LABEL_1</code></td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+<p>Essa associação é específica desse modelo e não deve ser generalizada para todos os modelos disponíveis no Hugging Face.</p>
+<hr />
+<h1 id="7-tokenizacao">7. Tokenização<a class="headerlink" href="#7-tokenizacao" title="Permanent link">&para;</a></h1>
+<p>Antes que o texto seja processado pelo BERTimbau, ele precisa ser convertido em tokens.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>O governo anunciou uma nova medida econômica.
+</code></pre></div>
+<p>Pode ser dividido conceitualmente em:</p>
+<div class="highlight"><pre><span></span><code>O
+governo
+anunciou
+uma
+nova
+medida
+econômica
+.
+</code></pre></div>
+<p>Esses tokens são então convertidos em identificadores numéricos.</p>
+<p>De maneira simplificada:</p>
+<div class="highlight"><pre><span></span><code>"O"          → ID numérico
+"governo"    → ID numérico
+"anunciou"   → ID numérico
+"uma"        → ID numérico
+...
+</code></pre></div>
+<p>Os números reais dependem do vocabulário utilizado pelo tokenizer do BERTimbau.</p>
+<p>Além dos tokens, o tokenizer produz informações como:</p>
+<div class="highlight"><pre><span></span><code>input_ids
+attention_mask
+</code></pre></div>
+<hr />
+<h1 id="8-limite-de-512-tokens">8. Limite de 512 tokens<a class="headerlink" href="#8-limite-de-512-tokens" title="Permanent link">&para;</a></h1>
+<p>O modelo utiliza uma sequência máxima de aproximadamente:</p>
+<div class="highlight"><pre><span></span><code>512 tokens
+</code></pre></div>
+<p>Isso significa que uma notícia com 100 ou 300 tokens pode ser processada normalmente.</p>
+<p>Porém, uma notícia muito longa, por exemplo:</p>
+<div class="highlight"><pre><span></span><code>2.000 tokens
+</code></pre></div>
+<p>não pode ser inserida integralmente em uma única sequência de 512 tokens.</p>
+<p>Se for utilizado:</p>
+<div class="highlight"><pre><span></span><code><span class="n">truncation</span><span class="o">=</span><span class="kc">True</span>
+</code></pre></div>
+<p>parte do texto poderá ser descartada.</p>
+<p>Isso pode ser problemático porque uma informação importante pode estar no final da notícia.</p>
+<p>Para textos longos, uma alternativa seria dividir a notícia em partes e realizar a classificação separadamente, agregando os resultados posteriormente.</p>
+<hr />
+<h1 id="9-o-que-acontece-dentro-do-bert">9. O que acontece dentro do BERT?<a class="headerlink" href="#9-o-que-acontece-dentro-do-bert" title="Permanent link">&para;</a></h1>
+<p>Depois da tokenização:</p>
+<div class="highlight"><pre><span></span><code>Texto
+  ↓
+Tokenizer
+  ↓
+Tokens
+  ↓
+BERTimbau
+</code></pre></div>
+<p>O BERT transforma os tokens em representações vetoriais.</p>
+<p>Conceitualmente:</p>
+<div class="highlight"><pre><span></span><code>"O governo anunciou novas medidas"
+                │
+                ▼
+      Representação vetorial
+                │
+                ▼
+      Informação contextual
+</code></pre></div>
+<p>O Transformer utiliza o mecanismo de <strong>self-attention</strong>, que permite ao modelo relacionar diferentes partes do texto.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>O presidente anunciou a medida porque ela...
+</code></pre></div>
+<p>O modelo pode relacionar o pronome <code>ela</code> com elementos anteriores da frase.</p>
+<hr />
+<h1 id="10-camada-de-classificacao">10. Camada de classificação<a class="headerlink" href="#10-camada-de-classificacao" title="Permanent link">&para;</a></h1>
+<p>Depois do processamento pelo BERTimbau, existe uma camada responsável pela classificação.</p>
+<p>O processo pode ser representado como:</p>
+<div class="highlight"><pre><span></span><code>BERTimbau
+    │
+    ▼
+Representação contextual
+    │
+    ▼
+Camada de classificação
+    │
+    ▼
+┌───────────────┐
+│     Fake      │
+│     True      │
+└───────────────┘
+</code></pre></div>
+<p>O modelo produz valores chamados <strong>logits</strong>.</p>
+<p>Por exemplo, conceitualmente:</p>
+<div class="highlight"><pre><span></span><code>Fake =  4.8
+True = -2.3
+</code></pre></div>
+<p>Esses valores são posteriormente convertidos em probabilidades.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>Fake = 99,99%
+True =  0,01%
+</code></pre></div>
+<p>A classe com maior probabilidade é selecionada como resultado.</p>
+<hr />
+<h1 id="11-instalacao">11. Instalação<a class="headerlink" href="#11-instalacao" title="Permanent link">&para;</a></h1>
+<p>Para utilizar o modelo em Python, é necessário instalar o PyTorch e o Transformers.</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>transformers<span class="w"> </span>torch
+</code></pre></div>
+<p>Também pode ser utilizado:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>transformers<span class="w"> </span>torch<span class="w"> </span>sentencepiece
+</code></pre></div>
+<p>Para verificar a instalação do Transformers:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import transformers; print(transformers.__version__)"</span>
+</code></pre></div>
+<hr />
+<h1 id="12-utilizacao-com-pipeline">12. Utilização com <code>pipeline</code><a class="headerlink" href="#12-utilizacao-com-pipeline" title="Permanent link">&para;</a></h1>
+<p>A maneira mais simples de utilizar o modelo é através da função <code>pipeline</code> da biblioteca Transformers.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span>
+    <span class="s2">"text-classification"</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"vzani/portuguese-fake-news-classifier-bertimbau-combined"</span>
+<span class="p">)</span>
+
+<span class="n">texto</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">O governo anunciou nesta segunda-feira uma nova medida econômica.</span>
+<span class="s2">"""</span>
+
+<span class="n">resultado</span> <span class="o">=</span> <span class="n">classifier</span><span class="p">(</span><span class="n">texto</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">resultado</span><span class="p">)</span>
+</code></pre></div>
+<p>Na primeira execução, os arquivos do modelo serão baixados do Hugging Face.</p>
+<p>Posteriormente, eles normalmente ficam armazenados no cache local.</p>
+<hr />
+<h1 id="13-interpretando-a-saida">13. Interpretando a saída<a class="headerlink" href="#13-interpretando-a-saida" title="Permanent link">&para;</a></h1>
+<p>Uma saída possível seria:</p>
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">'label'</span><span class="p">:</span> <span class="s1">'LABEL_1'</span><span class="p">,</span>
+        <span class="s1">'score'</span><span class="p">:</span> <span class="mf">0.97</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<p>Nesse caso:</p>
+<div class="highlight"><pre><span></span><code>LABEL_1
+   ↓
+True
+</code></pre></div>
+<p>e:</p>
+<div class="highlight"><pre><span></span><code>0.97
+   ↓
+97%
+</code></pre></div>
+<p>Portanto, o resultado poderia ser interpretado como:</p>
+<div class="highlight"><pre><span></span><code>Classificação: True
+Score: 97%
+</code></pre></div>
+<hr />
+<h1 id="14-convertendo-label_0-e-label_1">14. Convertendo <code>LABEL_0</code> e <code>LABEL_1</code><a class="headerlink" href="#14-convertendo-label_0-e-label_1" title="Permanent link">&para;</a></h1>
+<p>Para tornar a saída mais compreensível, podemos fazer a conversão manualmente:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span>
+    <span class="s2">"text-classification"</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"vzani/portuguese-fake-news-classifier-bertimbau-combined"</span>
+<span class="p">)</span>
+
+<span class="n">texto</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">O governo anunciou nesta segunda-feira uma nova medida econômica.</span>
+<span class="s2">"""</span>
+
+<span class="n">resultado</span> <span class="o">=</span> <span class="n">classifier</span><span class="p">(</span><span class="n">texto</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="n">resultado</span><span class="p">[</span><span class="s2">"label"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"LABEL_1"</span><span class="p">:</span>
+    <span class="n">classe</span> <span class="o">=</span> <span class="s2">"True"</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">classe</span> <span class="o">=</span> <span class="s2">"Fake"</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Classe:"</span><span class="p">,</span> <span class="n">classe</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Score:"</span><span class="p">,</span> <span class="n">resultado</span><span class="p">[</span><span class="s2">"score"</span><span class="p">])</span>
+</code></pre></div>
+<p>A lógica é:</p>
+<div class="highlight"><pre><span></span><code>LABEL_0 → Fake
+LABEL_1 → True
+</code></pre></div>
+<hr />
+<h1 id="15-exemplo-completo">15. Exemplo completo<a class="headerlink" href="#15-exemplo-completo" title="Permanent link">&para;</a></h1>
+<p>Uma implementação mais organizada poderia ser:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline</span>
+
+<span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">"vzani/portuguese-fake-news-classifier-bertimbau-combined"</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span>
+    <span class="s2">"text-classification"</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">MODEL_NAME</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">classificar_noticia</span><span class="p">(</span><span class="n">texto</span><span class="p">):</span>
+    <span class="n">resultado</span> <span class="o">=</span> <span class="n">classifier</span><span class="p">(</span><span class="n">texto</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">resultado</span><span class="p">[</span><span class="s2">"label"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"LABEL_1"</span><span class="p">:</span>
+        <span class="n">classe</span> <span class="o">=</span> <span class="s2">"True"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">classe</span> <span class="o">=</span> <span class="s2">"Fake"</span>
+
+    <span class="n">confianca</span> <span class="o">=</span> <span class="n">resultado</span><span class="p">[</span><span class="s2">"score"</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"classe"</span><span class="p">:</span> <span class="n">classe</span><span class="p">,</span>
+        <span class="s2">"confianca"</span><span class="p">:</span> <span class="n">confianca</span>
+    <span class="p">}</span>
+
+
+<span class="n">texto</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">BOMBA! Uma nova medida foi anunciada pelo governo nesta manhã.</span>
+<span class="s2">"""</span>
+
+<span class="n">resultado</span> <span class="o">=</span> <span class="n">classificar_noticia</span><span class="p">(</span><span class="n">texto</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">resultado</span><span class="p">)</span>
+</code></pre></div>
+<p>Uma saída possível:</p>
+<div class="highlight"><pre><span></span><code>{
+    'classe': 'Fake',
+    'confianca': 0.91
+}
+</code></pre></div>
+<hr />
+<h1 id="16-o-que-significa-o-score">16. O que significa o <code>score</code>?<a class="headerlink" href="#16-o-que-significa-o-score" title="Permanent link">&para;</a></h1>
+<p>O campo <code>score</code> representa a confiança/probabilidade atribuída pelo modelo à classe escolhida.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"LABEL_0"</span><span class="p">,</span>
+    <span class="s2">"score"</span><span class="p">:</span> <span class="mf">0.93</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>significa que o modelo atribuiu aproximadamente:</p>
+<div class="highlight"><pre><span></span><code>93%
+</code></pre></div>
+<p>à classe <code>LABEL_0</code>.</p>
+<p>Porém, isso <strong>não significa necessariamente que existe 93% de probabilidade de a notícia ser realmente falsa</strong>.</p>
+<p>Essa distinção é fundamental.</p>
+<p>O score representa a confiança do <strong>modelo em sua classificação</strong>, e não uma comprovação independente da veracidade da notícia.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>Modelo:
+Fake → 99%
+
+Realidade:
+A notícia pode ser verdadeira.
+</code></pre></div>
+<p>O modelo não consulta automaticamente jornais, órgãos governamentais ou serviços de fact-checking para confirmar o conteúdo.</p>
+<hr />
+<h1 id="17-o-modelo-realmente-detecta-fake-news">17. O modelo realmente detecta fake news?<a class="headerlink" href="#17-o-modelo-realmente-detecta-fake-news" title="Permanent link">&para;</a></h1>
+<p>É importante diferenciar:</p>
+<blockquote>
+<p><strong>Classificação de texto</strong></p>
+</blockquote>
+<p>de:</p>
+<blockquote>
+<p><strong>Verificação factual.</strong></p>
+</blockquote>
+<p>O modelo realiza classificação de texto.</p>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>"NASA descobriu água em Marte ontem."
+</code></pre></div>
+<p>O modelo pode analisar o texto e produzir:</p>
+<div class="highlight"><pre><span></span><code>Fake → 97%
+</code></pre></div>
+<p>Mas ele não necessariamente sabe se a NASA realmente anunciou isso.</p>
+<p>Um sistema de verificação factual precisaria consultar fontes externas.</p>
+<p>Portanto, uma descrição tecnicamente mais correta seria:</p>
+<blockquote>
+<p>O modelo é um classificador de textos baseado em BERTimbau, ajustado para classificar notícias em português nas categorias Fake e True.</p>
+</blockquote>
+<p>Não é adequado descrevê-lo simplesmente como:</p>
+<blockquote>
+<p>"Uma IA que verifica se uma notícia é verdadeira."</p>
+</blockquote>
+<p>Essa segunda descrição sugere uma capacidade de verificação factual que o modelo não possui.</p>
+<hr />
+<h1 id="18-como-o-modelo-foi-treinado">18. Como o modelo foi treinado?<a class="headerlink" href="#18-como-o-modelo-foi-treinado" title="Permanent link">&para;</a></h1>
+<p>Segundo as informações disponibilizadas no model card, o modelo foi treinado com os seguintes parâmetros:</p>
+<table>
+<thead>
+<tr>
+<th>Característica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modelo-base</td>
+<td><code>neuralmind/bert-base-portuguese-cased</code></td>
+</tr>
+<tr>
+<td>Dataset</td>
+<td>Fake.br + FakeTrue.Br</td>
+</tr>
+<tr>
+<td>Batch size</td>
+<td>16</td>
+</tr>
+<tr>
+<td>Épocas</td>
+<td>7</td>
+</tr>
+<tr>
+<td>Learning rate</td>
+<td>aproximadamente <code>3,126 × 10⁻⁵</code></td>
+</tr>
+<tr>
+<td>Otimizador</td>
+<td>AdamW</td>
+</tr>
+<tr>
+<td>Função de perda</td>
+<td>Cross-Entropy</td>
+</tr>
+<tr>
+<td>Sequência máxima</td>
+<td>512 tokens</td>
+</tr>
+</tbody>
+</table>
+<p>Além disso, oito camadas do BERT foram congeladas durante o treinamento, enquanto as quatro camadas superiores foram ajustadas para a tarefa de classificação.</p>
+<hr />
+<h1 id="19-o-que-significa-congelar-camadas">19. O que significa congelar camadas?<a class="headerlink" href="#19-o-que-significa-congelar-camadas" title="Permanent link">&para;</a></h1>
+<p>Um modelo BERT possui diversas camadas Transformer.</p>
+<p>Podemos representar simplificadamente:</p>
+<div class="highlight"><pre><span></span><code>BERT
+├── Camada 1
+├── Camada 2
+├── Camada 3
+├── ...
+├── Camada 12
+└── Classificador
+</code></pre></div>
+<p>Nesse treinamento:</p>
+<div class="highlight"><pre><span></span><code>Camada 1  → congelada
+Camada 2  → congelada
+Camada 3  → congelada
+...
+Camada 8  → congelada
+
+Camada 9  → treinada
+Camada 10 → treinada
+Camada 11 → treinada
+Camada 12 → treinada
+</code></pre></div>
+<p>As primeiras camadas preservam boa parte das representações linguísticas aprendidas durante o pré-treinamento.</p>
+<p>As camadas superiores são adaptadas à tarefa de classificação de fake news.</p>
+<p>Essa estratégia reduz a quantidade de parâmetros que precisam ser ajustados durante o fine-tuning.</p>
+<hr />
+<h1 id="20-desempenho-informado-pelo-autor">20. Desempenho informado pelo autor<a class="headerlink" href="#20-desempenho-informado-pelo-autor" title="Permanent link">&para;</a></h1>
+<p>No conjunto de teste combinado, o autor informa aproximadamente:</p>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th style="text-align: right;">Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Accuracy</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>Precision macro</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>Recall macro</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>F1 macro</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>Precision weighted</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>Recall weighted</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>F1 weighted</td>
+<td style="text-align: right;">0,992</td>
+</tr>
+<tr>
+<td>Amostras de teste</td>
+<td style="text-align: right;">2.157</td>
+</tr>
+</tbody>
+</table>
+<p>Assim, a <strong>accuracy reportada é de aproximadamente 99,2%</strong>.</p>
+<p>É importante observar que esses valores correspondem ao conjunto de teste utilizado no trabalho do autor.</p>
+<p>Eles não significam que o modelo necessariamente apresentará 99,2% de acerto em qualquer conjunto de notícias encontrado na Internet.</p>
+<hr />
+<h1 id="21-por-que-o-desempenho-pode-mudar">21. Por que o desempenho pode mudar?<a class="headerlink" href="#21-por-que-o-desempenho-pode-mudar" title="Permanent link">&para;</a></h1>
+<p>Imagine que o modelo tenha sido treinado e avaliado principalmente com:</p>
+<div class="highlight"><pre><span></span><code>Fake.br
++
+FakeTrue.Br
+</code></pre></div>
+<p>Mas posteriormente seja utilizado em:</p>
+<div class="highlight"><pre><span></span><code>Posts do X/Twitter
+</code></pre></div>
+<p>ou:</p>
+<div class="highlight"><pre><span></span><code>TikTok
+</code></pre></div>
+<p>ou:</p>
+<div class="highlight"><pre><span></span><code>WhatsApp
+</code></pre></div>
+<p>ou:</p>
+<div class="highlight"><pre><span></span><code>Notícias de 2026
+</code></pre></div>
+<p>ou:</p>
+<div class="highlight"><pre><span></span><code>Manchetes extremamente curtas
+</code></pre></div>
+<p>A distribuição dos dados pode ser diferente.</p>
+<p>Isso é conhecido como <strong>distribution shift</strong> ou mudança na distribuição dos dados.</p>
+<p>Podemos representar:</p>
+<div class="highlight"><pre><span></span><code>Dados de treinamento
+        │
+        ▼
+Notícias estruturadas
+        │
+        ▼
+      Modelo
+        │
+        ▼
+Desempenho conhecido
+
+
+Dados reais
+        │
+        ▼
+Posts + memes + abreviações
+        │
+        ▼
+Possível mudança de desempenho
+</code></pre></div>
+<p>Por esse motivo, a accuracy de 99,2% deve ser interpretada dentro do contexto do conjunto de dados utilizado na avaliação.</p>
+<hr />
+<h1 id="22-limitacao-importante">22. Limitação importante<a class="headerlink" href="#22-limitacao-importante" title="Permanent link">&para;</a></h1>
+<p>Considere uma mensagem como:</p>
+<div class="highlight"><pre><span></span><code>URGENTE!!! COMPARTILHE!!!
+PRESIDENTE VAI PROIBIR PIX!!!
+</code></pre></div>
+<p>O modelo pode reconhecer padrões linguísticos semelhantes aos presentes em exemplos classificados como fake.</p>
+<p>Porém, isso não significa que ele sabe se:</p>
+<div class="highlight"><pre><span></span><code>O presidente realmente anunciou isso?
+</code></pre></div>
+<p>A resposta exigiria uma verificação factual.</p>
+<p>O modelo não consulta automaticamente:</p>
+<ul>
+<li>jornais;</li>
+<li>agências de notícias;</li>
+<li>sites governamentais;</li>
+<li>bases de dados;</li>
+<li>serviços de fact-checking.</li>
+</ul>
+<p>Ele realiza uma classificação baseada nos padrões aprendidos durante o treinamento.</p>
+<hr />
+<h1 id="23-utilizando-o-modelo-com-varias-noticias">23. Utilizando o modelo com várias notícias<a class="headerlink" href="#23-utilizando-o-modelo-com-varias-noticias" title="Permanent link">&para;</a></h1>
+<p>Também é possível fornecer uma lista de textos:</p>
+<div class="highlight"><pre><span></span><code><span class="n">noticias</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"O governo anunciou novas medidas econômicas."</span><span class="p">,</span>
+    <span class="s2">"URGENTE!!! COMPARTILHE ESTA MENSAGEM!!!"</span><span class="p">,</span>
+    <span class="s2">"A universidade publicou o calendário acadêmico."</span>
+<span class="p">]</span>
+
+<span class="n">resultados</span> <span class="o">=</span> <span class="n">classifier</span><span class="p">(</span><span class="n">noticias</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">noticia</span><span class="p">,</span> <span class="n">resultado</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">noticias</span><span class="p">,</span> <span class="n">resultados</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">noticia</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">resultado</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+</code></pre></div>
+<p>Dessa maneira, o modelo pode processar várias notícias em sequência.</p>
+<hr />
+<h1 id="24-utilizacao-com-gpu">24. Utilização com GPU<a class="headerlink" href="#24-utilizacao-com-gpu" title="Permanent link">&para;</a></h1>
+<p>Caso exista uma GPU compatível com PyTorch, pode-se utilizar:</p>
+<div class="highlight"><pre><span></span><code><span class="n">classifier</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span>
+    <span class="s2">"text-classification"</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"vzani/portuguese-fake-news-classifier-bertimbau-combined"</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Nesse caso:</p>
+<div class="highlight"><pre><span></span><code>device=0
+</code></pre></div>
+<p>representa a primeira GPU disponível.</p>
+<p>Para CPU, pode ser utilizado:</p>
+<div class="highlight"><pre><span></span><code><span class="n">device</span><span class="o">=-</span><span class="mi">1</span>
+</code></pre></div>
+<p>Em muitos casos, a configuração padrão já utiliza a CPU automaticamente quando nenhuma GPU é especificada.</p>
+<hr />
+<h1 id="25-utilizando-o-modelo-diretamente">25. Utilizando o modelo diretamente<a class="headerlink" href="#25-utilizando-o-modelo-diretamente" title="Permanent link">&para;</a></h1>
+<p>Outra possibilidade é carregar diretamente o tokenizer e o modelo:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AutoTokenizer</span><span class="p">,</span>
+    <span class="n">AutoModelForSequenceClassification</span>
+<span class="p">)</span>
+
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="s2">"vzani/portuguese-fake-news-classifier-bertimbau-combined"</span>
+<span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForSequenceClassification</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="s2">"vzani/portuguese-fake-news-classifier-bertimbau-combined"</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Essa abordagem oferece maior controle sobre o processo de inferência.</p>
+<hr />
+<h1 id="26-pipeline-versus-utilizacao-direta">26. <code>pipeline</code> versus utilização direta<a class="headerlink" href="#26-pipeline-versus-utilizacao-direta" title="Permanent link">&para;</a></h1>
+<p>A <code>pipeline</code> é mais adequada para:</p>
+<ul>
+<li>testes rápidos;</li>
+<li>protótipos;</li>
+<li>aplicações simples;</li>
+<li>demonstrações.</li>
+</ul>
+<p>Por exemplo:</p>
+<div class="highlight"><pre><span></span><code>Texto
+ ↓
+pipeline
+ ↓
+Resultado
+</code></pre></div>
+<p>Já o carregamento direto do tokenizer e do modelo é mais adequado quando é necessário controlar detalhes da inferência:</p>
+<div class="highlight"><pre><span></span><code>Texto
+ ↓
+Tokenizer
+ ↓
+input_ids
+ ↓
+attention_mask
+ ↓
+BERTimbau
+ ↓
+Logits
+ ↓
+Softmax
+ ↓
+Classificação
+</code></pre></div>
+<p>Isso pode ser particularmente útil no desenvolvimento de uma API ou aplicação maior.</p>
+<hr />
+<h1 id="27-utilizacao-em-uma-aplicacao-web">27. Utilização em uma aplicação web<a class="headerlink" href="#27-utilizacao-em-uma-aplicacao-web" title="Permanent link">&para;</a></h1>
+<p>Uma possível arquitetura seria:</p>
+<div class="highlight"><pre><span></span><code>                    ┌─────────────────┐
+                    │     Usuário     │
+                    └────────┬────────┘
+                             │
+                       Envia notícia
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │    Front-end    │
+                    └────────┬────────┘
+                             │
+                         HTTP/JSON
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │       API       │
+                    │     FastAPI     │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │    BERTimbau    │
+                    │  Fake News      │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   Classificação │
+                    │ Fake / True     │
+                    │ Confiança       │
+                    └─────────────────┘
+</code></pre></div>
+<p>A API poderia receber:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">"texto"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Uma notícia qualquer..."</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>e retornar:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">"classe"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Fake"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"confianca"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.97</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h1 id="28-arquitetura-mais-robusta">28. Arquitetura mais robusta<a class="headerlink" href="#28-arquitetura-mais-robusta" title="Permanent link">&para;</a></h1>
+<p>Para construir um sistema real de verificação de notícias, não seria recomendável depender exclusivamente desse classificador.</p>
+<p>Uma arquitetura mais completa poderia ser:</p>
+<div class="highlight"><pre><span></span><code>                    NOTÍCIA
+                       │
+                       ▼
+                ┌──────────────┐
+                │ Pré-process. │
+                └──────┬───────┘
+                       │
+              ┌────────┴────────┐
+              │                 │
+              ▼                 ▼
+        ┌───────────┐     ┌───────────────┐
+        │ BERTimbau │     │ Busca de fontes│
+        └─────┬─────┘     └───────┬───────┘
+              │                   │
+              │                   ▼
+              │             Fontes confiáveis
+              │                   │
+              └─────────┬─────────┘
+                        ▼
+                 Análise conjunta
+                        │
+                        ▼
+                  Resultado final
+</code></pre></div>
+<p>Nesse cenário, o BERTimbau seria responsável pela <strong>classificação textual</strong>, enquanto outro componente realizaria a <strong>verificação factual por meio de fontes externas</strong>.</p>
+<hr />
+<h1 id="29-aplicacao-em-um-projeto-academico">29. Aplicação em um projeto acadêmico<a class="headerlink" href="#29-aplicacao-em-um-projeto-academico" title="Permanent link">&para;</a></h1>
+<p>Para um projeto acadêmico de detecção de fake news, uma arquitetura interessante seria:</p>
+<div class="highlight"><pre><span></span><code>                  ┌─────────────────┐
+                  │ Texto da notícia│
+                  └────────┬────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │    Tokenizer    │
+                  └────────┬────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │    BERTimbau    │
+                  └────────┬────────┘
+                           │
+                           ▼
+                  ┌───────────────────┐
+                  │    Classificador  │
+                  └─────────┬─────────┘
+                            │
+                    ┌───────┴───────┐
+                    ▼               ▼
+                  Fake             True
+                    │               │
+                    └───────┬───────┘
+                            ▼
+                       Confiança
+</code></pre></div>
+<p>O resultado apresentado ao usuário poderia ser algo como:</p>
+<div class="highlight"><pre><span></span><code>Classificação: POSSÍVEL FAKE NEWS
+
+Confiança do modelo: 96,4%
+
+Observação:
+A classificação é baseada em padrões linguísticos
+aprendidos pelo modelo e não constitui uma verificação
+factual independente.
+</code></pre></div>
+<p>Essa observação é importante para evitar que o usuário interprete a saída do classificador como uma prova definitiva da veracidade ou falsidade da notícia.</p>
+<hr />
+<h1 id="30-resumo-das-caracteristicas">30. Resumo das características<a class="headerlink" href="#30-resumo-das-caracteristicas" title="Permanent link">&para;</a></h1>
+<table>
+<thead>
+<tr>
+<th>Característica</th>
+<th>Informação</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Modelo</strong></td>
+<td><code>vzani/portuguese-fake-news-classifier-bertimbau-combined</code></td>
+</tr>
+<tr>
+<td><strong>Arquitetura</strong></td>
+<td>BERTimbau Base Cased</td>
+</tr>
+<tr>
+<td><strong>Modelo-base</strong></td>
+<td><code>neuralmind/bert-base-portuguese-cased</code></td>
+</tr>
+<tr>
+<td><strong>Idioma</strong></td>
+<td>Português brasileiro</td>
+</tr>
+<tr>
+<td><strong>Tarefa</strong></td>
+<td>Classificação de texto</td>
+</tr>
+<tr>
+<td><strong>Classes</strong></td>
+<td>Fake / True</td>
+</tr>
+<tr>
+<td><strong>LABEL_0</strong></td>
+<td>Fake</td>
+</tr>
+<tr>
+<td><strong>LABEL_1</strong></td>
+<td>True</td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td>Fake.br + FakeTrue.Br</td>
+</tr>
+<tr>
+<td><strong>Fine-tuning</strong></td>
+<td>7 épocas</td>
+</tr>
+<tr>
+<td><strong>Batch size</strong></td>
+<td>16</td>
+</tr>
+<tr>
+<td><strong>Learning rate</strong></td>
+<td>≈ <code>3,126 × 10⁻⁵</code></td>
+</tr>
+<tr>
+<td><strong>Otimizador</strong></td>
+<td>AdamW</td>
+</tr>
+<tr>
+<td><strong>Loss</strong></td>
+<td>Cross-Entropy</td>
+</tr>
+<tr>
+<td><strong>Sequência máxima</strong></td>
+<td>512 tokens</td>
+</tr>
+<tr>
+<td><strong>Accuracy informada</strong></td>
+<td>99,2%</td>
+</tr>
+<tr>
+<td><strong>Número de amostras de teste</strong></td>
+<td>2.157</td>
+</tr>
+<tr>
+<td><strong>Framework</strong></td>
+<td>Hugging Face Transformers</td>
+</tr>
+<tr>
+<td><strong>Licença</strong></td>
+<td>Apache 2.0</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="31-conclusao">31. Conclusão<a class="headerlink" href="#31-conclusao" title="Permanent link">&para;</a></h1>
+<p>O <strong><code>vzani/portuguese-fake-news-classifier-bertimbau-combined</code></strong> é um modelo baseado no <strong>BERTimbau</strong>, desenvolvido para classificação binária de textos em português entre as categorias <strong>Fake</strong> e <strong>True</strong>.</p>
+<p>O modelo utiliza um BERT previamente treinado para português brasileiro e realiza um processo de <strong>fine-tuning</strong> utilizando dados provenientes dos conjuntos <strong>Fake.br</strong> e <strong>FakeTrue.Br</strong>.</p>
+<p>Seu funcionamento pode ser resumido em:</p>
+<div class="highlight"><pre><span></span><code>Texto
+  ↓
+Tokenização
+  ↓
+BERTimbau
+  ↓
+Representação contextual
+  ↓
+Camada de classificação
+  ↓
+Fake / True
+  ↓
+Score
+</code></pre></div>
+<p>O modelo apresentou aproximadamente <strong>99,2% de accuracy</strong> no conjunto de teste informado pelo autor. Entretanto, esse resultado deve ser interpretado considerando o conjunto de dados utilizado e não como uma garantia de 99,2% de acerto para qualquer notícia encontrada na Internet.</p>
+<p>A principal limitação conceitual é que o modelo realiza <strong>classificação baseada em padrões linguísticos</strong>, e não uma verificação factual independente. Dessa forma, uma classificação <code>Fake</code> não constitui, por si só, uma prova de que o conteúdo é falso, assim como uma classificação <code>True</code> não comprova que o conteúdo é verdadeiro.</p>
+<p>Para um sistema de produção mais robusto, o modelo pode ser utilizado como uma das etapas de uma arquitetura maior, combinando <strong>classificação por BERTimbau, recuperação de informações e consulta a fontes confiáveis para verificação factual</strong>.</p>
+<hr />
+<h2 id="referencia">Referência<a class="headerlink" href="#referencia" title="Permanent link">&para;</a></h2>
+<p>Modelo no Hugging Face:</p>
+<p><strong><code>vzani/portuguese-fake-news-classifier-bertimbau-combined</code></strong></p>
+<p>https://huggingface.co/vzani/portuguese-fake-news-classifier-bertimbau-combined</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.tabs.sticky"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

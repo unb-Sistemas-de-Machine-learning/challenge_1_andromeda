@@ -1,0 +1,2151 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Google Fact Check Tools API — Manual de Utilização - Challenge 1 - Andrômeda</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/global.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="red">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#google-fact-check-tools-api-manual-de-utilizacao" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Challenge 1 - Andrômeda" class="md-header__button md-logo" aria-label="Challenge 1 - Andrômeda" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Challenge 1 - Andrômeda
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Google Fact Check Tools API — Manual de Utilização
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/unb-Sistemas-de-Machine-learning/challenge_1_andromeda" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../01_Canvas/01_guidingQuestions/" class="md-tabs__link">
+          
+  
+  
+  Canvas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../02_Sobre/01-funcionamento/" class="md-tabs__link">
+          
+  
+  
+  Sobre
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Challenge 1 - Andrômeda" class="md-nav__button md-logo" aria-label="Challenge 1 - Andrômeda" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Challenge 1 - Andrômeda
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/unb-Sistemas-de-Machine-learning/challenge_1_andromeda" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canvas
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Canvas
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_Canvas/01_guidingQuestions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guiding Questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_Canvas/02_objetivos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objetivos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01_Canvas/03_backlog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sobre
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Sobre
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/01-funcionamento/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão Geral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/02-metricas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Métricas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/03-scorefinal-feedback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Score Final e Feedback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02_Sobre/04-qualidade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qualidade, Limites e Execução
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-o-que-e-a-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. O que é a API?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="google-fact-check-tools-api-manual-de-utilizacao">Google Fact Check Tools API — Manual de Utilização<a class="headerlink" href="#google-fact-check-tools-api-manual-de-utilizacao" title="Permanent link">&para;</a></h1>
+<h2 id="1-o-que-e-a-api">1. O que é a API?<a class="headerlink" href="#1-o-que-e-a-api" title="Permanent link">&para;</a></h2>
+<p>A <strong>Google Fact Check Tools API</strong> é uma API REST do Google que oferece acesso programático a <strong>verificações de fatos (fact-checks)</strong> publicadas por organizações de checagem ao redor do mundo. O serviço é hospedado em:</p>
+<div class="highlight"><pre><span></span><code>https://factchecktools.googleapis.com
+</code></pre></div>
+<p>A API expõe a mesma funcionalidade das ferramentas web do Google para checagem de fatos, e está organizada em dois grupos de operações:</p>
+<ul>
+<li><strong>Busca de alegações verificadas</strong> (<code>claims</code>) — consulta um banco de <em>claims</em> (alegações) que já foram checadas por publicadores de fact-checking, usando <strong>texto</strong> ou <strong>imagem</strong>;</li>
+<li><strong>Gerenciamento de marcação ClaimReview</strong> (<code>pages</code>) — permite que organizações de checagem <strong>criem, consultem, listem, atualizem e removam</strong> a marcação <code>ClaimReview</code> associada às suas páginas.</li>
+</ul>
+<p>É importante destacar que a API <strong>não é um detector de fake news</strong>. Ela não analisa se um texto é verdadeiro ou falso: ela <strong>recupera verificações que humanos (organizações de checagem) já publicaram</strong> sobre alegações semelhantes à consultada.</p>
+<blockquote>
+<p><strong>Versão atual:</strong> <code>v1alpha1</code>. Como o próprio nome indica, trata-se de uma versão <em>alpha</em>, portanto contratos e comportamentos podem mudar.</p>
+</blockquote>
+<hr />
+<h1 id="2-funcionamento-geral">2. Funcionamento geral<a class="headerlink" href="#2-funcionamento-geral" title="Permanent link">&para;</a></h1>
+<p>O funcionamento pode ser representado da seguinte forma:</p>
+<div class="highlight"><pre><span></span><code>                    ┌──────────────────────┐
+                    │   Sua aplicação      │
+                    └──────────┬───────────┘
+                               │
+                       Requisição HTTPS
+                               │
+                               ▼
+              ┌──────────────────────────────────┐
+              │  factchecktools.googleapis.com   │
+              │           /v1alpha1              │
+              └───────────────┬──────────────────┘
+                              │
+              ┌───────────────┴────────────────┐
+              ▼                                ▼
+     ┌─────────────────┐              ┌─────────────────┐
+     │  Recurso claims │              │  Recurso pages  │
+     │   (somente      │              │   (CRUD de      │
+     │    leitura)     │              │  ClaimReview)   │
+     └────────┬────────┘              └────────┬────────┘
+              │                                │
+              ▼                                ▼
+     Claims já verificadas           Marcação ClaimReview
+     por publicadores                de páginas de checagem
+</code></pre></div>
+<p>O recurso <code>claims</code> serve para <strong>consumidores</strong> de fact-checks (por exemplo, um aplicativo que quer mostrar checagens relacionadas a um texto). O recurso <code>pages</code> serve para <strong>publicadores</strong> de fact-checks (por exemplo, uma agência de checagem que quer registrar a marcação de suas matérias).</p>
+<hr />
+<h1 id="3-endpoints-disponiveis">3. Endpoints disponíveis<a class="headerlink" href="#3-endpoints-disponiveis" title="Permanent link">&para;</a></h1>
+<p>A API possui <strong>7 métodos</strong>, distribuídos em dois recursos:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Método</th>
+<th>Verbo e caminho</th>
+<th>Finalidade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>claims.search</code></td>
+<td><code>GET /v1alpha1/claims:search</code></td>
+<td>Buscar claims verificadas por texto</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>claims.imageSearch</code></td>
+<td><code>GET /v1alpha1/claims:imageSearch</code></td>
+<td>Buscar claims verificadas por imagem</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>pages.list</code></td>
+<td><code>GET /v1alpha1/pages</code></td>
+<td>Listar páginas com marcação ClaimReview</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>pages.get</code></td>
+<td><code>GET /v1alpha1/pages/{page_id}</code></td>
+<td>Obter a marcação de uma página</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>pages.create</code></td>
+<td><code>POST /v1alpha1/pages</code></td>
+<td>Criar marcação ClaimReview</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>pages.update</code></td>
+<td><code>PUT /v1alpha1/pages/{page_id}</code></td>
+<td>Substituir a marcação de uma página</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>pages.delete</code></td>
+<td><code>DELETE /v1alpha1/pages/{page_id}</code></td>
+<td>Remover a marcação de uma página</td>
+</tr>
+</tbody>
+</table>
+<p>Todos os caminhos são relativos à URL base:</p>
+<div class="highlight"><pre><span></span><code>https://factchecktools.googleapis.com
+</code></pre></div>
+<hr />
+<h1 id="4-pre-requisitos-e-configuracao">4. Pré-requisitos e configuração<a class="headerlink" href="#4-pre-requisitos-e-configuracao" title="Permanent link">&para;</a></h1>
+<p>Antes da primeira requisição, é necessário configurar um projeto no Google Cloud:</p>
+<div class="highlight"><pre><span></span><code>Projeto no Google Cloud
+        │
+        ▼
+Ativar a "Fact Check Tools API"
+        │
+        ▼
+Criar credencial
+        │
+   ┌────┴────────────┐
+   ▼                 ▼
+Chave de API      Cliente OAuth 2.0
+(claims)          (pages)
+</code></pre></div>
+<p>Passo a passo resumido:</p>
+<ol>
+<li>Criar (ou selecionar) um projeto no <strong>Google Cloud Console</strong>;</li>
+<li>Ativar a <strong>Fact Check Tools API</strong> em <em>APIs e serviços</em>;</li>
+<li>Criar uma <strong>chave de API</strong> (para buscas) e/ou um <strong>ID de cliente OAuth 2.0</strong> (para gerenciar marcações);</li>
+<li>Guardar as credenciais fora do código-fonte, por exemplo em variáveis de ambiente.</li>
+</ol>
+<p>Nos exemplos deste manual, será utilizada a variável:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">FACTCHECK_API_KEY</span><span class="o">=</span><span class="s2">"SUA_CHAVE_DE_API"</span>
+</code></pre></div>
+<hr />
+<h1 id="5-autenticacao">5. Autenticação<a class="headerlink" href="#5-autenticacao" title="Permanent link">&para;</a></h1>
+<p>A API utiliza dois mecanismos, dependendo do recurso:</p>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Métodos</th>
+<th>Autenticação</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>claims</code></td>
+<td><code>search</code>, <code>imageSearch</code></td>
+<td><strong>Chave de API</strong> enviada como parâmetro <code>key</code> na query string</td>
+</tr>
+<tr>
+<td><code>pages</code></td>
+<td><code>list</code>, <code>get</code>, <code>create</code>, <code>update</code>, <code>delete</code></td>
+<td><strong>OAuth 2.0</strong> com o escopo abaixo, enviado no cabeçalho <code>Authorization: Bearer</code></td>
+</tr>
+</tbody>
+</table>
+<p>Escopo OAuth exigido por todos os métodos de <code>pages</code>:</p>
+<div class="highlight"><pre><span></span><code>https://www.googleapis.com/auth/factchecktools
+</code></pre></div>
+<h2 id="51-chave-de-api">5.1 Chave de API<a class="headerlink" href="#51-chave-de-api" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>GET https://factchecktools.googleapis.com/v1alpha1/claims:search?query=...&amp;key=SUA_CHAVE_DE_API
+</code></pre></div>
+<p>A documentação oficial dos métodos <code>claims.*</code> não lista escopo OAuth, o que é consistente com o uso de chave de API para consultas públicas.</p>
+<h2 id="52-oauth-20">5.2 OAuth 2.0<a class="headerlink" href="#52-oauth-20" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>Authorization: Bearer SEU_ACCESS_TOKEN
+</code></pre></div>
+<p>O <em>access token</em> deve ser obtido com o escopo <code>https://www.googleapis.com/auth/factchecktools</code>. Como esses métodos alteram ou consultam marcações ligadas a uma organização, uma chave de API isolada não é suficiente.</p>
+<hr />
+<h1 id="6-convencoes-gerais">6. Convenções gerais<a class="headerlink" href="#6-convencoes-gerais" title="Permanent link">&para;</a></h1>
+<h2 id="61-formato-de-datas">6.1 Formato de datas<a class="headerlink" href="#61-formato-de-datas" title="Permanent link">&para;</a></h2>
+<p>Campos do tipo <code>Timestamp</code> (por exemplo, <code>claimDate</code> e <code>reviewDate</code>) utilizam o formato <strong>RFC 3339 em UTC</strong>:</p>
+<div class="highlight"><pre><span></span><code>2014-10-02T15:01:23Z
+2014-10-02T15:01:23.045123456Z
+</code></pre></div>
+<h2 id="62-paginacao">6.2 Paginação<a class="headerlink" href="#62-paginacao" title="Permanent link">&para;</a></h2>
+<p>Os métodos de listagem e busca retornam, quando há mais resultados, o campo <code>nextPageToken</code>.</p>
+<div class="highlight"><pre><span></span><code>Requisição 1 ─────────► resultados + nextPageToken
+                                   │
+                                   ▼
+Requisição 2 (pageToken=...) ─► resultados + nextPageToken
+                                   │
+                                   ▼
+Requisição N ─────────► resultados + (token vazio) → fim
+</code></pre></div>
+<p>Regras:</p>
+<ul>
+<li><code>pageSize</code> define o máximo de resultados por página (padrão: <strong>10</strong>);</li>
+<li><code>pageToken</code> recebe o <code>nextPageToken</code> da resposta anterior;</li>
+<li>ao usar <code>pageToken</code>, <strong>todos os outros parâmetros devem ser idênticos</strong> aos da requisição anterior;</li>
+<li>um <code>nextPageToken</code> vazio ou ausente indica que não há mais resultados;</li>
+<li><code>offset</code> só é considerado quando <code>pageToken</code> <strong>não</strong> é informado.</li>
+</ul>
+<h2 id="63-codigos-de-status-http">6.3 Códigos de status HTTP<a class="headerlink" href="#63-codigos-de-status-http" title="Permanent link">&para;</a></h2>
+<p>Como as demais APIs do Google, os erros seguem os códigos HTTP padrão:</p>
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th>Situação típica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>200</code></td>
+<td>Requisição bem-sucedida</td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td>Parâmetro inválido ou ausente (por exemplo, <code>claims.search</code> sem <code>query</code>)</td>
+</tr>
+<tr>
+<td><code>401</code></td>
+<td>Credencial ausente ou inválida</td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td>Sem permissão, API não ativada ou escopo insuficiente</td>
+</tr>
+<tr>
+<td><code>404</code></td>
+<td>Recurso inexistente (por exemplo, <code>page_id</code> desconhecido)</td>
+</tr>
+<tr>
+<td><code>429</code></td>
+<td>Limite de requisições excedido</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="7-claimssearch-buscar-claims-por-texto">7. <code>claims.search</code> — Buscar claims por texto<a class="headerlink" href="#7-claimssearch-buscar-claims-por-texto" title="Permanent link">&para;</a></h1>
+<h2 id="71-descricao">7.1 Descrição<a class="headerlink" href="#71-descricao" title="Permanent link">&para;</a></h2>
+<p>Pesquisa alegações que já foram verificadas por organizações de checagem, a partir de uma <strong>consulta em texto</strong>. É o principal endpoint da API e o ponto de partida para quem quer exibir fact-checks relacionados a um assunto.</p>
+<p><strong>Caso de uso principal:</strong> dado um trecho de texto (uma frase de uma notícia, uma publicação em rede social), recuperar checagens já publicadas sobre a mesma alegação ou sobre alegações semelhantes.</p>
+<h2 id="72-metodo-http-e-endpoint">7.2 Método HTTP e endpoint<a class="headerlink" href="#72-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">GET https://factchecktools.googleapis.com/v1alpha1/claims:search</span>
+</code></pre></div>
+<p>O corpo da requisição deve estar vazio.</p>
+<h2 id="73-parametros-query">7.3 Parâmetros (query)<a class="headerlink" href="#73-parametros-query" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>query</code></td>
+<td><code>string</code></td>
+<td><strong>Condicional</strong></td>
+<td>Texto da consulta. Obrigatório, <strong>exceto</strong> quando <code>reviewPublisherSiteFilter</code> é informado.</td>
+</tr>
+<tr>
+<td><code>languageCode</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td>Código de idioma BCP-47, como <code>pt-BR</code>, <code>en-US</code> ou <code>sr-Latn</code>. Restringe os resultados por idioma; a região não é considerada atualmente.</td>
+</tr>
+<tr>
+<td><code>reviewPublisherSiteFilter</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td>Filtra por site do publicador da checagem, por exemplo <code>nytimes.com</code>.</td>
+</tr>
+<tr>
+<td><code>maxAgeDays</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Idade máxima dos resultados, em dias. A idade é calculada pela data da claim ou da revisão, <strong>a que for mais recente</strong>.</td>
+</tr>
+<tr>
+<td><code>pageSize</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Máximo de resultados por página. Padrão: <code>10</code>.</td>
+</tr>
+<tr>
+<td><code>pageToken</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td>Token da página seguinte, obtido em <code>nextPageToken</code>.</td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Posição inicial nos resultados. <code>0</code> começa no primeiro; <code>10</code> começa no 11º. Ignorado se <code>pageToken</code> for informado.</td>
+</tr>
+<tr>
+<td><code>key</code></td>
+<td><code>string</code></td>
+<td><strong>Sim</strong> (na prática)</td>
+<td>Chave de API, conforme a seção de autenticação.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="74-autenticacao">7.4 Autenticação<a class="headerlink" href="#74-autenticacao" title="Permanent link">&para;</a></h2>
+<p>Chave de API no parâmetro <code>key</code>.</p>
+<h2 id="75-exemplo-de-requisicao">7.5 Exemplo de requisição<a class="headerlink" href="#75-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-G<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/claims:search"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"query=vacinas causam autismo"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"languageCode=pt-BR"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"maxAgeDays=365"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"pageSize=5"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"key=</span><span class="nv">$FACTCHECK_API_KEY</span><span class="s2">"</span>
+</code></pre></div>
+<p><strong>Python (<code>requests</code>)</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/claims:search"</span>
+
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"query"</span><span class="p">:</span> <span class="s2">"vacinas causam autismo"</span><span class="p">,</span>
+    <span class="s2">"languageCode"</span><span class="p">:</span> <span class="s2">"pt-BR"</span><span class="p">,</span>
+    <span class="s2">"maxAgeDays"</span><span class="p">:</span> <span class="mi">365</span><span class="p">,</span>
+    <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">"key"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FACTCHECK_API_KEY"</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">resposta</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">claim</span> <span class="ow">in</span> <span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"claims"</span><span class="p">,</span> <span class="p">[]):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">claim</span><span class="p">[</span><span class="s2">"text"</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">review</span> <span class="ow">in</span> <span class="n">claim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"claimReview"</span><span class="p">,</span> <span class="p">[]):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"  -&gt;"</span><span class="p">,</span> <span class="n">review</span><span class="p">[</span><span class="s2">"publisher"</span><span class="p">][</span><span class="s2">"name"</span><span class="p">],</span> <span class="s2">"|"</span><span class="p">,</span> <span class="n">review</span><span class="p">[</span><span class="s2">"textualRating"</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Python (biblioteca cliente do Google)</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">googleapiclient.discovery</span><span class="w"> </span><span class="kn">import</span> <span class="n">build</span>
+
+<span class="n">servico</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span>
+    <span class="s2">"factchecktools"</span><span class="p">,</span> <span class="s2">"v1alpha1"</span><span class="p">,</span>
+    <span class="n">developerKey</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FACTCHECK_API_KEY"</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">resposta</span> <span class="o">=</span> <span class="n">servico</span><span class="o">.</span><span class="n">claims</span><span class="p">()</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">"vacinas causam autismo"</span><span class="p">,</span>
+    <span class="n">languageCode</span><span class="o">=</span><span class="s2">"pt-BR"</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="76-exemplo-de-resposta">7.6 Exemplo de resposta<a class="headerlink" href="#76-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>Os valores abaixo são <strong>ilustrativos</strong>. A estrutura segue o schema oficial.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"claims"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Vacinas causam autismo em crianças."</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimant"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Publicação em rede social"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-10T00:00:00Z"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimReview"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"publisher"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Agência de Checagem Exemplo"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"site"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agenciaexemplo.com.br"</span>
+<span class="w">          </span><span class="p">},</span>
+<span class="w">          </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/checagem/vacinas-autismo"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"É falso que vacinas causam autismo"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"reviewDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-12T14:30:00Z"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"textualRating"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Falso"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"languageCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pt"</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"nextPageToken"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CAoQAA"</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="77-observacoes-importantes">7.7 Observações importantes<a class="headerlink" href="#77-observacoes-importantes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A busca <strong>não</strong> exige correspondência exata: ela retorna claims relacionadas à consulta;</li>
+<li>Uma claim pode ter <strong>várias revisões</strong> (<code>claimReview[]</code>), de publicadores diferentes e com avaliações diferentes;</li>
+<li>É possível buscar apenas por publicador, informando <code>reviewPublisherSiteFilter</code> sem <code>query</code>.</li>
+</ul>
+<hr />
+<h1 id="8-claimsimagesearch-buscar-claims-por-imagem">8. <code>claims.imageSearch</code> — Buscar claims por imagem<a class="headerlink" href="#8-claimsimagesearch-buscar-claims-por-imagem" title="Permanent link">&para;</a></h1>
+<h2 id="81-descricao">8.1 Descrição<a class="headerlink" href="#81-descricao" title="Permanent link">&para;</a></h2>
+<p>Pesquisa alegações verificadas usando uma <strong>imagem</strong> como consulta.</p>
+<p><strong>Caso de uso principal:</strong> dada uma imagem que circula em redes sociais (montagem, print, meme, foto fora de contexto), verificar se ela já foi objeto de alguma checagem.</p>
+<h2 id="82-metodo-http-e-endpoint">8.2 Método HTTP e endpoint<a class="headerlink" href="#82-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">GET https://factchecktools.googleapis.com/v1alpha1/claims:imageSearch</span>
+</code></pre></div>
+<p>O corpo da requisição deve estar vazio.</p>
+<h2 id="83-parametros-query">8.3 Parâmetros (query)<a class="headerlink" href="#83-parametros-query" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>imageUri</code></td>
+<td><code>string</code></td>
+<td><strong>Sim</strong></td>
+<td>URL <strong>pública</strong> (HTTP/HTTPS) da imagem de origem.</td>
+</tr>
+<tr>
+<td><code>languageCode</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td>Código de idioma BCP-47, como <code>pt-BR</code>.</td>
+</tr>
+<tr>
+<td><code>pageSize</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Máximo de resultados por página. Padrão: <code>10</code>.</td>
+</tr>
+<tr>
+<td><code>pageToken</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td>Token da página seguinte, obtido em <code>nextPageToken</code>.</td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Posição inicial nos resultados. Ignorado se <code>pageToken</code> for informado.</td>
+</tr>
+<tr>
+<td><code>key</code></td>
+<td><code>string</code></td>
+<td><strong>Sim</strong> (na prática)</td>
+<td>Chave de API.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Atenção:</strong> o Google busca a imagem a partir da URL informada e <strong>não garante</strong> que a requisição será concluída. Ela pode falhar se o servidor de origem bloquear o acesso (limitação de taxa, proteção contra DoS) ou se o Google limitar requisições àquele site. A documentação recomenda <strong>não depender de imagens hospedadas externamente</strong> em aplicações de produção.</p>
+</blockquote>
+<h2 id="84-autenticacao">8.4 Autenticação<a class="headerlink" href="#84-autenticacao" title="Permanent link">&para;</a></h2>
+<p>Chave de API no parâmetro <code>key</code>.</p>
+<h2 id="85-exemplo-de-requisicao">8.5 Exemplo de requisição<a class="headerlink" href="#85-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-G<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/claims:imageSearch"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"imageUri=https://exemplo.com/imagens/montagem-viral.jpg"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"languageCode=pt-BR"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"key=</span><span class="nv">$FACTCHECK_API_KEY</span><span class="s2">"</span>
+</code></pre></div>
+<p><strong>Python</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/claims:imageSearch"</span>
+
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"imageUri"</span><span class="p">:</span> <span class="s2">"https://exemplo.com/imagens/montagem-viral.jpg"</span><span class="p">,</span>
+    <span class="s2">"languageCode"</span><span class="p">:</span> <span class="s2">"pt-BR"</span><span class="p">,</span>
+    <span class="s2">"key"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FACTCHECK_API_KEY"</span><span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">resposta</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">resultado</span> <span class="ow">in</span> <span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"results"</span><span class="p">,</span> <span class="p">[]):</span>
+    <span class="n">claim</span> <span class="o">=</span> <span class="n">resultado</span><span class="p">[</span><span class="s2">"claim"</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">claim</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"text"</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="86-exemplo-de-resposta">8.6 Exemplo de resposta<a class="headerlink" href="#86-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<p>A diferença em relação a <code>claims.search</code> é que cada item fica dentro de um objeto <code>Result</code>, na lista <code>results</code>, e não diretamente em <code>claims</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"results"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"claim"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Imagem mostra manifestação em 2024."</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"claimant"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Conta anônima"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"claimDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-05-02T00:00:00Z"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"claimReview"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">          </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"publisher"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Agência de Checagem Exemplo"</span><span class="p">,</span>
+<span class="w">              </span><span class="nt">"site"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agenciaexemplo.com.br"</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/checagem/foto-manifestacao"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Foto é de 2018, não de 2024"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"reviewDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-05-03T10:00:00Z"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"textualRating"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Enganoso"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"languageCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pt"</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"nextPageToken"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h1 id="9-pageslist-listar-paginas-com-claimreview">9. <code>pages.list</code> — Listar páginas com ClaimReview<a class="headerlink" href="#9-pageslist-listar-paginas-com-claimreview" title="Permanent link">&para;</a></h1>
+<h2 id="91-descricao">9.1 Descrição<a class="headerlink" href="#91-descricao" title="Permanent link">&para;</a></h2>
+<p>Lista as páginas de marcação <code>ClaimReview</code> de <strong>uma URL específica</strong> ou de <strong>uma organização</strong>.</p>
+<p><strong>Caso de uso principal:</strong> uma agência de checagem quer auditar quais de suas páginas já possuem marcação registrada.</p>
+<h2 id="92-metodo-http-e-endpoint">9.2 Método HTTP e endpoint<a class="headerlink" href="#92-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">GET https://factchecktools.googleapis.com/v1alpha1/pages</span>
+</code></pre></div>
+<p>O corpo da requisição deve estar vazio.</p>
+<h2 id="93-parametros-query">9.3 Parâmetros (query)<a class="headerlink" href="#93-parametros-query" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>url</code></td>
+<td><code>string</code></td>
+<td>Um dos dois</td>
+<td>URL da qual se quer obter a marcação. Retorna <strong>no máximo um</strong> resultado. Se a marcação estiver associada a uma versão mais canônica da URL, ela será retornada. <strong>Não pode</strong> ser usado junto com <code>organization</code>.</td>
+</tr>
+<tr>
+<td><code>organization</code></td>
+<td><code>string</code></td>
+<td>Um dos dois</td>
+<td>Organização cujas marcações serão listadas, por exemplo <code>site.com</code>. <strong>Não pode</strong> ser usado junto com <code>url</code>.</td>
+</tr>
+<tr>
+<td><code>pageSize</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Máximo de resultados por página. Padrão: <code>10</code>. <strong>Sem efeito</strong> se <code>url</code> for informado.</td>
+</tr>
+<tr>
+<td><code>pageToken</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td>Token da página seguinte.</td>
+</tr>
+<tr>
+<td><code>offset</code></td>
+<td><code>integer</code></td>
+<td>Não</td>
+<td>Posição inicial. Só é considerado sem <code>pageToken</code> e quando <strong>não</strong> se consulta uma URL específica.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="94-autenticacao">9.4 Autenticação<a class="headerlink" href="#94-autenticacao" title="Permanent link">&para;</a></h2>
+<p>OAuth 2.0 com o escopo <code>https://www.googleapis.com/auth/factchecktools</code>.</p>
+<h2 id="95-exemplo-de-requisicao">9.5 Exemplo de requisição<a class="headerlink" href="#95-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-G<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$ACCESS_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"organization=agenciaexemplo.com.br"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">"pageSize=20"</span>
+</code></pre></div>
+<p><strong>Python</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">google_auth_oauthlib.flow</span><span class="w"> </span><span class="kn">import</span> <span class="n">InstalledAppFlow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">google.auth.transport.requests</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuthorizedSession</span>
+
+<span class="n">ESCOPOS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"https://www.googleapis.com/auth/factchecktools"</span><span class="p">]</span>
+
+<span class="n">fluxo</span> <span class="o">=</span> <span class="n">InstalledAppFlow</span><span class="o">.</span><span class="n">from_client_secrets_file</span><span class="p">(</span><span class="s2">"client_secret.json"</span><span class="p">,</span> <span class="n">ESCOPOS</span><span class="p">)</span>
+<span class="n">credenciais</span> <span class="o">=</span> <span class="n">fluxo</span><span class="o">.</span><span class="n">run_local_server</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">sessao</span> <span class="o">=</span> <span class="n">AuthorizedSession</span><span class="p">(</span><span class="n">credenciais</span><span class="p">)</span>
+
+<span class="n">resposta</span> <span class="o">=</span> <span class="n">sessao</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages"</span><span class="p">,</span>
+    <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"organization"</span><span class="p">:</span> <span class="s2">"agenciaexemplo.com.br"</span><span class="p">,</span> <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+</code></pre></div>
+<h2 id="96-exemplo-de-resposta">9.6 Exemplo de resposta<a class="headerlink" href="#96-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"claimReviewMarkupPages"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pages/abc123"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"pageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/checagem/vacinas-autismo"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"publishDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-12"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimReviewAuthor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Agência de Checagem Exemplo"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"imageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/logo.png"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"claimReviewMarkups"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"claimReviewed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Vacinas causam autismo em crianças."</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"rating"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"textualRating"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Falso"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ratingValue"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"worstRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"bestRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">"versionId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"nextPageToken"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h1 id="10-pagesget-obter-a-marcacao-de-uma-pagina">10. <code>pages.get</code> — Obter a marcação de uma página<a class="headerlink" href="#10-pagesget-obter-a-marcacao-de-uma-pagina" title="Permanent link">&para;</a></h1>
+<h2 id="101-descricao">10.1 Descrição<a class="headerlink" href="#101-descricao" title="Permanent link">&para;</a></h2>
+<p>Retorna <strong>toda</strong> a marcação <code>ClaimReview</code> de uma página, a partir do identificador do recurso.</p>
+<p><strong>Caso de uso principal:</strong> recuperar a marcação atual antes de atualizá-la, já que <code>pages.update</code> é uma substituição completa.</p>
+<h2 id="102-metodo-http-e-endpoint">10.2 Método HTTP e endpoint<a class="headerlink" href="#102-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">GET https://factchecktools.googleapis.com/v1alpha1/pages/{page_id}</span>
+</code></pre></div>
+<p>O corpo da requisição deve estar vazio.</p>
+<h2 id="103-parametros-path">10.3 Parâmetros (path)<a class="headerlink" href="#103-parametros-path" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td><strong>Sim</strong></td>
+<td>Nome do recurso no formato <code>pages/{page_id}</code>. O <code>page_id</code> é obtido em <code>pages.list</code> ou na resposta de <code>pages.create</code> (campo <code>name</code>).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="104-autenticacao">10.4 Autenticação<a class="headerlink" href="#104-autenticacao" title="Permanent link">&para;</a></h2>
+<p>OAuth 2.0 com o escopo <code>https://www.googleapis.com/auth/factchecktools</code>.</p>
+<h2 id="105-exemplo-de-requisicao">10.5 Exemplo de requisição<a class="headerlink" href="#105-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages/abc123"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$ACCESS_TOKEN</span><span class="s2">"</span>
+</code></pre></div>
+<p><strong>Python</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">resposta</span> <span class="o">=</span> <span class="n">sessao</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages/abc123"</span>
+<span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<span class="n">pagina</span> <span class="o">=</span> <span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pagina</span><span class="p">[</span><span class="s2">"pageUrl"</span><span class="p">])</span>
+</code></pre></div>
+<h2 id="106-exemplo-de-resposta">10.6 Exemplo de resposta<a class="headerlink" href="#106-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pages/abc123"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"pageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/checagem/vacinas-autismo"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"publishDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"claimReviewAuthor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Agência de Checagem Exemplo"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"imageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/logo.png"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"claimReviewMarkups"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"claimReviewed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Vacinas causam autismo em crianças."</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-10"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimAuthor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Publicação em rede social"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"rating"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"textualRating"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Falso"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"ratingValue"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"worstRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"bestRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"ratingExplanation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Não há evidência científica dessa associação."</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"versionId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h1 id="11-pagescreate-criar-marcacao-claimreview">11. <code>pages.create</code> — Criar marcação ClaimReview<a class="headerlink" href="#11-pagescreate-criar-marcacao-claimreview" title="Permanent link">&para;</a></h1>
+<h2 id="111-descricao">11.1 Descrição<a class="headerlink" href="#111-descricao" title="Permanent link">&para;</a></h2>
+<p>Cria a marcação <code>ClaimReview</code> para uma página.</p>
+<p><strong>Caso de uso principal:</strong> uma organização de checagem publica uma nova matéria e registra, via API, os dados estruturados da verificação (alegação, autor da alegação, avaliação).</p>
+<h2 id="112-metodo-http-e-endpoint">11.2 Método HTTP e endpoint<a class="headerlink" href="#112-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">POST https://factchecktools.googleapis.com/v1alpha1/pages</span>
+</code></pre></div>
+<p>O corpo da requisição é uma instância de <code>ClaimReviewMarkupPage</code>.</p>
+<h2 id="113-parametros">11.3 Parâmetros<a class="headerlink" href="#113-parametros" title="Permanent link">&para;</a></h2>
+<p>Este método <strong>não possui parâmetros de query ou de path</strong>. Os dados são enviados no corpo (JSON). Os campos do corpo são:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pageUrl</code></td>
+<td><code>string</code></td>
+<td>Sim (na prática)</td>
+<td>URL da página associada à marcação. Campo de nível de página, usado por cada <code>ClaimReview</code>, salvo sobrescrita individual. Corresponde a <code>ClaimReview.url</code>.</td>
+</tr>
+<tr>
+<td><code>publishDate</code></td>
+<td><code>string</code></td>
+<td>Recomendado</td>
+<td>Data de publicação da checagem. Corresponde a <code>ClaimReview.datePublished</code>.</td>
+</tr>
+<tr>
+<td><code>claimReviewAuthor</code></td>
+<td><code>object</code></td>
+<td>Recomendado</td>
+<td>Autor da revisão (<code>name</code>, <code>imageUrl</code>).</td>
+</tr>
+<tr>
+<td><code>claimReviewMarkups[]</code></td>
+<td><code>object[]</code></td>
+<td>Sim (na prática)</td>
+<td>Lista de revisões individuais da página, cada uma correspondendo a um elemento <code>ClaimReview</code>.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td><strong>Somente saída.</strong> Não deve ser definido na criação.</td>
+</tr>
+<tr>
+<td><code>versionId</code></td>
+<td><code>string</code></td>
+<td>Não</td>
+<td><strong>Somente saída.</strong> Não deve ser definido na criação.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>A documentação oficial não marca explicitamente campos como "obrigatórios" no schema. A coluna "Obrigatório" acima reflete o que é necessário para que a marcação faça sentido e para atender às diretrizes de <code>ClaimReview</code> do Google Search; consulte o guia de ClaimReview para as regras de elegibilidade.</p>
+</blockquote>
+<p>Estrutura de cada item de <code>claimReviewMarkups[]</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>url</code></td>
+<td><code>string</code></td>
+<td>Opcional. Por padrão usa a URL da página. A única sobrescrita permitida é a URL da página com âncora opcional.</td>
+</tr>
+<tr>
+<td><code>claimReviewed</code></td>
+<td><code>string</code></td>
+<td>Resumo curto da alegação avaliada.</td>
+</tr>
+<tr>
+<td><code>claimDate</code></td>
+<td><code>string</code></td>
+<td>Data em que a alegação foi feita ou entrou no debate público.</td>
+</tr>
+<tr>
+<td><code>claimLocation</code></td>
+<td><code>string</code></td>
+<td>Local onde a alegação foi feita.</td>
+</tr>
+<tr>
+<td><code>claimFirstAppearance</code></td>
+<td><code>string</code></td>
+<td>Link para a obra em que a alegação apareceu pela primeira vez.</td>
+</tr>
+<tr>
+<td><code>claimAppearances[]</code></td>
+<td><code>string[]</code></td>
+<td>Links para outras obras em que a alegação aparece.</td>
+</tr>
+<tr>
+<td><code>claimAuthor</code></td>
+<td><code>object</code></td>
+<td>Autor da alegação: <code>name</code>, <code>jobTitle</code>, <code>imageUrl</code>, <code>sameAs</code>.</td>
+</tr>
+<tr>
+<td><code>rating</code></td>
+<td><code>object</code></td>
+<td>Avaliação: <code>textualRating</code>, <code>ratingValue</code>, <code>worstRating</code>, <code>bestRating</code>, <code>ratingExplanation</code>, <code>imageUrl</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="114-autenticacao">11.4 Autenticação<a class="headerlink" href="#114-autenticacao" title="Permanent link">&para;</a></h2>
+<p>OAuth 2.0 com o escopo <code>https://www.googleapis.com/auth/factchecktools</code>.</p>
+<h2 id="115-exemplo-de-requisicao">11.5 Exemplo de requisição<a class="headerlink" href="#115-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$ACCESS_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "pageUrl": "https://agenciaexemplo.com.br/checagem/vacinas-autismo",</span>
+<span class="s1">    "publishDate": "2024-03-12",</span>
+<span class="s1">    "claimReviewAuthor": {</span>
+<span class="s1">      "name": "Agência de Checagem Exemplo",</span>
+<span class="s1">      "imageUrl": "https://agenciaexemplo.com.br/logo.png"</span>
+<span class="s1">    },</span>
+<span class="s1">    "claimReviewMarkups": [</span>
+<span class="s1">      {</span>
+<span class="s1">        "claimReviewed": "Vacinas causam autismo em crianças.",</span>
+<span class="s1">        "claimDate": "2024-03-10",</span>
+<span class="s1">        "claimAuthor": { "name": "Publicação em rede social" },</span>
+<span class="s1">        "rating": {</span>
+<span class="s1">          "textualRating": "Falso",</span>
+<span class="s1">          "ratingValue": 1,</span>
+<span class="s1">          "worstRating": 1,</span>
+<span class="s1">          "bestRating": 5,</span>
+<span class="s1">          "ratingExplanation": "Não há evidência científica dessa associação."</span>
+<span class="s1">        }</span>
+<span class="s1">      }</span>
+<span class="s1">    ]</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<p><strong>Python</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">corpo</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"pageUrl"</span><span class="p">:</span> <span class="s2">"https://agenciaexemplo.com.br/checagem/vacinas-autismo"</span><span class="p">,</span>
+    <span class="s2">"publishDate"</span><span class="p">:</span> <span class="s2">"2024-03-12"</span><span class="p">,</span>
+    <span class="s2">"claimReviewAuthor"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Agência de Checagem Exemplo"</span><span class="p">,</span>
+        <span class="s2">"imageUrl"</span><span class="p">:</span> <span class="s2">"https://agenciaexemplo.com.br/logo.png"</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"claimReviewMarkups"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"claimReviewed"</span><span class="p">:</span> <span class="s2">"Vacinas causam autismo em crianças."</span><span class="p">,</span>
+            <span class="s2">"claimDate"</span><span class="p">:</span> <span class="s2">"2024-03-10"</span><span class="p">,</span>
+            <span class="s2">"claimAuthor"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Publicação em rede social"</span><span class="p">},</span>
+            <span class="s2">"rating"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"textualRating"</span><span class="p">:</span> <span class="s2">"Falso"</span><span class="p">,</span>
+                <span class="s2">"ratingValue"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">"worstRating"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">"bestRating"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s2">"ratingExplanation"</span><span class="p">:</span> <span class="s2">"Não há evidência científica dessa associação."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">resposta</span> <span class="o">=</span> <span class="n">sessao</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages"</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="n">corpo</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">"name"</span><span class="p">])</span>  <span class="c1"># pages/{page_id}</span>
+</code></pre></div>
+<h2 id="116-exemplo-de-resposta">11.6 Exemplo de resposta<a class="headerlink" href="#116-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<p>A resposta é a instância recém-criada de <code>ClaimReviewMarkupPage</code>, agora com os campos de saída <code>name</code> e <code>versionId</code> preenchidos:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pages/abc123"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"pageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/checagem/vacinas-autismo"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"publishDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"claimReviewAuthor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Agência de Checagem Exemplo"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"imageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/logo.png"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"claimReviewMarkups"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"claimReviewed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Vacinas causam autismo em crianças."</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-10"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"claimAuthor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Publicação em rede social"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"rating"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"textualRating"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Falso"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"ratingValue"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"worstRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"bestRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"ratingExplanation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Não há evidência científica dessa associação."</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"versionId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h1 id="12-pagesupdate-atualizar-a-marcacao-de-uma-pagina">12. <code>pages.update</code> — Atualizar a marcação de uma página<a class="headerlink" href="#12-pagesupdate-atualizar-a-marcacao-de-uma-pagina" title="Permanent link">&para;</a></h1>
+<h2 id="121-descricao">12.1 Descrição<a class="headerlink" href="#121-descricao" title="Permanent link">&para;</a></h2>
+<p>Atualiza <strong>toda</strong> a marcação <code>ClaimReview</code> de uma página.</p>
+<p><strong>Caso de uso principal:</strong> corrigir a avaliação de uma checagem, adicionar uma nova alegação à mesma página ou ajustar metadados.</p>
+<blockquote>
+<p><strong>Atenção:</strong> trata-se de uma <strong>atualização completa</strong> (<em>full update</em>), e não parcial. Qualquer <code>ClaimReview</code> que não for enviado no corpo será perdido.</p>
+</blockquote>
+<p>O fluxo recomendado pela documentação é:</p>
+<div class="highlight"><pre><span></span><code>pages.get
+   │
+   ▼
+Modificar o JSON retornado
+   │
+   ▼
+pages.update (com a marcação completa)
+</code></pre></div>
+<h2 id="122-metodo-http-e-endpoint">12.2 Método HTTP e endpoint<a class="headerlink" href="#122-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">PUT https://factchecktools.googleapis.com/v1alpha1/pages/{page_id}</span>
+</code></pre></div>
+<p>O corpo da requisição é uma instância de <code>ClaimReviewMarkupPage</code>.</p>
+<h2 id="123-parametros">12.3 Parâmetros<a class="headerlink" href="#123-parametros" title="Permanent link">&para;</a></h2>
+<p><strong>Path</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>claimReviewMarkupPage.name</code></td>
+<td><code>string</code></td>
+<td><strong>Sim</strong></td>
+<td>Nome do recurso no formato <code>pages/{page_id}</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Corpo (JSON)</strong></p>
+<p>Mesma estrutura de <code>ClaimReviewMarkupPage</code> descrita em <code>pages.create</code>. Nas requisições de atualização, os campos <code>name</code> e <code>versionId</code> são exceção à regra de "somente saída" e podem ser informados.</p>
+<h2 id="124-autenticacao">12.4 Autenticação<a class="headerlink" href="#124-autenticacao" title="Permanent link">&para;</a></h2>
+<p>OAuth 2.0 com o escopo <code>https://www.googleapis.com/auth/factchecktools</code>.</p>
+<h2 id="125-exemplo-de-requisicao">12.5 Exemplo de requisição<a class="headerlink" href="#125-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages/abc123"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$ACCESS_TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "name": "pages/abc123",</span>
+<span class="s1">    "pageUrl": "https://agenciaexemplo.com.br/checagem/vacinas-autismo",</span>
+<span class="s1">    "publishDate": "2024-03-12",</span>
+<span class="s1">    "claimReviewAuthor": {</span>
+<span class="s1">      "name": "Agência de Checagem Exemplo"</span>
+<span class="s1">    },</span>
+<span class="s1">    "claimReviewMarkups": [</span>
+<span class="s1">      {</span>
+<span class="s1">        "claimReviewed": "Vacinas causam autismo em crianças.",</span>
+<span class="s1">        "rating": {</span>
+<span class="s1">          "textualRating": "Falso",</span>
+<span class="s1">          "ratingValue": 1,</span>
+<span class="s1">          "worstRating": 1,</span>
+<span class="s1">          "bestRating": 5</span>
+<span class="s1">        }</span>
+<span class="s1">      }</span>
+<span class="s1">    ]</span>
+<span class="s1">  }'</span>
+</code></pre></div>
+<p><strong>Python (fluxo get → modificar → update)</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages/abc123"</span>
+
+<span class="n">pagina</span> <span class="o">=</span> <span class="n">sessao</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+<span class="n">pagina</span><span class="p">[</span><span class="s2">"claimReviewMarkups"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"rating"</span><span class="p">][</span><span class="s2">"ratingExplanation"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"Estudos amplos não encontraram relação entre vacinas e autismo."</span>
+<span class="p">)</span>
+
+<span class="n">resposta</span> <span class="o">=</span> <span class="n">sessao</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">pagina</span><span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">"versionId"</span><span class="p">])</span>
+</code></pre></div>
+<h2 id="126-exemplo-de-resposta">12.6 Exemplo de resposta<a class="headerlink" href="#126-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pages/abc123"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"pageUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://agenciaexemplo.com.br/checagem/vacinas-autismo"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"publishDate"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-03-12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"claimReviewAuthor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Agência de Checagem Exemplo"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"claimReviewMarkups"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"claimReviewed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Vacinas causam autismo em crianças."</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"rating"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"textualRating"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Falso"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"ratingValue"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"worstRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"bestRating"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"ratingExplanation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Estudos amplos não encontraram relação entre vacinas e autismo."</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"versionId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2"</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h1 id="13-pagesdelete-remover-a-marcacao-de-uma-pagina">13. <code>pages.delete</code> — Remover a marcação de uma página<a class="headerlink" href="#13-pagesdelete-remover-a-marcacao-de-uma-pagina" title="Permanent link">&para;</a></h1>
+<h2 id="131-descricao">13.1 Descrição<a class="headerlink" href="#131-descricao" title="Permanent link">&para;</a></h2>
+<p>Remove <strong>toda</strong> a marcação <code>ClaimReview</code> de uma página.</p>
+<p><strong>Caso de uso principal:</strong> retirar o registro de uma checagem que foi despublicada ou registrada por engano.</p>
+<blockquote>
+<p><strong>Atenção:</strong> a operação remove <strong>todos</strong> os <code>ClaimReview</code> da página, e não apenas um deles. Para remover só um item, use o fluxo <code>get → modificar → update</code>.</p>
+</blockquote>
+<h2 id="132-metodo-http-e-endpoint">13.2 Método HTTP e endpoint<a class="headerlink" href="#132-metodo-http-e-endpoint" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="err">DELETE https://factchecktools.googleapis.com/v1alpha1/pages/{page_id}</span>
+</code></pre></div>
+<p>O corpo da requisição deve estar vazio.</p>
+<h2 id="133-parametros-path">13.3 Parâmetros (path)<a class="headerlink" href="#133-parametros-path" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parâmetro</th>
+<th>Tipo</th>
+<th>Obrigatório</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td><strong>Sim</strong></td>
+<td>Nome do recurso a remover, no formato <code>pages/{page_id}</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="134-autenticacao">13.4 Autenticação<a class="headerlink" href="#134-autenticacao" title="Permanent link">&para;</a></h2>
+<p>OAuth 2.0 com o escopo <code>https://www.googleapis.com/auth/factchecktools</code>.</p>
+<h2 id="135-exemplo-de-requisicao">13.5 Exemplo de requisição<a class="headerlink" href="#135-exemplo-de-requisicao" title="Permanent link">&para;</a></h2>
+<p><strong>cURL</strong></p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span><span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages/abc123"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$ACCESS_TOKEN</span><span class="s2">"</span>
+</code></pre></div>
+<p><strong>Python</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">resposta</span> <span class="o">=</span> <span class="n">sessao</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+    <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/pages/abc123"</span>
+<span class="p">)</span>
+<span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Status:"</span><span class="p">,</span> <span class="n">resposta</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="136-exemplo-de-resposta">13.6 Exemplo de resposta<a class="headerlink" href="#136-exemplo-de-resposta" title="Permanent link">&para;</a></h2>
+<p>Em caso de sucesso, o corpo da resposta é <strong>vazio</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{}</span>
+</code></pre></div>
+<p>Na prática, o que confirma o sucesso é o status HTTP <code>200</code>. Uma consulta posterior com <code>pages.get</code> para o mesmo <code>page_id</code> deve retornar <code>404</code>.</p>
+<hr />
+<h1 id="14-modelos-de-dados">14. Modelos de dados<a class="headerlink" href="#14-modelos-de-dados" title="Permanent link">&para;</a></h1>
+<h2 id="141-recurso-claims">14.1 Recurso <code>claims</code><a class="headerlink" href="#141-recurso-claims" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>Claim
+ ├── text          → texto da alegação
+ ├── claimant      → quem fez a alegação
+ ├── claimDate     → quando foi feita
+ └── claimReview[] → revisões (checagens)
+       ├── publisher
+       │     ├── name
+       │     └── site
+       ├── url
+       ├── title
+       ├── reviewDate
+       ├── textualRating
+       └── languageCode
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Objeto</th>
+<th>Campo</th>
+<th>Tipo</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Claim</code></td>
+<td><code>text</code></td>
+<td><code>string</code></td>
+<td>Texto da alegação. Ex.: "Crime has doubled in the last 2 years."</td>
+</tr>
+<tr>
+<td><code>Claim</code></td>
+<td><code>claimant</code></td>
+<td><code>string</code></td>
+<td>Pessoa ou organização que fez a alegação.</td>
+</tr>
+<tr>
+<td><code>Claim</code></td>
+<td><code>claimDate</code></td>
+<td><code>string</code> (Timestamp)</td>
+<td>Data em que a alegação foi feita.</td>
+</tr>
+<tr>
+<td><code>Claim</code></td>
+<td><code>claimReview[]</code></td>
+<td><code>object[]</code></td>
+<td>Uma ou mais revisões da alegação.</td>
+</tr>
+<tr>
+<td><code>ClaimReview</code></td>
+<td><code>publisher</code></td>
+<td><code>object</code></td>
+<td>Publicador da revisão.</td>
+</tr>
+<tr>
+<td><code>ClaimReview</code></td>
+<td><code>url</code></td>
+<td><code>string</code></td>
+<td>URL da revisão.</td>
+</tr>
+<tr>
+<td><code>ClaimReview</code></td>
+<td><code>title</code></td>
+<td><code>string</code></td>
+<td>Título da revisão, se puder ser determinado.</td>
+</tr>
+<tr>
+<td><code>ClaimReview</code></td>
+<td><code>reviewDate</code></td>
+<td><code>string</code> (Timestamp)</td>
+<td>Data da revisão.</td>
+</tr>
+<tr>
+<td><code>ClaimReview</code></td>
+<td><code>textualRating</code></td>
+<td><code>string</code></td>
+<td>Avaliação textual. Ex.: "Mostly false".</td>
+</tr>
+<tr>
+<td><code>ClaimReview</code></td>
+<td><code>languageCode</code></td>
+<td><code>string</code></td>
+<td>Idioma da revisão. Ex.: <code>en</code>, <code>de</code>.</td>
+</tr>
+<tr>
+<td><code>Publisher</code></td>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Nome do publicador.</td>
+</tr>
+<tr>
+<td><code>Publisher</code></td>
+<td><code>site</code></td>
+<td><code>string</code></td>
+<td>Nome do site, sem protocolo e sem <code>www</code>. Baseado apenas na URL da revisão.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="142-recurso-pages">14.2 Recurso <code>pages</code><a class="headerlink" href="#142-recurso-pages" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>ClaimReviewMarkupPage
+ ├── name                 → pages/{page_id}   (saída)
+ ├── pageUrl
+ ├── publishDate
+ ├── claimReviewAuthor
+ │     ├── name
+ │     └── imageUrl
+ ├── claimReviewMarkups[]
+ │     ├── url
+ │     ├── claimReviewed
+ │     ├── claimDate
+ │     ├── claimLocation
+ │     ├── claimFirstAppearance
+ │     ├── claimAppearances[]
+ │     ├── claimAuthor  (name, jobTitle, imageUrl, sameAs)
+ │     └── rating       (textualRating, ratingValue, worstRating,
+ │                       bestRating, ratingExplanation, imageUrl)
+ └── versionId            (saída)
+</code></pre></div>
+<p>Os campos de <code>ClaimReviewMarkup</code> correspondem às propriedades de <a href="https://schema.org/ClaimReview">schema.org/ClaimReview</a>. Alguns mapeamentos:</p>
+<table>
+<thead>
+<tr>
+<th>Campo da API</th>
+<th>Propriedade schema.org</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pageUrl</code></td>
+<td><code>ClaimReview.url</code></td>
+</tr>
+<tr>
+<td><code>publishDate</code></td>
+<td><code>ClaimReview.datePublished</code></td>
+</tr>
+<tr>
+<td><code>claimReviewAuthor.name</code></td>
+<td><code>ClaimReview.author.name</code></td>
+</tr>
+<tr>
+<td><code>claimReviewed</code></td>
+<td><code>ClaimReview.claimReviewed</code></td>
+</tr>
+<tr>
+<td><code>claimDate</code></td>
+<td><code>ClaimReview.itemReviewed.datePublished</code></td>
+</tr>
+<tr>
+<td><code>claimAuthor.name</code></td>
+<td><code>ClaimReview.itemReviewed.author.name</code></td>
+</tr>
+<tr>
+<td><code>rating.textualRating</code></td>
+<td><code>ClaimReview.reviewRating.alternateName</code></td>
+</tr>
+<tr>
+<td><code>rating.ratingValue</code></td>
+<td><code>ClaimReview.reviewRating.ratingValue</code></td>
+</tr>
+<tr>
+<td><code>rating.worstRating</code></td>
+<td><code>ClaimReview.reviewRating.worstRating</code></td>
+</tr>
+<tr>
+<td><code>rating.bestRating</code></td>
+<td><code>ClaimReview.reviewRating.bestRating</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="15-percorrendo-todas-as-paginas-de-resultados">15. Percorrendo todas as páginas de resultados<a class="headerlink" href="#15-percorrendo-todas-as-paginas-de-resultados" title="Permanent link">&para;</a></h1>
+<p>Exemplo de função em Python que percorre a paginação de <code>claims.search</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://factchecktools.googleapis.com/v1alpha1/claims:search"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">buscar_todas</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">language_code</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"pt-BR"</span><span class="p">,</span> <span class="n">max_paginas</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"query"</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span>
+        <span class="s2">"languageCode"</span><span class="p">:</span> <span class="n">language_code</span><span class="p">,</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s2">"key"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"FACTCHECK_API_KEY"</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">resultados</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_paginas</span><span class="p">):</span>
+        <span class="n">resposta</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+        <span class="n">resposta</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="n">dados</span> <span class="o">=</span> <span class="n">resposta</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+        <span class="n">resultados</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">dados</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"claims"</span><span class="p">,</span> <span class="p">[]))</span>
+
+        <span class="n">token</span> <span class="o">=</span> <span class="n">dados</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"nextPageToken"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">"pageToken"</span><span class="p">]</span> <span class="o">=</span> <span class="n">token</span>  <span class="c1"># os demais parâmetros permanecem iguais</span>
+
+    <span class="k">return</span> <span class="n">resultados</span>
+</code></pre></div>
+<hr />
+<h1 id="16-boas-praticas-e-limitacoes">16. Boas práticas e limitações<a class="headerlink" href="#16-boas-praticas-e-limitacoes" title="Permanent link">&para;</a></h1>
+<h2 id="161-boas-praticas">16.1 Boas práticas<a class="headerlink" href="#161-boas-praticas" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Proteja a chave de API.</strong> Use variáveis de ambiente e restrinja a chave no Cloud Console;</li>
+<li><strong>Nunca exponha credenciais OAuth</strong> em código de front-end;</li>
+<li><strong>Trate <code>429</code></strong> com <em>retry</em> e espera exponencial;</li>
+<li><strong>Use <code>languageCode</code></strong> para reduzir ruído nos resultados;</li>
+<li><strong>Use <code>maxAgeDays</code></strong> quando a atualidade da checagem for relevante;</li>
+<li><strong>Exiba sempre a fonte.</strong> Mostre o publicador (<code>publisher.name</code>) e o link (<code>url</code>) junto de cada avaliação;</li>
+<li><strong>Em <code>pages.update</code>, sempre faça <code>get</code> antes</strong>, para não perder marcações existentes.</li>
+</ul>
+<h2 id="162-limitacoes">16.2 Limitações<a class="headerlink" href="#162-limitacoes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A API está na versão <strong><code>v1alpha1</code></strong>, então pode sofrer alterações;</li>
+<li>Uma busca sem resultados <strong>não significa</strong> que uma alegação é verdadeira. Significa apenas que nenhuma checagem correspondente foi encontrada;</li>
+<li>As avaliações (<code>textualRating</code>) <strong>não são padronizadas</strong>: cada publicador usa seus próprios termos ("Falso", "Enganoso", "Mostly false", "Pants on Fire" etc.);</li>
+<li>Em <code>claims.imageSearch</code>, a busca depende de o Google conseguir baixar a imagem da URL informada;</li>
+<li>Os limites exatos de cota devem ser consultados no Google Cloud Console do seu projeto.</li>
+</ul>
+<hr />
+<h1 id="17-utilizacao-em-uma-aplicacao-de-verificacao">17. Utilização em uma aplicação de verificação<a class="headerlink" href="#17-utilizacao-em-uma-aplicacao-de-verificacao" title="Permanent link">&para;</a></h1>
+<p>Uma possível arquitetura para consumir a API em um sistema de verificação de notícias:</p>
+<div class="highlight"><pre><span></span><code>                    ┌─────────────────┐
+                    │     Usuário     │
+                    └────────┬────────┘
+                             │
+                       Envia texto
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │       API       │
+                    │  (seu backend)  │
+                    └────────┬────────┘
+                             │
+                  Extrai a alegação principal
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │  claims:search  │
+                    │  Fact Check     │
+                    │  Tools API      │
+                    └────────┬────────┘
+                             │
+                ┌────────────┴────────────┐
+                ▼                         ▼
+        Há checagens                Nenhuma checagem
+        publicadas                     encontrada
+                │                         │
+                ▼                         ▼
+     Exibir publicador,           Informar que não há
+     avaliação e link             checagem disponível
+</code></pre></div>
+<p>O resultado apresentado ao usuário poderia ser algo como:</p>
+<div class="highlight"><pre><span></span><code>Checagens encontradas: 2
+
+1. Agência de Checagem Exemplo — "Falso"
+   https://agenciaexemplo.com.br/checagem/vacinas-autismo
+
+2. Outro Publicador — "Enganoso"
+   https://outropublicador.com/checagem/...
+
+Observação:
+Os resultados são checagens publicadas por terceiros sobre
+alegações semelhantes e não constituem uma verificação
+independente do texto enviado.
+</code></pre></div>
+<hr />
+<h1 id="18-resumo-das-caracteristicas">18. Resumo das características<a class="headerlink" href="#18-resumo-das-caracteristicas" title="Permanent link">&para;</a></h1>
+<table>
+<thead>
+<tr>
+<th>Característica</th>
+<th>Informação</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Serviço</strong></td>
+<td><code>factchecktools.googleapis.com</code></td>
+</tr>
+<tr>
+<td><strong>Versão</strong></td>
+<td><code>v1alpha1</code></td>
+</tr>
+<tr>
+<td><strong>Tipo</strong></td>
+<td>API REST (JSON)</td>
+</tr>
+<tr>
+<td><strong>Recursos</strong></td>
+<td><code>claims</code> e <code>pages</code></td>
+</tr>
+<tr>
+<td><strong>Total de métodos</strong></td>
+<td>7</td>
+</tr>
+<tr>
+<td><strong>Busca por texto</strong></td>
+<td><code>GET /v1alpha1/claims:search</code></td>
+</tr>
+<tr>
+<td><strong>Busca por imagem</strong></td>
+<td><code>GET /v1alpha1/claims:imageSearch</code></td>
+</tr>
+<tr>
+<td><strong>Listar marcações</strong></td>
+<td><code>GET /v1alpha1/pages</code></td>
+</tr>
+<tr>
+<td><strong>Obter marcação</strong></td>
+<td><code>GET /v1alpha1/pages/{page_id}</code></td>
+</tr>
+<tr>
+<td><strong>Criar marcação</strong></td>
+<td><code>POST /v1alpha1/pages</code></td>
+</tr>
+<tr>
+<td><strong>Atualizar marcação</strong></td>
+<td><code>PUT /v1alpha1/pages/{page_id}</code> (atualização completa)</td>
+</tr>
+<tr>
+<td><strong>Remover marcação</strong></td>
+<td><code>DELETE /v1alpha1/pages/{page_id}</code></td>
+</tr>
+<tr>
+<td><strong>Auth. de <code>claims</code></strong></td>
+<td>Chave de API (<code>key</code>)</td>
+</tr>
+<tr>
+<td><strong>Auth. de <code>pages</code></strong></td>
+<td>OAuth 2.0, escopo <code>https://www.googleapis.com/auth/factchecktools</code></td>
+</tr>
+<tr>
+<td><strong>Paginação</strong></td>
+<td><code>pageSize</code>, <code>pageToken</code>, <code>offset</code>, <code>nextPageToken</code></td>
+</tr>
+<tr>
+<td><strong><code>pageSize</code> padrão</strong></td>
+<td>10</td>
+</tr>
+<tr>
+<td><strong>Formato de data</strong></td>
+<td>RFC 3339 (UTC)</td>
+</tr>
+<tr>
+<td><strong>Padrão de marcação</strong></td>
+<td>schema.org <code>ClaimReview</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="19-conclusao">19. Conclusão<a class="headerlink" href="#19-conclusao" title="Permanent link">&para;</a></h1>
+<p>A <strong>Google Fact Check Tools API</strong> permite integrar verificações de fatos publicadas por organizações de checagem a aplicações próprias, por meio de dois recursos: <code>claims</code>, para <strong>consulta</strong> por texto ou imagem, e <code>pages</code>, para <strong>gerenciamento</strong> da marcação <code>ClaimReview</code> de páginas.</p>
+<p>Seu funcionamento pode ser resumido em:</p>
+<div class="highlight"><pre><span></span><code>Texto ou imagem
+      │
+      ▼
+claims:search / claims:imageSearch
+      │
+      ▼
+Claims já verificadas
+      │
+      ▼
+Publicador + Avaliação + Link
+</code></pre></div>
+<p>A principal limitação conceitual é que a API <strong>recupera checagens existentes</strong>, e não realiza uma verificação factual independente. Dessa forma, a ausência de resultados não comprova que uma alegação é verdadeira, assim como a presença de uma checagem deve ser interpretada considerando o publicador e a avaliação atribuída por ele.</p>
+<p>Para um sistema de verificação mais robusto, a API pode ser usada como uma das etapas de uma arquitetura maior, combinando <strong>recuperação de checagens existentes, classificação textual e consulta a fontes confiáveis</strong>.</p>
+<hr />
+<h2 id="referencia">Referência<a class="headerlink" href="#referencia" title="Permanent link">&para;</a></h2>
+<p>Documentação oficial da Fact Check Tools API:</p>
+<p><strong>Guia:</strong> https://developers.google.com/fact-check/tools/api</p>
+<p><strong>Referência REST:</strong> https://developers.google.com/fact-check/tools/api/reference/rest</p>
+<p><strong>Guia de marcação ClaimReview:</strong> https://developers.google.com/search/docs/data-types/factcheck</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.tabs.sticky"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
