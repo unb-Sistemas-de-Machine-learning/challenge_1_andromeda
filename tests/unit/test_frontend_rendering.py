@@ -54,8 +54,9 @@ def test_unavailable_fact_check_remains_visible_with_all_attempts():
     assert "O Google Fact Check não retornou" in html
     assert "consulta 5" in html
     assert "Consultas realizadas (6)" in html
-    assert "Somente estilo de escrita" in html
-    assert "Confiabilidade mais alta" not in html
+    assert "Confiabilidade alta" in html
+    assert "A avaliação considera apenas o estilo de escrita" in html
+    assert "Somente estilo de escrita" not in html
 
 
 def test_legacy_fact_key_and_error_attempts_are_supported():
@@ -100,7 +101,7 @@ def test_historical_metadata_is_not_rendered_as_fact_check():
     assert 'Credibilidade da fonte — análise histórica' in html
     assert 'sem recálculo' in html
     assert 'não contém o critério' in html
-    assert 'Somente estilo de escrita' not in html
+    assert 'Confiabilidade alta' in html
     assert '&lt;unsafe&gt;' in html
 
 
@@ -110,7 +111,7 @@ def test_unavailable_source_and_pre_veto_score_are_explicit():
     data['criteria']['credibility'] = dict(score_fonte=None, confianca_fonte='baixa', criterios=[],
                                          veto_dominio_suspeito=False)
     html = render(data)
-    assert 'Score: Indisponível' in html
+    assert 'Pontuação da fonte indisponível' in html
     assert 'indisponibilidade não aplica veto' in html
     assert 'Média antes do veto' in html
     assert 'Teto de 35 aplicado' not in html
@@ -130,3 +131,65 @@ def test_fact_evidence_states_and_supplemental_claims_are_distinct_and_escaped()
     assert '<script>extra</script>' not in html
     assert '&lt;script&gt;extra&lt;/script&gt;' in html
     assert 'href="javascript:' not in html
+
+
+@pytest.mark.parametrize("score,label", [
+    (40, "Confiabilidade baixíssima"),
+    (70, "Confiabilidade baixa"),
+    (85, "Confiabilidade média"),
+    (86, "Confiabilidade alta"),
+])
+def test_confidence_labels_follow_requested_thresholds(score, label):
+    data = payload({"available": True, "score": 0.5})
+    data["final"]["score"] = score
+    assert label in render(data)
+
+
+def test_fallback_explanation_is_rendered_without_sml_attribution():
+    data = payload({"available": True, "score": 0.5})
+    data['criteria']['credibility'] = {'criterios': [{'nome': 'veiculo_reconhecido', 'status': 'negativo', 'pontos': 0, 'maximo': 35, 'detalhe': 'Não localizado'}], 'confianca_fonte': 'baixa', 'score_fonte': 0}
+    data["explanation"] = {"status": "SUCCESS", "validation": "FALLBACK",
+                           "text": "Confiabilidade média. Pontos negativos encontrados: o veículo não foi reconhecido."}
+    html = render(data)
+    assert "Por que esta notícia recebeu esta avaliação?" in html
+    assert "O veículo desta notícia não foi encontrado nas bases de veículos consultadas" in html
+    assert "Resumo baseado nos critérios" in html
+
+
+def test_writing_only_analysis_ignores_corrupted_sml_and_explains_source_coverage():
+    data = payload({"available": False, "evidence_status": "UNAVAILABLE", "status": "UNAVAILABLE",
+                    "reviews_count": 0, "search_attempts": [{"query": "teste", "status": "success", "claims_count": 0}]})
+    data["final"].update(score=86.1, coverage=40)
+    data["explanation"] = {"status": "SUCCESS", "validation": "VALID", "model_id": "google/flan-t5-small",
+                           "text": "Fonte: Negative Pontes encontrados: o veculo no foi reconhecido; cobertura parcial."}
+    data["limitations"] = ["Only the writing-style criterion contributed to the final index."]
+    data["criteria"]["credibility"] = {
+        "score_fonte": 100, "confianca_fonte": "baixa", "dominio": "cnnbrasil.com.br",
+        "criterios": [
+            {"nome": "veiculo_reconhecido", "pontos": 0, "maximo": 35, "status": "indisponivel", "detalhe": "Base ausente"},
+            {"nome": "transparencia_editorial", "pontos": 25, "maximo": 25, "status": "ok", "detalhe": "Metadados encontrados"},
+            {"nome": "idade_dominio", "pontos": 15, "maximo": 15, "status": "ok", "detalhe": "Domínio antigo"},
+            {"nome": "tld_institucional", "pontos": 0, "maximo": 20, "status": "neutro", "detalhe": "Sem penalidade"},
+            {"nome": "https", "pontos": 5, "maximo": 5, "status": "ok", "detalhe": "Certificado validado"},
+        ],
+    }
+    html = render(data)
+    assert "Confiabilidade alta" in html
+    assert "não confirma os fatos da notícia" in html
+    assert "O veículo desta notícia não pôde ser consultado na base de veículos" in html
+    assert "Pontuação parcial dos sinais avaliados: 100/100 · Cobertura dos sinais: 45% (baixa)" in html
+    assert "Apenas o estilo de escrita contribuiu" in html
+    assert "Negative Pontes" not in html
+    assert "Somente estilo de escrita" not in html
+    assert " · concluída" in html
+
+    data["criteria"]["credibility"]["criterios"][0]["status"] = "ok"
+    data["criteria"]["credibility_evidence"] = {
+        "status": "matched", "checked_at": "2026-10-07", "providers": [
+            {"source": "atlas", "status": "available", "reason_code": "incomplete_identity_coverage"}
+        ], "evidence": [{"source": "atlas"}],
+    }
+    matched_html = render(data)
+    assert "O veículo desta notícia foi encontrado no Atlas da Notícia." in matched_html
+    assert "cadastro parcial" in matched_html
+    assert "no_snapshot" not in matched_html

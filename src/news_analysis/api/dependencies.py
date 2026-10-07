@@ -36,4 +36,5 @@ def get_source_credibility() -> SourceCredibility:
 
 @lru_cache
 def get_analyzer() -> NewsAnalyzer:
-    return NewsAnalyzer(get_settings(), get_repository(), source_credibility=get_source_credibility())
+    return NewsAnalyzer(get_settings(), get_repository(), source_credibility=get_source_credibility(),
+                        auto_refresh_atlas=True, atlas_repository=get_atlas_repository())

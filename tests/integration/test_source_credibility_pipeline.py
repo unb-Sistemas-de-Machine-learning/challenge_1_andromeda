@@ -20,7 +20,7 @@ def test_source_veto_persisted_without_overwriting_fact_check(tmp_path, temp_set
                             fact_check_client=FakeFactCheckClient(sample_fact_check_response),
                             source_credibility=source)
     analysis = analyzer.analyze('https://93.184.216.34/article')
-    assert analysis.criteria.credibility['score_fonte'] == 5
+    assert analysis.criteria.credibility['score_fonte'] == 6
     assert analysis.final.score == 35
     assert 'min(35' in analysis.final.formula
     stored = repository.get(analysis.id)

@@ -6,7 +6,7 @@ from news_analysis.api.app import app
 def test_root_serves_link_analysis_interface():
     response = TestClient(app).get("/")
     assert response.status_code == 200
-    assert "Analisador de confiabilidade de noticias" in response.text
+    assert "Analisador de confiabilidade de notícias" in response.text
     assert 'id="analysis-form"' in response.text
     assert 'fetch("/analyses"' in response.text
     assert 'fetch("/config"' in response.text

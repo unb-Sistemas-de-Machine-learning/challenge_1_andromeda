@@ -20,6 +20,12 @@ def validate_explanation(text: str, context: ExplanationContext) -> tuple[bool, 
     normalized = " ".join(text.split())
     if not normalized or len(normalized) < 70 or len(normalized) > 520:
         return False, "length"
+    if normalized[-1] not in ".!?":
+        return False, "incomplete"
+    if re.search(r"\b(?:veiculo_reconhecido|tld_institucional|transparencia_editorial|idade_dominio)\b", normalized, re.I):
+        return False, "internal_label"
+    if re.search(r"\b(?:nota|pontua[çc][ãa]o)\s*(?:de|foi|:)?\s*\d", normalized, re.I):
+        return False, "numeric_score"
     if _INSTRUCTION_FRAGMENT.search(normalized) or "UNTRUSTED_DATA" in normalized.upper():
         return False, "instruction_fragment"
     if len(re.findall(r"[.!?](?:\s|$)", normalized)) > 3:

@@ -50,6 +50,8 @@ class ExplanationContext(ExplanationModel):
     writing_style: WritingSummary
     source: SourceSummary
     negative_source_points: list[str] = Field(default_factory=list)
+    positive_source_points: list[str] = Field(default_factory=list)
+    unavailable_source_points: list[str] = Field(default_factory=list)
     writing_issue: str | None = None
     limitations: list[str] = Field(default_factory=list)
     allowed_numbers: list[str] = Field(default_factory=list)

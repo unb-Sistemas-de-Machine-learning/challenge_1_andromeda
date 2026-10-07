@@ -10,7 +10,7 @@ SOURCE_SCORE_CAP = 35
 
 def scoring_policy(config: CredibilityConfig = CONFIG) -> dict:
     return {
-        'version': 'source-policy-v2-unavailable-abstains',
+        'version': 'source-policy-v3-institutional-tld-bonus',
         'weights': list(config.weights),
         'transparency_weights': list(config.transparency_weights),
         'age_bands': [[limit if math.isfinite(limit) else None, points]
@@ -18,6 +18,7 @@ def scoring_policy(config: CredibilityConfig = CONFIG) -> dict:
         'age_cap': config.age_cap,
         'transparency_threshold': config.transparency_threshold,
         'institutional_tlds': list(config.institutional_tlds),
+        'non_institutional_tld_action': 'neutral',
         'low_coverage': config.low_coverage,
         'high_coverage': config.high_coverage,
         'veto_threshold': config.veto_threshold,

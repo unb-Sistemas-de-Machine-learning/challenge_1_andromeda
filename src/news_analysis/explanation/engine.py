@@ -38,7 +38,7 @@ class FlanT5SmallEngine:
     """Lazy, optional FLAN-T5 engine used only when explicitly enabled."""
 
     model_id = "google/flan-t5-small"
-    prompt_version = "explanation-prompt-v4"
+    prompt_version = "explanation-prompt-v5"
 
     def __init__(self, cache_dir: str | None = None, max_new_tokens: int = 80, max_input_tokens: int = 160,
                  model_id: str = "google/flan-t5-small", revision: str | None = None,

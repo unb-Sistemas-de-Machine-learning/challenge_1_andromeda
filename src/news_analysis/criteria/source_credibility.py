@@ -94,8 +94,11 @@ def domain_age(created: datetime, recognized: bool, transparency: int, config: C
 def institutional_tld(domain: str, config: CredibilityConfig) -> dict:
     """Require an exact suffix boundary, never a substring match."""
     matched = any(domain.endswith('.' + suffix) for suffix in config.institutional_tlds)
-    return criterion(NAMES[3], config.weights[3] if matched else 0, config.weights[3],
-                     'TLD institucional controlado' if matched else 'TLD não institucional')
+    if matched:
+        return criterion(NAMES[3], config.weights[3], config.weights[3],
+                         'Domínio institucional oficial reconhecido')
+    return dict(nome=NAMES[3], pontos=0, maximo=config.weights[3], status='neutro',
+                detalhe='Domínio institucional não identificado; sem penalidade')
 
 
 def https_criterion(url: str, config: CredibilityConfig) -> dict:
@@ -186,7 +189,7 @@ class SourceCredibility:
                         results[2], age_flags = age
                         flags.extend(age_flags)
                 results[3] = institutional_tld(domain, config)
-        available = sum(item['maximo'] for item in results if item['status'] != 'indisponivel')
+        available = sum(item['maximo'] for item in results if item['status'] not in {'indisponivel', 'neutro'})
         score = round(sum(item['pontos'] for item in results) / available * 100) if available else None
         if blocked:
             score = 0

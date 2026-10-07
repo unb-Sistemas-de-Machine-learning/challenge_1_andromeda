@@ -5,7 +5,9 @@ import argparse
 import json
 import logging
 from datetime import datetime, timezone
+from threading import Lock
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from news_analysis.config import Settings
 from news_analysis.criteria.atlas_client import AtlasClient, AtlasError
@@ -13,6 +15,8 @@ from news_analysis.criteria.credibility_config import AtlasConfig
 from news_analysis.storage.atlas_repository import AtlasRepository, SyncBusy
 
 logger = logging.getLogger(__name__)
+ATLAS_DAY_ZONE = ZoneInfo('America/Sao_Paulo')
+_refresh_lock = Lock()
 
 
 def sync_atlas(repository: AtlasRepository, config: AtlasConfig, *, client: AtlasClient | None = None,
@@ -43,13 +47,44 @@ def atlas_status(repository: AtlasRepository, config: AtlasConfig) -> dict[str, 
     age = None
     state = 'missing'
     if snapshot:
-        age = max(0, (datetime.now(timezone.utc) - datetime.fromisoformat(snapshot['created_at'])).total_seconds())
-        state = 'expired' if age > config.max_age else 'stale' if age >= config.refresh_after else 'fresh'
+        instant = datetime.now(timezone.utc)
+        created = datetime.fromisoformat(snapshot['created_at'])
+        age = max(0, (instant - created).total_seconds())
+        same_day = created.astimezone(ATLAS_DAY_ZONE).date() == instant.astimezone(ATLAS_DAY_ZONE).date()
+        state = 'expired' if age > config.max_age else 'fresh' if same_day else 'stale'
     success = view['last_success_at']
     return dict(enabled=True, status=state, active_snapshot_id=view['active_snapshot_id'],
                 age_seconds=round(age) if age is not None else None,
                 last_success_at=datetime.fromtimestamp(success, timezone.utc).isoformat() if success else None,
                 last_attempt_at=view['last_attempt_at'], last_error_code=view['last_error_code'], snapshot=snapshot)
+
+
+def refresh_atlas_for_analysis(repository: AtlasRepository, config: AtlasConfig, *,
+                               now: datetime | None = None, client: AtlasClient | None = None) -> str:
+    """Refresh once per São Paulo calendar day before a new analysis uses the index.
+
+    A failed refresh leaves the previously published snapshot in place. The
+    analysis can continue, with the repository recording the sync error.
+    """
+    if not config.enabled:
+        return 'disabled'
+    instant = now or datetime.now(timezone.utc)
+    with _refresh_lock:
+        try:
+            state = repository.status()
+            success = state['last_success_at']
+            if state['active_snapshot_id'] and success is not None:
+                updated_day = datetime.fromtimestamp(success, timezone.utc).astimezone(ATLAS_DAY_ZONE).date()
+                if updated_day == instant.astimezone(ATLAS_DAY_ZONE).date():
+                    return 'current'
+            sync_atlas(repository, config, client=client)
+            return 'published'
+        except SyncBusy:
+            return 'busy'
+        except Exception as exc:
+            code = exc.code if isinstance(exc, AtlasError) else type(exc).__name__
+            logger.warning('Atlas refresh before analysis failed: %s', code)
+            return 'unavailable'
 
 
 def main(argv: list[str] | None = None) -> int:

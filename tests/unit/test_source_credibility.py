@@ -36,7 +36,8 @@ def config(tmp_path):
 
 def test_new_domain(config):
     result = SourceCredibility(config, Network(days=10)).calculate('https://example.com')
-    assert result['score_fonte'] == 5
+    assert result['score_fonte'] == 6
+    assert result['criterios'][3]['status'] == 'neutro'
     assert result['flags'] == ['dominio_recem_criado']
     assert result['veto_dominio_suspeito']
 
@@ -44,13 +45,13 @@ def test_new_domain(config):
 def test_old_domain_without_signals_is_capped(config):
     result = SourceCredibility(config, Network()).calculate('https://example.com')
     assert result['criterios'][2]['pontos'] == 8
-    assert result['score_fonte'] == 13
+    assert result['score_fonte'] == 16
 
 
 def test_recognized_domain_gets_full_age(config):
     config.recognized_path.write_text('["example.com"]')
     result = SourceCredibility(config, Network()).calculate('https://example.com')
-    assert result['score_fonte'] == 55
+    assert result['score_fonte'] == 69
 
 
 def test_gov_br(config):
@@ -69,7 +70,7 @@ def test_blocklist(config):
 def test_rdap_unavailable_normalizes(config):
     config.recognized_path.write_text('["example.com"]')
     result = SourceCredibility(config, Network(failed=True)).calculate('https://example.com')
-    assert result['score_fonte'] == round(40 / 85 * 100)
+    assert result['score_fonte'] == round(40 / 65 * 100)
     assert result['criterios'][2]['status'] == 'indisponivel'
 
 

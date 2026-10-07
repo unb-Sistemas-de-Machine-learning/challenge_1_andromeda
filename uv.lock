@@ -68,6 +68,7 @@ dependencies = [
     { name = "torch" },
     { name = "trafilatura" },
     { name = "transformers" },
+    { name = "tzdata" },
     { name = "uvicorn" },
 ]
 
@@ -91,6 +92,7 @@ requires-dist = [
     { name = "torch", specifier = ">=2.0" },
     { name = "trafilatura", specifier = ">=1.9" },
     { name = "transformers", specifier = ">=4.40" },
+    { name = "tzdata", specifier = ">=2025.1" },
     { name = "uvicorn", specifier = ">=0.29" },
 ]
 provides-extras = ["dev"]

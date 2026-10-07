@@ -41,11 +41,11 @@ def _source_summary(analysis: Analysis) -> SourceSummary:
 def _confidence_band(score: float | None) -> str:
     if score is None:
         return "indisponível"
-    if score >= 80:
+    if score > 85:
         return "alta"
-    if score >= 50:
+    if score > 70:
         return "média"
-    if score >= 25:
+    if score > 40:
         return "baixa"
     return "baixíssima"
 
@@ -56,12 +56,29 @@ def build_explanation_context(analysis: Analysis) -> ExplanationContext:
     target_claim = _short_text(fact.target_claim, MAX_CLAIM_CHARS)
     writing_state = _short_text(writing.qualitative_state, 80)
     example = next((review for review in fact.reviews if review.included_in_score and review.review_url), None)
-    negative_points = [
-        str(item.get("nome") or item.get("detalhe"))
-        for item in (analysis.criteria.credibility or {}).get("criterios", [])
-        if str(item.get("status", "")).lower() not in {"ok", "positivo", "passou"}
-    ]
-    negative_points.extend(str(item) for item in (analysis.criteria.credibility or {}).get("flags", []))
+    negative_points = []
+    positive_points = []
+    unavailable_points = []
+    for item in (analysis.criteria.credibility or {}).get("criterios", []):
+        name = item.get("nome")
+        status = str(item.get("status", "")).lower()
+        if name == "veiculo_reconhecido":
+            if status == "negativo":
+                negative_points.append("o veículo desta notícia não foi encontrado nas bases de veículos consultadas")
+            elif status == "indisponivel":
+                unavailable_points.append("o veículo desta notícia não pôde ser consultado na base de veículos")
+            elif status == "ok":
+                evidence = analysis.criteria.credibility_evidence or {}
+                origin = "Atlas da Notícia" if any(item.get("source") == "atlas" for item in evidence.get("evidence", [])) else "base de veículos"
+                positive_points.append(f"o veículo desta notícia foi encontrado no {origin}" if origin == "Atlas da Notícia" else
+                                       "o veículo desta notícia foi encontrado na base de veículos")
+        elif name == "tld_institucional":
+            if status == "ok":
+                domain = str((analysis.criteria.credibility or {}).get("dominio") or "")
+                positive_points.append("o site verificado é um site oficial do governo" if domain.endswith(".gov.br")
+                                       else "o site verificado possui um domínio institucional oficial")
+        elif status == "negativo":
+            negative_points.append(str(item.get("detalhe") or name).rstrip("."))
     limitations = [
         item[:MAX_LIMITATION_CHARS]
         for item in analysis.limitations[:3]
@@ -106,6 +123,8 @@ def build_explanation_context(analysis: Analysis) -> ExplanationContext:
         ),
         source=_source_summary(analysis),
         negative_source_points=negative_points[:4],
+        positive_source_points=positive_points[:4],
+        unavailable_source_points=unavailable_points[:4],
         writing_issue=writing_state if writing_state and writing_state.lower() not in {"nenhum", "indisponível"} else None,
         limitations=limitations,
         allowed_numbers=sorted(numbers),

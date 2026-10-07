@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from news_analysis.article.extractor import ArticleExtractor
+from news_analysis.atlas_sync import refresh_atlas_for_analysis
 from news_analysis.article.fetcher import ArticleFetcher
 from news_analysis.article.safety import assert_url_is_safe, validate_http_url
 from news_analysis.config import Settings
@@ -12,7 +13,6 @@ from news_analysis.criteria.fact_check_search import run_fact_check_search
 from news_analysis.criteria.writing_style import WritingStyleClassifier
 from news_analysis.criteria.source_credibility import SourceCredibility
 from news_analysis.explanation.service import build_explanation
-from news_analysis.explanation.engine import FlanT5SmallEngine
 from news_analysis.criteria.credibility_policy import SOURCE_SCORE_CAP
 from news_analysis.pipeline.aggregation import aggregate_final_score, contribution
 from news_analysis.pipeline.errors import AnalysisError, AnalysisStatus
@@ -26,11 +26,12 @@ from news_analysis.pipeline.models import (
 )
 from news_analysis.pipeline.version import current_pipeline_version
 from news_analysis.storage.audit_repository import AuditRepository
+from news_analysis.storage.atlas_repository import AtlasRepository
 
 LIMITATIONS = [
-    "The final index is an operational combination of executed criteria, not a probability that the news is true or false.",
-    "Writing-style predictions are model signals and not factual verdicts.",
-    "Unavailable evidence is reported and excluded from scoring rather than treated as negative evidence.",
+    "O índice combina os critérios avaliados; não representa a probabilidade de a notícia ser verdadeira ou falsa.",
+    "O resultado do modelo de escrita é um sinal de estilo, não um veredito factual.",
+    "Critérios indisponíveis são informados e não são tratados como evidência negativa.",
 ]
 
 
@@ -44,6 +45,8 @@ class NewsAnalyzer:
         fact_check_client: FactCheckClient | None = None,
         writing_classifier: WritingStyleClassifier | None = None,
         source_credibility: SourceCredibility | None = None,
+        auto_refresh_atlas: bool = False,
+        atlas_repository: AtlasRepository | None = None,
     ):
         self.settings = settings
         self.repository = repository
@@ -51,15 +54,6 @@ class NewsAnalyzer:
         self.extractor = extractor or ArticleExtractor(settings.min_extracted_characters)
         self.fact_check_client = fact_check_client or FactCheckClient(settings)
         self.writing_classifier = writing_classifier or WritingStyleClassifier(cache_dir=settings.model_cache)
-        self.explanation_engine = FlanT5SmallEngine(
-            cache_dir=settings.model_cache,
-            max_new_tokens=settings.explanation_max_new_tokens,
-            max_input_tokens=settings.explanation_max_input_tokens,
-            model_id=settings.explanation_sml_model,
-            revision=settings.explanation_sml_revision,
-            manifest_path=settings.explanation_sml_manifest,
-            timeout_seconds=settings.explanation_timeout_seconds,
-        ) if settings.explanation_sml_enabled else None
         if source_credibility is None:
             from news_analysis.criteria.recognition import RecognitionProvider
             from news_analysis.storage.atlas_repository import AtlasRepository
@@ -67,6 +61,8 @@ class NewsAnalyzer:
             source_credibility = SourceCredibility(config, recognition=RecognitionProvider(
                 config, AtlasRepository(settings.db_path) if config.atlas.enabled else None))
         self.source_credibility = source_credibility
+        self.auto_refresh_atlas = auto_refresh_atlas
+        self.atlas_repository = atlas_repository
 
     def analyze(self, url: str, claim: str | None = None) -> Analysis:
         analysis_id = str(uuid4())
@@ -82,6 +78,9 @@ class NewsAnalyzer:
                 analysis.input["claim"] = claim.strip()
             self.repository.save(analysis)
             return analysis
+
+        if self.auto_refresh_atlas and self.settings.atlas_enabled and self.atlas_repository is not None:
+            refresh_atlas_for_analysis(self.atlas_repository, self.settings.credibility_config().atlas)
 
         fact_check = self._run_fact_check(extracted.article.title, extracted.main_text, claim)
         writing = self.writing_classifier.classify(extracted.main_text)
@@ -114,9 +113,7 @@ class NewsAnalyzer:
             completed_at=datetime.now(timezone.utc),
         )
         self.repository.save(analysis)
-        # Persist the authoritative analysis before optional SML work. A slow
-        # or unavailable explainer cannot prevent the primary audit record.
-        analysis.explanation = build_explanation(analysis, self.settings, self.explanation_engine)
+        analysis.explanation = build_explanation(analysis, self.settings)
         self.repository.save(analysis)
         return analysis
 
@@ -146,7 +143,7 @@ class NewsAnalyzer:
                 segments_analyzed=0,
                 segments=[],
                 qualitative_state=None,
-                limitation="Writing-style labels are model signals, not factual verdicts about the news.",
+                limitation="O resultado do modelo de escrita é um sinal de estilo, não um veredito factual sobre a notícia.",
                 error=ErrorInfo(code="CRITERION_UNAVAILABLE", message="Analysis did not reach writing-style classification.", retryable=False),
             ),
         )
@@ -162,7 +159,7 @@ class NewsAnalyzer:
             created_at=created_at,
             completed_at=datetime.now(timezone.utc),
         )
-        analysis.explanation = build_explanation(analysis, self.settings, self.explanation_engine)
+        analysis.explanation = build_explanation(analysis, self.settings)
         return analysis
 
     def _attach_contributions(
@@ -178,9 +175,9 @@ class NewsAnalyzer:
 
     def _limitations_for(self, coverage: float) -> list[str]:
         coverage_message = {
-            100: "Both current criteria were executed.",
-            60: "Only the fact-checking criterion contributed to the final index.",
-            40: "Only the writing-style criterion contributed to the final index.",
-            0: "No current criteria contributed to the final index.",
-        }.get(coverage, "Criterion coverage was calculated from available current criteria.")
+            100: "Os critérios atuais de checagem factual e estilo de escrita foram avaliados.",
+            60: "Apenas a checagem factual contribuiu para o índice final.",
+            40: "Apenas o estilo de escrita contribuiu para o índice final.",
+            0: "Nenhum critério atual contribuiu para o índice final.",
+        }.get(coverage, "A cobertura foi calculada com os critérios atuais disponíveis.")
         return [*LIMITATIONS, coverage_message]

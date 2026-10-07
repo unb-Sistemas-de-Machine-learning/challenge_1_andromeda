@@ -220,17 +220,17 @@ INDEX_HTML = """
   <main>
     <header>
       <div>
-        <h1>Analisador de confiabilidade de noticias</h1>
-        <p class="muted">Cole um link de noticia para receber uma analise rastreavel dos criterios disponiveis.</p>
+        <h1>Analisador de confiabilidade de notícias</h1>
+        <p class="muted">Cole um link de notícia para receber uma análise rastreável dos critérios disponíveis.</p>
         <p id="config-status" class="status-line"><span class="dot"></span><span>Verificando chave de fact-check...</span></p>
         <p id="atlas-status" class="muted">Verificando base do Atlas...</p>
       </div>
-      <a class="api-link" href="/docs">API docs</a>
+      <a class="api-link" href="/docs">Documentação da API</a>
     </header>
 
     <form id="analysis-form">
       <label>
-        Link da noticia
+        Link da notícia
         <input id="url" name="url" type="url" placeholder="https://..." required>
       </label>
       <button id="submit" type="submit">Analisar</button>
@@ -240,7 +240,7 @@ INDEX_HTML = """
       </label>
     </form>
 
-    <section id="result" class="empty panel">A analise aparecera aqui.</section>
+    <section id="result" class="empty panel">A análise aparecerá aqui.</section>
   </main>
 
   <script>
@@ -256,7 +256,7 @@ INDEX_HTML = """
       button.disabled = true;
       button.textContent = "Analisando...";
       result.className = "empty panel";
-      result.textContent = "Buscando noticia, executando criterios e montando explicacao.";
+      result.textContent = "Buscando notícia, executando critérios e montando explicação.";
 
       try {
         const response = await fetch("/analyses", {
@@ -275,15 +275,16 @@ INDEX_HTML = """
           renderAnalysis(payload);
         }
       } catch (error) {
-        renderError({ error: { message: "Nao foi possivel conectar ao servico local." } });
+        renderError({ error: { message: "Não foi possível conectar ao serviço local." } });
       } finally {
+        await refreshConfigStatus();
         button.disabled = false;
         button.textContent = "Analisar";
       }
     });
 
     function renderError(payload) {
-      const message = payload?.error?.message || "Nao foi possivel concluir a analise.";
+      const message = payload?.error?.message || "Não foi possível concluir a análise.";
       const code = payload?.error?.code || payload?.status || "ERRO";
       result.className = "panel error";
       result.innerHTML = `<strong>${escapeHtml(code)}</strong><p>${escapeHtml(message)}</p>`;
@@ -293,7 +294,7 @@ INDEX_HTML = """
       try {
         const response = await fetch("/config");
         const config = await response.json();
-        const atlasStates = {disabled: 'desabilitado', missing: 'sem base local; execute a sincronização', fresh: 'base atualizada', stale: 'atualização pendente; base dentro da validade', expired: 'base expirada'};
+        const atlasStates = {disabled: 'desabilitado', missing: 'sem base local; a próxima análise tentará atualizar', fresh: 'base atualizada', stale: 'atualização pendente; a próxima análise tentará atualizar', expired: 'base expirada; a próxima análise tentará atualizar'};
         document.querySelector('#atlas-status').textContent = `Atlas da Notícia: ${atlasStates[config.atlas_status] || 'estado indisponível'}${config.atlas_last_success_at ? ` · Última atualização: ${config.atlas_last_success_at}` : ''}`;
         const dot = configStatus.querySelector(".dot");
         const text = configStatus.querySelector("span:last-child");
@@ -305,7 +306,7 @@ INDEX_HTML = """
           text.textContent = "Google Fact Check API sem chave: crie .env ou defina FACTCHECK_API_KEY";
         }
       } catch (error) {
-        configStatus.querySelector("span:last-child").textContent = "Nao foi possivel verificar configuracao";
+        configStatus.querySelector("span:last-child").textContent = "Não foi possível verificar a configuração";
       }
     }
 
@@ -316,29 +317,29 @@ INDEX_HTML = """
       const factCriterion = data.criteria?.verifiable_facts ?? (legacyFacts ? historicalSource : null);
       const metadataSource = historicalSource?.signals ? historicalSource : null;
       const writingOnly = data.criteria?.writing_style?.available && !factCriterion?.available && !metadataSource?.available;
-      const level = score === null || score === undefined ? "Indisponivel" : writingOnly ? "Somente estilo de escrita" : scoreLabel(score);
-      const badgeClass = score === null || score === undefined || writingOnly ? "warn" : score >= 70 ? "good" : score >= 40 ? "warn" : "bad";
+      const level = score === null || score === undefined ? "Indisponível" : scoreLabel(score);
+      const badgeClass = score === null || score === undefined || writingOnly ? "warn" : score > 85 ? "good" : score > 40 ? "warn" : "bad";
       result.className = "grid";
       result.innerHTML = `
         <aside class="panel score">
           <span class="badge ${badgeClass}">${level}</span>
           <div class="score-number">${score === null || score === undefined ? "--" : Math.round(score)}</div>
-          <p class="muted">Indice operacional de confiabilidade</p>
+          <p class="muted">Índice operacional de confiabilidade</p>
           ${writingOnly ? `<p><strong>Sem checagem factual disponível.</strong> A média usa o estilo de escrita e pode receber o teto por veto da fonte; não confirma os fatos da notícia.</p>` : ""}
           <dl>
             <dt>Cobertura</dt><dd>${data.final?.coverage ?? 0}%</dd>
             <dt>Fórmula</dt><dd>${escapeHtml(data.final?.formula || "Não informada")}</dd>
             ${data.final?.score_before_veto != null ? `<dt>Média antes do veto</dt><dd>${formatScore100(data.final.score_before_veto)}</dd>` : ''}
-            <dt>Status</dt><dd>${escapeHtml(data.status)}</dd>
+            <dt>Status</dt><dd>${escapeHtml(statusLabel(data.status))}</dd>
             <dt>ID da análise</dt><dd>${escapeHtml(data.id || "Não informado")}</dd>
-            <dt>Titulo</dt><dd>${escapeHtml(data.article?.title || "Nao extraido")}</dd>
+            <dt>Título</dt><dd>${escapeHtml(data.article?.title || "Não extraído")}</dd>
             <dt>URL final</dt><dd>${escapeHtml(data.article?.final_url || data.input?.url || "")}</dd>
-            <dt>Versao</dt><dd>${escapeHtml(data.pipeline_version?.id || "")}</dd>
+            <dt>Versão</dt><dd>${escapeHtml(data.pipeline_version?.id || "")}</dd>
           </dl>
-          <ul>${(data.limitations || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+          <ul>${(data.limitations || []).map(item => `<li>${escapeHtml(limitationLabel(item))}</li>`).join("")}</ul>
         </aside>
         <section class="panel criteria">
-          ${explanationCard(data.explanation)}
+          ${explanationCard(data)}
           ${factCriterionCard(factCriterion, legacyFacts, data)}
           ${criterionCard("Estilo de escrita", data.criteria?.writing_style)}
           ${sourceAnalysisCard(data.criteria?.credibility, data.criteria?.credibility_evidence, metadataSource, data.final)}
@@ -346,17 +347,31 @@ INDEX_HTML = """
       `;
     }
 
-    function explanationCard(explanation) {
-      if (!explanation) return '';
-      const title = 'Por que esta noticia recebeu esta avaliacao?';
-      if (explanation.status !== 'SUCCESS' || !explanation.text) {
-        const messages = {sml_disabled: 'O SML local está desativado.', sml_revision_unpinned: 'O SML exige uma revisão fixada ou manifesto de integridade.', sml_artifact_missing: 'Os pesos locais do SML não foram preparados. Execute o script de preparação do modelo.', sml_unavailable: 'O modelo local não pôde ser carregado.', sml_out_of_memory: 'Memória insuficiente para executar o modelo local.', sml_timeout: 'A geração excedeu o limite de tempo.', sml_unsafe_content: 'A resposta foi rejeitada por conteúdo inseguro.'};
-        return `<article class="analysis-card explanation"><h3>${title}</h3><p>Explicacao SML indisponivel: ${escapeHtml(messages[explanation.error_code] || explanation.error_code || 'estado não informado')}</p></article>`;
+    function explanationCard(data) {
+      const title = 'Por que esta notícia recebeu esta avaliação?';
+      const explanation = data.explanation || {};
+      const score = data.final?.score;
+      const fact = data.criteria?.verifiable_facts;
+      const writing = data.criteria?.writing_style;
+      const source = data.criteria?.credibility;
+      const parts = [score == null ? 'Avaliação de confiabilidade indisponível.' : `${scoreLabel(score)}.`];
+      const factual = {SUPPORTED: 'Há evidências favoráveis à afirmação avaliada.', REFUTED: 'Há evidências contrárias à afirmação avaliada.', MIXED: 'As evidências sobre a afirmação avaliada são divergentes.', MATCHED_UNSCORED: 'Há checagens relacionadas, mas faltam dados para uma conclusão.', UNAVAILABLE: 'Não há checagem factual disponível.'};
+      parts.push(factual[fact?.evidence_status] || factual.UNAVAILABLE);
+      if (!fact?.available && writing?.available) parts.push('A avaliação considera apenas o estilo de escrita e não confirma os fatos da notícia.');
+      const recognition = source?.criterios?.find(item => item.nome === 'veiculo_reconhecido');
+      if (recognition?.status === 'indisponivel') parts.push('O veículo desta notícia não pôde ser consultado na base de veículos.');
+      else if (recognition?.status === 'negativo') parts.push('O veículo desta notícia não foi encontrado nas bases de veículos consultadas.');
+      else if (recognition?.status === 'ok') {
+        const foundInAtlas = data.criteria?.credibility_evidence?.evidence?.some(item => item.source === 'atlas');
+        parts.push(foundInAtlas ? 'O veículo desta notícia foi encontrado no Atlas da Notícia.' : 'O veículo desta notícia foi encontrado na base de veículos.');
       }
+      const tld = source?.criterios?.find(item => item.nome === 'tld_institucional');
+      if (tld?.status === 'ok') parts.push(source?.dominio?.endsWith('.gov.br') ? 'Ponto positivo: o site verificado é um site oficial do governo.' : 'Ponto positivo: o site verificado possui um domínio institucional oficial.');
+      const summary = parts.join(' ');
       const evidence = explanation.evidence_example_url && /^https?:\\/\\//i.test(explanation.evidence_example_url)
         ? `<p><strong>Exemplo de checagem:</strong> ${escapeHtml(explanation.evidence_example_publisher || 'Fonte não informada')} · ${escapeHtml(explanation.evidence_example_rating || 'avaliação não informada')} · <a href="${escapeHtml(explanation.evidence_example_url)}" target="_blank" rel="noopener noreferrer">abrir evidência</a></p>`
         : '';
-      return `<article class="analysis-card explanation"><h3>${title}</h3><p>${escapeHtml(explanation.text)}</p>${evidence}<small>Gerada pelo SML local: ${escapeHtml(explanation.model_id || 'modelo configurado')}</small></article>`;
+      return `<article class="analysis-card explanation"><h3>${title}</h3><p>${escapeHtml(summary)}</p>${evidence}<small>Resumo baseado nos critérios da análise.</small></article>`;
     }
 
     function factCriterionCard(criterion, legacy, data) {
@@ -385,14 +400,20 @@ INDEX_HTML = """
 
     function sourceAnalysisCard(source, evidence, historical, final) {
       if (!source && !historical) return `<article class="analysis-card"><h3>Credibilidade da fonte</h3><p>Sem dados de credibilidade disponíveis nesta análise.</p></article>`;
+      const criteria = source?.criterios || [];
+      const total = criteria.reduce((sum, item) => sum + Number(item.maximo || 0), 0);
+      const evaluated = criteria.filter(item => !['indisponivel', 'neutro'].includes(item.status)).reduce((sum, item) => sum + Number(item.maximo || 0), 0);
+      const sourceCoverage = total ? Math.round(100 * evaluated / total) : 0;
+      const criterionNames = {veiculo_reconhecido: 'Reconhecimento do veículo', transparencia_editorial: 'Transparência editorial', idade_dominio: 'Idade do domínio', tld_institucional: 'Domínio institucional', https: 'Conexão HTTPS'};
+      const criterionStatuses = {indisponivel: 'indisponível', negativo: 'não atendido', neutro: 'neutro', ok: 'atendido'};
       return `<article class="analysis-card"><h3>Credibilidade da fonte</h3>
-        ${source ? `<p>Score: ${source.score_fonte == null ? 'Indisponível' : `${escapeHtml(source.score_fonte)}/100`} · Confiança: ${escapeHtml(source.confianca_fonte)}</p>
+        ${source ? `<p>${source.score_fonte == null ? 'Pontuação da fonte indisponível' : `Pontuação parcial dos sinais avaliados: ${escapeHtml(source.score_fonte)}/100`} · Cobertura dos sinais: ${sourceCoverage}% (${escapeHtml(source.confianca_fonte || 'não informada')})</p>
         ${source.score_fonte == null ? '<p>Sem sinais suficientes para avaliar a fonte; a indisponibilidade não aplica veto.</p>' : ''}
         <p>Domínio: ${escapeHtml(source.dominio)}. Sinais da fonte não comprovam a veracidade da notícia.</p>
-        <ul>${(source.criterios || []).map(c => `<li>${escapeHtml(c.nome)}: ${escapeHtml(c.pontos)}/${escapeHtml(c.maximo)} — ${escapeHtml(c.status)}. ${escapeHtml(c.detalhe)}</li>`).join("")}</ul>
+        <ul>${criteria.map(c => `<li>${escapeHtml(criterionNames[c.nome] || c.nome)}: ${escapeHtml(c.pontos)}/${escapeHtml(c.maximo)} — ${escapeHtml(criterionStatuses[c.status] || c.status)}. ${escapeHtml(c.detalhe)}</li>`).join("")}</ul>
         ${evidence ? `<details><summary>Origem do reconhecimento da fonte</summary>
-          <p>${escapeHtml(evidence.status)} · Consulta: ${escapeHtml(evidence.checked_at)}</p>
-          <ul>${(evidence.providers || []).map(p => `<li>${escapeHtml(p.source)}: ${escapeHtml(p.status)} · ${escapeHtml(p.reason_code)}${p.fetched_at ? ` · Base de ${escapeHtml(p.fetched_at)}` : ''}${p.freshness === 'stale' ? ' · Atualização pendente; cópia dentro da validade' : ''}</li>`).join('')}</ul>
+          <p>${escapeHtml(recognitionLabel(evidence.status))} · Consulta: ${escapeHtml(evidence.checked_at)}</p>
+          <ul>${(evidence.providers || []).map(p => `<li>${escapeHtml(p.source === 'atlas' ? 'Atlas da Notícia' : 'Base local')}: ${escapeHtml(recognitionLabel(p.status))} · ${escapeHtml(recognitionLabel(p.reason_code))}${p.fetched_at ? ` · Base de ${escapeHtml(p.fetched_at)}` : ''}${p.freshness === 'stale' ? ' · Atualização pendente; cópia dentro da validade' : ''}</li>`).join('')}</ul>
           <ul>${(evidence.evidence || []).map(e => `<li>${escapeHtml(e.source)}${e.atlas_id ? ` · Cadastro ${escapeHtml(e.atlas_id)}: ${escapeHtml(e.name)}` : ''}${e.resolved_url && /^https?:\\/\\//i.test(e.resolved_url) ? ` · <a href="${escapeHtml(e.resolved_url)}" target="_blank" rel="noopener noreferrer">Site registrado</a>` : ''}</li>`).join('')}</ul>
         </details>` : ''}
         ${source.veto_dominio_suspeito ? (final?.score != null ? '<p>Teto de 35 aplicado à nota final. As contribuições acima mostram a média antes do teto.</p>' : '<p>Veto da fonte identificado; não há nota final à qual aplicar o teto.</p>') : ''}
@@ -407,20 +428,20 @@ INDEX_HTML = """
         <article class="analysis-card criterion">
           <h3>${escapeHtml(title)}</h3>
           <div class="criterion-grid">
-            <div class="cell"><span>Disponivel</span>${criterion.available ? "Sim" : "Nao"}</div>
-            <div class="cell"><span>Status do critério</span>${escapeHtml(criterion.status || "Não informado")}</div>
-            <div class="cell"><span>Score</span>${formatScore(criterion.score)}</div>
+            <div class="cell"><span>Disponível</span>${criterion.available ? "Sim" : "Não"}</div>
+            <div class="cell"><span>Status do critério</span>${escapeHtml(statusLabel(criterion.status || "Não informado"))}</div>
+            <div class="cell"><span>Nota</span>${formatScore(criterion.score)}</div>
             <div class="cell"><span>Peso previsto</span>${formatWeight(criterion.intended_weight)}</div>
             <div class="cell"><span>Peso efetivo</span>${formatWeight(criterion.effective_weight)}</div>
-            <div class="cell"><span>Contribuicao</span>${formatScore100(criterion.contribution)}</div>
+            <div class="cell"><span>Contribuição</span>${formatScore100(criterion.contribution)}</div>
           </div>
           ${isFactCheck ? `<p><strong>Afirmação avaliada:</strong> ${escapeHtml(criterion.target_claim || "Não informada nesta resposta")}</p><p>Checagens recuperadas: ${escapeHtml(criterion.reviews_count ?? "Não informado")} · Correspondentes: ${escapeHtml(criterion.applicable_reviews_count ?? "Não informado")} · Relacionadas: ${escapeHtml(criterion.related_reviews_count ?? "Não informado")} · Usadas na nota: ${escapeHtml(criterion.scored_reviews_count ?? "Não informado")} · Agências: ${escapeHtml(criterion.publishers_count ?? "Não informado")}</p><p>Nota da afirmação selecionada; não avalia a reputação da fonte nem todos os fatos da notícia.</p>${!criterion.available ? `<p>Este critério não contribuiu para a nota. Ausência de checagens não significa verdadeiro ou falso.</p>` : ""}` : ""}
-          ${criterion.qualitative_state ? `<ul><li>${escapeHtml(criterion.qualitative_state)}: sinal de escrita, nao veredito factual.</li></ul>` : ""}
+          ${criterion.qualitative_state ? `<ul><li>${escapeHtml(criterion.qualitative_state)}: sinal de escrita, não veredito factual.</li></ul>` : ""}
           ${isFactCheck ? evidenceState(criterion) : ''}
           ${criterion.search_incomplete ? '<p>Busca incompleta: houve falha em uma ou mais tentativas. Evidências já obtidas foram preservadas.</p>' : ''}
-          ${criterion.model ? `<ul><li>Modelo: ${escapeHtml(criterion.model)}</li><li>Revisao: ${escapeHtml(criterion.model_version)}</li><li>Segmentos analisados: ${escapeHtml(criterion.segments_analyzed)}</li></ul>` : ""}
-          ${criterion.prediction ? `<ul><li>Classe prevista: ${escapeHtml(criterion.prediction.label)}</li><li>Confianca do classificador: ${formatWeight(criterion.prediction.confidence)} (nao comprova veracidade)</li></ul>` : ""}
-          ${criterion.segments?.length ? `<details><summary>Resultados por segmento (${criterion.segments.length})</summary><ul>${criterion.segments.map(segment => `<li>Segmento ${escapeHtml(segment.index + 1)}: ${escapeHtml(segment.character_count)} caracteres · ${escapeHtml(segment.token_count ?? "Não informado")} tokens · Classe ${escapeHtml(segment.label)} · Confiança ${formatWeight(segment.confidence)} · Nota ${formatScore(segment.writing_score)}</li>`).join("")}</ul></details>` : ""}
+          ${criterion.model ? `<ul><li>Modelo: ${escapeHtml(criterion.model)}</li><li>Revisão: ${escapeHtml(criterion.model_version)}</li><li>Segmentos analisados: ${escapeHtml(criterion.segments_analyzed)}</li></ul>` : ""}
+          ${criterion.prediction ? `<ul><li>Classe prevista pelo modelo: ${escapeHtml(classLabel(criterion.prediction.label))}</li><li>Confiança do classificador: ${formatWeight(criterion.prediction.confidence)} (não comprova veracidade)</li></ul>` : ""}
+          ${criterion.segments?.length ? `<details><summary>Resultados por segmento (${criterion.segments.length})</summary><ul>${criterion.segments.map(segment => `<li>Segmento ${escapeHtml(segment.index + 1)}: ${escapeHtml(segment.character_count)} caracteres · ${escapeHtml(segment.token_count ?? "Não informado")} tokens · Classe ${escapeHtml(classLabel(segment.label))} · Confiança ${formatWeight(segment.confidence)} · Nota ${formatScore(segment.writing_score)}</li>`).join("")}</ul></details>` : ""}
           ${criterion.query ? `<ul><li>Consulta usada: ${escapeHtml(criterion.query)}</li></ul>` : ""}
           ${criterion.scope ? `<p>${escapeHtml(criterion.scope)}</p>` : ""}
           ${criterion.publishers_count ? `<p>Regra: média das notas únicas por agência, seguida da média entre agências com pesos iguais.</p><ul>${Object.entries(criterion.publisher_scores || {}).map(([agency, score]) => `<li>${escapeHtml(agency)}: ${formatScore(score)} na afirmação avaliada</li>`).join("")}</ul>` : ""}
@@ -439,7 +460,7 @@ INDEX_HTML = """
       const recorded = criterion?.search_attempts || [];
       const attempts = recorded.length ? recorded : (criterion?.error?.details?.attempted_queries || []).map(query => ({query}));
       if (!attempts.length) return "";
-      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}${attempt.status ? ` · ${escapeHtml(attempt.status)}` : ''}</li>`).join("")}</ul></details>`;
+      return `<details open><summary>Consultas realizadas (${attempts.length})</summary><ul>${attempts.map(attempt => `<li>${escapeHtml(attempt.query)}${attempt.claims_count !== undefined ? ` — ${escapeHtml(attempt.claims_count)} afirmações retornadas` : ""}${attempt.status ? ` · ${escapeHtml(statusLabel(attempt.status))}` : ''}</li>`).join("")}</ul></details>`;
     }
 
     function factCheckErrorMessage(error) {
@@ -472,9 +493,31 @@ INDEX_HTML = """
     }
 
     function scoreLabel(score) {
-      if (score >= 70) return "Confiabilidade mais alta";
-      if (score >= 40) return "Confiabilidade intermediaria";
-      return "Confiabilidade baixa";
+      if (score > 85) return "Confiabilidade alta";
+      if (score > 70) return "Confiabilidade média";
+      if (score > 40) return "Confiabilidade baixa";
+      return "Confiabilidade baixíssima";
+    }
+    function statusLabel(status) {
+      return {SUCCESS: 'Concluída', EXECUTED: 'Executado', UNAVAILABLE: 'Indisponível', ERROR: 'Erro', FAILED: 'Falhou', success: 'concluída', error: 'erro', unavailable: 'indisponível'}[status] || status;
+    }
+    function classLabel(label) {
+      return {True: 'sinal favorável', Fake: 'sinal de alerta', False: 'sinal de alerta'}[label] || label;
+    }
+    function recognitionLabel(value) {
+      return {matched: 'veículo encontrado', not_found: 'veículo não encontrado', unavailable: 'indisponível', ambiguous: 'identificação ambígua', available: 'disponível', no_snapshot: 'base local ausente', incomplete_identity_coverage: 'cadastro parcial', ok: 'sem falha', expired_snapshot: 'base expirada', atlas_storage_unavailable: 'erro ao ler a base local', local_base_unavailable: 'base local indisponível'}[value] || value;
+    }
+    function limitationLabel(item) {
+      const legacy = {
+        'The final index is an operational combination of executed criteria, not a probability that the news is true or false.': 'O índice combina os critérios avaliados; não representa a probabilidade de a notícia ser verdadeira ou falsa.',
+        'Writing-style predictions are model signals and not factual verdicts.': 'O resultado do modelo de escrita é um sinal de estilo, não um veredito factual.',
+        'Unavailable evidence is reported and excluded from scoring rather than treated as negative evidence.': 'Critérios indisponíveis são informados e não são tratados como evidência negativa.',
+        'Both current criteria were executed.': 'Os critérios atuais de checagem factual e estilo de escrita foram avaliados.',
+        'Only the fact-checking criterion contributed to the final index.': 'Apenas a checagem factual contribuiu para o índice final.',
+        'Only the writing-style criterion contributed to the final index.': 'Apenas o estilo de escrita contribuiu para o índice final.',
+        'No current criteria contributed to the final index.': 'Nenhum critério atual contribuiu para o índice final.'
+      };
+      return legacy[item] || item;
     }
     function formatScore(value) {
       return value === null || value === undefined ? "--" : Number(value).toFixed(2);

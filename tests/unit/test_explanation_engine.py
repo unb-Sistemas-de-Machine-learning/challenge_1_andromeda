@@ -58,9 +58,10 @@ def test_long_input_is_compacted_without_losing_core_results(loaded_engine):
     ]
     engine.generate(context)
     compact = tokenizer.call_args.args[0]
-    assert "nota 40.0" in compact
+    assert "Confiabilidade baixíssima" in compact
+    assert "nota 40.0" not in compact
     assert "evidências contrárias" in compact
-    assert "há pontos negativos" in compact
+    assert "Pontos negativos encontrados" in compact
     assert "há sinais de problemas" in compact
     assert "um detalhe" not in compact
     assert model.generate.call_args.kwargs["input_ids"].shape[-1] == 90

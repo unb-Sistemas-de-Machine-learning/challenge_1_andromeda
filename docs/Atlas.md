@@ -1,8 +1,10 @@
 # Integração Atlas da Notícia
 
 A Credibilidade da fonte pode reconhecer veículos cadastrados no Atlas usando
-um índice persistente de domínios. O índice é sincronizado explicitamente; a
-análise de uma notícia consulta somente SQLite e as listas locais configuradas.
+um índice persistente de domínios. O índice é sincronizado automaticamente na
+primeira análise válida de cada dia (horário de São Paulo). As análises seguintes
+no mesmo dia consultam o SQLite e as listas locais configuradas sem repetir a
+sincronização. O comando manual continua disponível para diagnóstico.
 
 ## Ativar e sincronizar
 
@@ -75,8 +77,10 @@ hashes, versão, data e frescor do índice. A interface mostra essa origem em
 
 Política central em `credibility_config.py`: renovação recomendada em 24 h,
 validade máxima de 7 dias. Entre esses limites, usa cópia local com aviso. Uma
-base expirada não concede pontos. O sistema não agenda sync automaticamente;
-execute o comando periodicamente no ambiente de implantação.
+base expirada não concede pontos. Se a atualização diária falhar, a análise
+continua usando a última base válida; o erro fica registrado no estado do Atlas.
+Uma nova análise tenta sincronizar novamente. A primeira análise do dia pode
+demorar enquanto a atualização ocorre.
 
 Timeout de 20 s/operação na consulta Atlas em lote; orçamento de 120 s/sync; até duas novas tentativas;
 resposta limitada a 32 MiB e 100 mil registros. Retry-After é respeitado; esperas

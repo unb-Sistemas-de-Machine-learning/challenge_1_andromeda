@@ -3,7 +3,7 @@ import json
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 
-from news_analysis.atlas_sync import main, sync_atlas
+from news_analysis.atlas_sync import atlas_status, main, refresh_atlas_for_analysis, sync_atlas
 from news_analysis.criteria.atlas_client import AtlasError
 from news_analysis.criteria.credibility_config import AtlasConfig
 from news_analysis.criteria.recognition import RecognitionProvider
@@ -93,6 +93,8 @@ def test_shared_api_service_reuses_cache_and_reads_new_snapshot(monkeypatch, tem
         first = dependencies.get_source_credibility()
         second = dependencies.get_source_credibility()
         assert first is second
+        dependencies.get_analyzer.cache_clear()
+        assert dependencies.get_analyzer().auto_refresh_atlas is True
         assert first.recognition.lookup('example.com')['status'] == 'unavailable'
         atlas = dependencies.get_atlas_repository()
         with atlas.sync_lease(120) as owner:
@@ -101,3 +103,75 @@ def test_shared_api_service_reuses_cache_and_reads_new_snapshot(monkeypatch, tem
     finally:
         dependencies.get_atlas_repository.cache_clear()
         dependencies.get_source_credibility.cache_clear()
+        dependencies.get_analyzer.cache_clear()
+
+
+def test_refresh_runs_once_per_day(tmp_path):
+    atlas = AtlasRepository(str(tmp_path / 'atlas.sqlite3'))
+    config = AtlasConfig(enabled=True)
+    class Client:
+        calls = 0
+        def collect(self):
+            self.calls += 1
+            return collection()
+    client = Client()
+    assert refresh_atlas_for_analysis(atlas, config, client=client) == 'published'
+    assert refresh_atlas_for_analysis(atlas, config, client=client) == 'current'
+    assert client.calls == 1
+
+
+def test_refresh_uses_sao_paulo_day_across_utc_midnight():
+    class Repository:
+        def status(self):
+            return {'active_snapshot_id': 'snapshot',
+                    'last_success_at': datetime(2026, 10, 7, 0, 30, tzinfo=timezone.utc).timestamp()}
+    class Client:
+        def collect(self):
+            raise AssertionError('The snapshot was updated today in São Paulo')
+    assert refresh_atlas_for_analysis(Repository(), AtlasConfig(enabled=True),
+                                      now=datetime(2026, 10, 7, 1, 30, tzinfo=timezone.utc), client=Client()) == 'current'
+
+
+def test_status_marks_yesterday_snapshot_as_pending():
+    class Repository:
+        def status(self):
+            return {'active_snapshot_id': 'snapshot', 'last_success_at': None, 'last_attempt_at': None,
+                    'last_error_code': None, 'snapshot': {
+                        'created_at': (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+                    }}
+    assert atlas_status(Repository(), AtlasConfig(enabled=True))['status'] == 'stale'
+
+
+def test_failed_daily_refresh_keeps_previous_snapshot(tmp_path):
+    atlas = AtlasRepository(str(tmp_path / 'atlas.sqlite3'))
+    with atlas.sync_lease(120) as owner:
+        snapshot_id = atlas.publish(collection(), owner)
+    class Failed:
+        def collect(self):
+            raise AtlasError('transport_error')
+    later = datetime.now(timezone.utc) + timedelta(days=1)
+    assert refresh_atlas_for_analysis(atlas, AtlasConfig(enabled=True), now=later, client=Failed()) == 'unavailable'
+    assert atlas.status()['active_snapshot_id'] == snapshot_id
+    assert atlas.status()['last_error_code'] == 'transport_error'
+
+
+def test_analysis_refreshes_atlas_before_source_lookup(monkeypatch, temp_settings, repository,
+                                                       long_article_html, sample_fact_check_response):
+    atlas = AtlasRepository(temp_settings.db_path)
+    settings = replace(temp_settings, atlas_enabled=True)
+    config = settings.credibility_config()
+    source = SourceCredibility(config, AgeNetwork(), RecognitionProvider(config, atlas))
+    calls = []
+    def refresh(repo, atlas_config):
+        calls.append(atlas_config.enabled)
+        with repo.sync_lease(120) as owner:
+            repo.publish(collection(), owner)
+        return 'published'
+    monkeypatch.setattr('news_analysis.pipeline.analyzer.refresh_atlas_for_analysis', refresh)
+    analyzer = NewsAnalyzer(settings, repository,
+                            fetcher=FakeFetcher(long_article_html, 'https://example.com/article'),
+                            fact_check_client=FakeFactCheckClient(sample_fact_check_response),
+                            source_credibility=source, auto_refresh_atlas=True, atlas_repository=atlas)
+    analysis = analyzer.analyze('https://93.184.216.34/article')
+    assert calls == [True]
+    assert analysis.criteria.credibility['criterios'][0]['pontos'] == 35
