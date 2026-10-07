@@ -300,4 +300,3 @@ A documentação completa do projeto está disponível em:
     </table>
 </div>
 
-**Professores:** Isaque Alves e Guilherme Fernandes.
